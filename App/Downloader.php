@@ -76,7 +76,7 @@ class Downloader
         }
 
         if($new_episodes > 0) {
-            $this->system->createFolderIfNotExists('lessons');
+            $this->system->createFolderIfNotExists('series');
             Utils::box('Downloading Series');
             foreach ($diff['series'] as $serie => $episodes) {
                 $this->system->createSerieFolderIfNotExists($serie);
