@@ -91,13 +91,21 @@ class Controller {
     }
 
     /**
-     * Create folder if not exists
+     * Create series folder if not exists
      * @param $serie
      */
     public function createSerieFolderIfNotExists($serie)
     {
-        if($this->system->has(SERIES_FOLDER . '/' . $serie) == false)
-            $this->system->createDir(SERIES_FOLDER . '/' . $serie);
+        $this->createFolderIfNotExists(SERIES_FOLDER . '/' . $serie);
+    }
+
+    /**
+     * Create folder if not exists
+     * @param $folder
+     */
+    public function createFolderIfNotExists($folder) {
+        if($this->system->has($folder) == false)
+            $this->system->createDir($folder);
     }
 
 }
