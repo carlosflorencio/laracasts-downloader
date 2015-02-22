@@ -68,7 +68,7 @@ class Downloader
         $this->doAuth($options);
 
         if($new_lessons > 0) {
-            $this->system->createFolderIfNotExists('lessons');
+            $this->system->createFolderIfNotExists(LESSONS_FOLDER);
             Utils::box('Downloading Lessons');
             foreach ($diff['lessons'] as $lesson) {
                 $this->client->downloadLesson($lesson);
@@ -76,7 +76,7 @@ class Downloader
         }
 
         if($new_episodes > 0) {
-            $this->system->createFolderIfNotExists('series');
+            $this->system->createFolderIfNotExists(SERIES_FOLDER);
             Utils::box('Downloading Series');
             foreach ($diff['series'] as $serie => $episodes) {
                 $this->system->createSerieFolderIfNotExists($serie);
