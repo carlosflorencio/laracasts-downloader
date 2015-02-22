@@ -15,6 +15,14 @@ If your local folder is empty, all lessons and series will be downloaded!
 
 Also works in the browser, but is better from the cli because of the instant feedback
 
+## Troubleshooting
+If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` do this:
+
+- Download [http://curl.haxx.se/ca/cacert.pem](http://curl.haxx.se/ca/cacert.pem)
+- Add `curl.cainfo = "PATH_TO/cacert.pem"` to your php.ini
+
+And you are done! If using apache you may need to restart it.
+
 ## License
 
 This library is under the MIT License, see the complete license [here](LICENSE)
