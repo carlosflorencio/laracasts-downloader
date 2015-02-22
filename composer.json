@@ -1,0 +1,16 @@
+{
+  "require": {
+    "guzzlehttp/guzzle": "~5.2",
+    "league/flysystem": "~1.0",
+    "symfony/dom-crawler": "~2.6",
+    "symfony/css-selector": "~3.0@dev",
+    "devster/ubench": "~1.1@dev"
+  },
+  "require-dev": {
+    "digitalnature/php-ref": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {"App\\": "app/"}
+  },
+  "minimum-stability" : "dev"
+}
