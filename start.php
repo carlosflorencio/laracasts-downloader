@@ -53,7 +53,3 @@ try {
 } catch (Exception $e) {
     echo 'ERROR: '.$e->getMessage();
 }
-
-// TODO: x of 5 left
-// TODO: Downloading series, add the name of the serie and how much episodes of that serie left
-// TODO: Maybe a total gb count

@@ -34,9 +34,7 @@ class Utils
     public static function countAllLessons($array)
     {
         $total = count($array['lessons']);
-        foreach ($array['series'] as $serie => $episodes) {
-            $total += count($episodes);
-        }
+        $total += self::countEpisodes($array);
 
         return $total;
     }
@@ -63,8 +61,8 @@ class Utils
     public static function countEpisodes($array)
     {
         $total = 0;
-        foreach ($array['series'] as $serie => $episodes) {
-            $total += count($episodes);
+        foreach ($array['series'] as $serie) {
+            $total += count($serie);
         }
 
         return $total;

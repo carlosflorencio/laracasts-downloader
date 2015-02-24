@@ -22,7 +22,7 @@ class Parser
     {
         $parser = new Crawler($html);
 
-        $parser->filter('a.js-lesson-title')->each(function (Crawler $node, $i) use (&$array) {
+        $parser->filter('a.js-lesson-title')->each(function (Crawler $node) use (&$array) {
             $link = $node->attr('href');
 
             if (preg_match('/'.LARACASTS_LESSONS_PATH.'\/(.+)/', $link, $matches)) { // lesson

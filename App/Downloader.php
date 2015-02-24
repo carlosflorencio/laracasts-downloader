@@ -5,6 +5,7 @@
 namespace App;
 
 use App\Exceptions\LoginException;
+use App\Exceptions\SubscriptionNotActiveException;
 use App\Http\Resolver;
 use App\System\Controller;
 use App\Utils\Utils;
