@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "4aaf9c48e9d869423d5b396e415c8191",
+    "hash": "9af428fcb672d2c4ebf5bf5206b49064",
     "packages": [
         {
             "name": "devster/ubench",
@@ -217,12 +217,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "f2e041428fb4b565bf65de708a12882a5273350e"
+                "reference": "a2f5629fb0e6a85b749b3f49bd790b61381c14a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/f2e041428fb4b565bf65de708a12882a5273350e",
-                "reference": "f2e041428fb4b565bf65de708a12882a5273350e",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/a2f5629fb0e6a85b749b3f49bd790b61381c14a9",
+                "reference": "a2f5629fb0e6a85b749b3f49bd790b61381c14a9",
                 "shasum": ""
             },
             "require": {
@@ -292,7 +292,7 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2015-02-20 11:50:32"
+            "time": "2015-02-22 18:36:34"
         },
         {
             "name": "react/promise",

@@ -6,6 +6,7 @@
 namespace App\Http;
 
 use App\Downloader;
+use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
