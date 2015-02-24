@@ -1,0 +1,7 @@
+filter:
+    excluded_paths: [vendor/*]
+checks:
+    php: true
+tools:
+    php_cs_fixer:
+        config: { level: psr2 }

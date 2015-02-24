@@ -78,6 +78,7 @@ class Utils
      */
     public static function resolveFaultyLessons($onlineListArray, $localListArray)
     {
+        $array = [];
         $array['series'] = [];
         $array['lessons'] = [];
 
