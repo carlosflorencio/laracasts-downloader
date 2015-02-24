@@ -7,6 +7,10 @@ If your local folder is empty, all lessons and series will be downloaded!
 
 **An account with an active subscription is necessary!**
 
+## Requirements
+- PHP >= 5.4
+- curl with SSL support
+
 ## Installation
 - Clone this repo to a folder in your machine
 - Add a config.ini with your options, there is a config.example.ini
