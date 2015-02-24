@@ -1,4 +1,7 @@
 {
+  "name": "iamfreee/laracasts-downloader",
+  "description": "PHP library to download laracasts lessons",
+  "license": "MIT",
   "require": {
     "guzzlehttp/guzzle": "~5.2",
     "league/flysystem": "~1.0",

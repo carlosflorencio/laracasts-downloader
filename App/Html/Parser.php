@@ -1,12 +1,19 @@
-<?php namespace App\Html;
+<?php
+/**
+ * Dom Parser
+ */
+namespace App\Html;
 
 use Symfony\Component\DomCrawler\Crawler;
 
+/**
+ * Class Parser
+ * @package App\Html
+ */
 class Parser
 {
-
     /**
-     * Parses the html and adds the lessons the the array
+     * Parses the html and adds the lessons the the array.
      *
      * @param $html
      * @param $array
@@ -18,18 +25,18 @@ class Parser
         $parser->filter('a.js-lesson-title')->each(function (Crawler $node, $i) use (&$array) {
             $link = $node->attr('href');
 
-            if (preg_match('/' . LARACASTS_LESSONS_PATH . '\/(.+)/', $link, $matches)) { // lesson
+            if (preg_match('/'.LARACASTS_LESSONS_PATH.'\/(.+)/', $link, $matches)) { // lesson
                 $array['lessons'][] = $matches[1];
             }
 
-            if (preg_match('/' . LARACASTS_SERIES_PATH . '\/(.+)\/episodes\/(\d+)/', $link, $matches)) { // lesson
-                $array['series'][$matches[1]][] = (int)$matches[2];
+            if (preg_match('/'.LARACASTS_SERIES_PATH.'\/(.+)\/episodes\/(\d+)/', $link, $matches)) { // lesson
+                $array['series'][$matches[1]][] = (int) $matches[2];
             }
         });
     }
 
     /**
-     * Determines if there is next page, false if not or the link
+     * Determines if there is next page, false if not or the link.
      *
      * @param $html
      *
@@ -40,14 +47,15 @@ class Parser
         $parser = new Crawler($html);
 
         $node = $parser->filter('[rel=next]');
-        if ($node->count() > 0)
+        if ($node->count() > 0) {
             return $node->attr('href');
+        }
 
-        return FALSE;
+        return false;
     }
 
     /**
-     * Gets the token input
+     * Gets the token input.
      *
      * @param $html
      *
@@ -61,7 +69,7 @@ class Parser
     }
 
     /**
-     * Gets the download link
+     * Gets the download link.
      *
      * @param $html
      */
@@ -73,7 +81,7 @@ class Parser
     }
 
     /**
-     * Extracts the name of the episode
+     * Extracts the name of the episode.
      *
      * @param $html
      *

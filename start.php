@@ -1,18 +1,21 @@
 <?php
+/**
+ * App start point
+ */
 use League\Flysystem\Filesystem;
 use League\Flysystem\Adapter\Local as Adapter;
 
 /**
- * Composer autoloader
+ * Composer autoloader.
  */
 require 'vendor/autoload.php';
 
-/**
+/*
  * Options
  */
 $options = parse_ini_file('config.ini');
 
-/**
+/*
  * Constants
  */
 //local
@@ -28,19 +31,19 @@ define('LARACASTS_POST_LOGIN_PATH', 'sessions');
 define('LARACASTS_LESSONS_PATH', 'lessons');
 define('LARACASTS_SERIES_PATH', 'series');
 
-/**
+/*
  * Vars
  */
 set_time_limit(0);
 
-/**
+/*
  * Dependencies
  */
 $client = new GuzzleHttp\Client(['base_url' => LARACASTS_BASE_URL]);
 $filesystem = new Filesystem(new Adapter(BASE_FOLDER));
 $bench = new Ubench();
 
-/**
+/*
  * App
  */
 $app = new App\Downloader($client, $filesystem, $bench);
@@ -48,9 +51,8 @@ $app = new App\Downloader($client, $filesystem, $bench);
 try {
     $app->start($options);
 } catch (Exception $e) {
-    echo 'ERROR: ' . $e->getMessage();
+    echo 'ERROR: '.$e->getMessage();
 }
-
 
 // TODO: x of 5 left
 // TODO: Downloading series, add the name of the serie and how much episodes of that serie left

@@ -1,35 +1,48 @@
-<?php namespace App\Http;
+<?php
+/**
+ * Http functions
+ */
+
+namespace App\Http;
 
 use App\Downloader;
 use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
-use League\Flysystem\Util;
 use Ubench;
 
+/**
+ * Class Resolver
+ * @package App\Http
+ */
 class Resolver
 {
     /**
+     * Guzzle client
      * @var Client
      */
     private $client;
 
     /**
+     * Guzzle cookie
      * @var CookieJar
      */
     private $cookie;
 
     /**
+     * Ubench lib
      * @var Ubench
      */
     private $bench;
 
     /**
+     * Receives dependencies
+     *
      * @param Client $client
      * @param Ubench $bench
      */
-    function __construct(Client $client, Ubench $bench)
+    public function __construct(Client $client, Ubench $bench)
     {
         $this->client = $client;
         $this->cookie = new CookieJar();
@@ -37,7 +50,7 @@ class Resolver
     }
 
     /**
-     * Grabs all lessons & series from the website
+     * Grabs all lessons & series from the website.
      */
     public function getAllLessons()
     {
@@ -54,8 +67,10 @@ class Resolver
     }
 
     /**
-     * Gets the latest lessons only
+     * Gets the latest lessons only.
+     *
      * @return array
+     *
      * @throws \Exception
      */
     public function getLatestLessons()
@@ -69,8 +84,10 @@ class Resolver
     }
 
     /**
-     * Gets the html from the all page
+     * Gets the html from the all page.
+     *
      * @return string
+     *
      * @throws \Exception
      */
     private function getAllPage()
@@ -81,12 +98,13 @@ class Resolver
     }
 
     /**
-     * Tries to auth
+     * Tries to auth.
      *
      * @param $email
      * @param $password
      *
      * @return bool
+     * @throws SubscriptionNotActiveException
      */
     public function doAuth($email, $password)
     {
@@ -102,22 +120,21 @@ class Resolver
                 'email'    => $email,
                 'password' => $password,
                 '_token'   => $token,
-                'remember' => 1
+                'remember' => 1,
             ],
         ]);
 
         $html = $response->getBody()->getContents();
 
-        if(strpos($html, "Reactivate") !== FALSE) {
-            Utils::write('Your subscription is not active!');
-            die();
+        if (strpos($html, "Reactivate") !== FALSE) {
+            throw new SubscriptionNotActiveException();
         }
 
         return strpos($html, "You are now logged in!") !== FALSE;
     }
 
     /**
-     * Download the episode of the serie
+     * Download the episode of the serie.
      *
      * @param $serie
      * @param $episode
@@ -127,14 +144,16 @@ class Resolver
         $path = LARACASTS_SERIES_PATH . '/' . $serie . '/episodes/' . $episode;
         $name = $this->getNameOfEpisode($path);
         $number = sprintf("%02d", $episode);
-        $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie .'/' . $number . '-' . $name . '.mp4';
+        $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie . '/' . $number . '-' . $name . '.mp4';
 
-
+        Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
+            $number . ' - ' . $name
+        ));
         $this->downloadLessonFromPath($name, $path, $saveTo);
     }
 
     /**
-     * Downloads the lesson
+     * Downloads the lesson.
      *
      * @param $lesson
      */
@@ -144,11 +163,14 @@ class Resolver
         $number = sprintf("%04d", ++Downloader::$currentLessonNumber);
         $saveTo = BASE_FOLDER . '/' . LESSONS_FOLDER . '/' . $number . '-' . $lesson . '.mp4';
 
+        Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
+            $lesson
+        ));
         $this->downloadLessonFromPath($lesson, $path, $saveTo);
     }
 
     /**
-     * Helper to get the Location header
+     * Helper to get the Location header.
      *
      * @param $url
      *
@@ -158,14 +180,14 @@ class Resolver
     {
         $response = $this->client->get($url, [
             'cookies'         => $this->cookie,
-            'allow_redirects' => FALSE
+            'allow_redirects' => FALSE,
         ]);
 
         return $response->getHeader('Location');
     }
 
     /**
-     * Gets the name of the serie episode
+     * Gets the name of the serie episode.
      *
      * @param $path
      *
@@ -181,7 +203,7 @@ class Resolver
     }
 
     /**
-     * Helper to download the video
+     * Helper to download the video.
      *
      * @param $name
      * @param $path
@@ -189,10 +211,6 @@ class Resolver
      */
     private function downloadLessonFromPath($name, $path, $saveTo)
     {
-        Utils::write(sprintf("Download started: %s . . . .",
-            $name
-        ));
-
         $response = $this->client->get($path, ['cookies' => $this->cookie]);
         $downloadUrl = Parser::getDownloadLink($response->getBody()->getContents());
 
@@ -205,7 +223,7 @@ class Resolver
         ]);
         $this->bench->end();
 
-        Utils::write(sprintf("Downloaded: %s. Elapsed time: %s, Memory: %s",
+        Utils::write(sprintf("Elapsed time: %s, Memory: %s",
             $name,
             $this->bench->getTime(),
             $this->bench->getMemoryUsage()
