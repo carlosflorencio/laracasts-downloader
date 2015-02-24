@@ -35,6 +35,7 @@ class Controller
      */
     public function getAllLessons()
     {
+        $array = [];
         $array['lessons'] = $this->getLessons();
         $array['series'] = $this->getSeries();
 
