@@ -150,7 +150,7 @@ class Resolver
         Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
             $number . ' - ' . $name
         ));
-        $this->downloadLessonFromPath($name, $path, $saveTo);
+        $this->downloadLessonFromPath($path, $saveTo);
     }
 
     /**
@@ -167,7 +167,7 @@ class Resolver
         Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
             $lesson
         ));
-        $this->downloadLessonFromPath($lesson, $path, $saveTo);
+        $this->downloadLessonFromPath($path, $saveTo);
     }
 
     /**
@@ -210,7 +210,7 @@ class Resolver
      * @param $path
      * @param $saveTo
      */
-    private function downloadLessonFromPath($name, $path, $saveTo)
+    private function downloadLessonFromPath($path, $saveTo)
     {
         $response = $this->client->get($path, ['cookies' => $this->cookie]);
         $downloadUrl = Parser::getDownloadLink($response->getBody()->getContents());
