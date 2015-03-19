@@ -94,36 +94,17 @@ class Downloader
 
             $this->doAuth($options);
 
+            //Download Lessons
             if ($new_lessons > 0) {
-                $this->system->createFolderIfNotExists(LESSONS_FOLDER);
-                Utils::box('Downloading Lessons');
-                foreach ($diff['lessons'] as $lesson) {
-                    $this->client->downloadLesson($lesson);
-                    Utils::write(sprintf("Current: %d of %d total. Left: %d",
-                        $counter['lessons']++,
-                        $new_lessons,
-                        $new_lessons - $counter['lessons'] + 1
-                    ));
-                }
+                $this->downloadLessons($diff, $counter, $new_lessons);
             }
 
+            //Donwload Episodes
             if ($new_episodes > 0) {
-                $this->system->createFolderIfNotExists(SERIES_FOLDER);
-                Utils::box('Downloading Series');
-                foreach ($diff['series'] as $serie => $episodes) {
-                    $this->system->createSerieFolderIfNotExists($serie);
-                    foreach ($episodes as $episode) {
-                        $this->client->downloadSerieEpisode($serie, $episode);
-                        Utils::write(sprintf("Current: %d of %d total. Left: %d",
-                            $counter['series']++,
-                            $new_episodes,
-                            $new_episodes - $counter['series'] + 1
-                        ));
-                    }
-                }
+                $this->downloadEpisodes($diff, $counter, $new_episodes);
             }
 
-            Utils::writeln(sprintf("Finished! %d new lessons and %d new episodes.",
+            Utils::writeln(sprintf("Finished! Downloaded %d new lessons and %d new episodes.",
                 $new_lessons,
                 $new_episodes
             ));
@@ -147,5 +128,48 @@ class Downloader
             throw new LoginException("Can't do the login..");
         }
         Utils::write("Successfull!");
+    }
+
+    /**
+     * Download Lessons
+     * @param $diff
+     * @param $counter
+     * @param $new_lessons
+     */
+    public function downloadLessons(&$diff, &$counter, $new_lessons)
+    {
+        $this->system->createFolderIfNotExists(LESSONS_FOLDER);
+        Utils::box('Downloading Lessons');
+        foreach ($diff['lessons'] as $lesson) {
+            $this->client->downloadLesson($lesson);
+            Utils::write(sprintf("Current: %d of %d total. Left: %d",
+                $counter['lessons']++,
+                $new_lessons,
+                $new_lessons - $counter['lessons'] + 1
+            ));
+        }
+    }
+
+    /**
+     * Download Episodes
+     * @param $diff
+     * @param $counter
+     * @param $new_episodes
+     */
+    public function downloadEpisodes(&$diff, &$counter, $new_episodes)
+    {
+        $this->system->createFolderIfNotExists(SERIES_FOLDER);
+        Utils::box('Downloading Series');
+        foreach ($diff['series'] as $serie => $episodes) {
+            $this->system->createSerieFolderIfNotExists($serie);
+            foreach ($episodes as $episode) {
+                $this->client->downloadSerieEpisode($serie, $episode);
+                Utils::write(sprintf("Current: %d of %d total. Left: %d",
+                    $counter['series']++,
+                    $new_episodes,
+                    $new_episodes - $counter['series'] + 1
+                ));
+            }
+        }
     }
 }
