@@ -15,6 +15,7 @@ If your local folder is empty, all lessons and series will be downloaded!
 ## Requirements
 - PHP >= 5.4
 - curl with SSL support
+- Composer
 
 ## Installation
 - Clone this repo to a folder in your machine
