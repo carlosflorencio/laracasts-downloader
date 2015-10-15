@@ -21,6 +21,7 @@ class Controller
 
     /**
      * Receives dependencies
+     *
      * @param Filesystem $system
      */
     public function __construct(Filesystem $system)
@@ -35,9 +36,9 @@ class Controller
      */
     public function getAllLessons()
     {
-        $array = [];
-        $array['lessons'] = $this->getLessons();
-        $array['series'] = $this->getSeries();
+        $array            = [];
+        $array['lessons'] = $this->getLessons(true);
+        $array['series']  = $this->getSeries(true);
 
         Downloader::$currentLessonNumber = count($array['lessons']);
 
@@ -46,11 +47,14 @@ class Controller
 
     /**
      * Get the series
+     *
+     * @param bool $skip
+     *
      * @return array
      */
-    private function getSeries()
+    private function getSeries($skip = false)
     {
-        $list = $this->system->listContents(SERIES_FOLDER, true);
+        $list  = $this->system->listContents(SERIES_FOLDER, true);
         $array = [];
 
         foreach ($list as $entry) {
@@ -58,10 +62,22 @@ class Controller
                 continue;
             } //skip folder, we only want the files
 
-            $serie = substr($entry['dirname'], strpos($entry['dirname'], DIRECTORY_SEPARATOR) + 1);
-            $episode = (int) substr($entry['filename'], 0, strpos($entry['filename'], '-'));
+            $serie   = substr($entry['dirname'], strpos($entry['dirname'], DIRECTORY_SEPARATOR) + 1);
+            $episode = (int)substr($entry['filename'], 0, strpos($entry['filename'], '-'));
 
             $array[$serie][] = $episode;
+        }
+
+        if($skip) {
+            foreach($this->getSkipSeries() as $skipSerie => $episodes) {
+                if(!isset($array[$skipSerie])) {
+                    $array[$skipSerie] = $episodes;
+                    continue;
+                }
+
+                $array[$skipSerie] = array_merge($array[$skipSerie], $episodes);
+                $array[$skipSerie] = array_filter(array_unique($array[$skipSerie]));
+            }
         }
 
         return $array;
@@ -70,11 +86,13 @@ class Controller
     /**
      * Gets the lessons in the folder.
      *
+     * @param bool $skip
+     *
      * @return array
      */
-    public function getLessons()
+    public function getLessons($skip = false)
     {
-        $list = $this->system->listContents(LESSONS_FOLDER);
+        $list  = $this->system->listContents(LESSONS_FOLDER);
         $array = [];
 
         foreach ($list as $entry) {
@@ -87,7 +105,76 @@ class Controller
             $array[] = substr($originalName, strpos($originalName, '-') + 1);
         }
 
+        if ($skip) {
+            $array = array_merge($this->getSkipLessons(), $array);
+            $array = array_filter(array_unique($array));
+        }
+
         return $array;
+    }
+
+    /**
+     * Create skip file to lessons
+     */
+    public function writeSkipLessons()
+    {
+        $file = LESSONS_FOLDER . '/.skip';
+
+        $lessons = serialize($this->getLessons());
+
+        if($this->system->has($file)) {
+            $this->system->delete($file);
+        }
+
+        $this->system->write($file, $lessons);
+    }
+
+    /**
+     * Create skip file to lessons
+     */
+    public function writeSkipSeries()
+    {
+        $file = SERIES_FOLDER . '/.skip';
+
+        $series = serialize($this->getSeries());
+
+        if($this->system->has($file)) {
+            $this->system->delete($file);
+        }
+
+        $this->system->write($file, $series);
+    }
+
+    /**
+     * @return array
+     */
+    public function getSkipLessons()
+    {
+        $file = LESSONS_FOLDER . '/.skip';
+
+        if ($this->system->has($file)) {
+            $content = $this->system->read($file);
+
+            return unserialize($content);
+        }
+
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    public function getSkipSeries()
+    {
+        $file = SERIES_FOLDER . '/.skip';
+
+        if ($this->system->has($file)) {
+            $content = $this->system->read($file);
+
+            return unserialize($content);
+        }
+
+        return [];
     }
 
     /**
@@ -103,17 +190,17 @@ class Controller
             }
 
             $originalName = $entry['basename'];
-            $oldNumber = substr($originalName, 0, strpos($originalName, '-'));
+            $oldNumber    = substr($originalName, 0, strpos($originalName, '-'));
 
             if (strlen($oldNumber) == 4) {
                 continue;
             } // already correct
 
-            $newNumber = sprintf("%04d", $oldNumber);
+            $newNumber         = sprintf("%04d", $oldNumber);
             $nameWithoutNumber = substr($originalName, strpos($originalName, '-') + 1);
-            $newName = $newNumber.'-'.$nameWithoutNumber;
+            $newName           = $newNumber . '-' . $nameWithoutNumber;
 
-            $this->system->rename(LESSONS_FOLDER.'/'.$originalName, LESSONS_FOLDER.'/'.$newName);
+            $this->system->rename(LESSONS_FOLDER . '/' . $originalName, LESSONS_FOLDER . '/' . $newName);
         }
     }
 
@@ -124,7 +211,7 @@ class Controller
      */
     public function createSerieFolderIfNotExists($serie)
     {
-        $this->createFolderIfNotExists(SERIES_FOLDER.'/'.$serie);
+        $this->createFolderIfNotExists(SERIES_FOLDER . '/' . $serie);
     }
 
     /**
