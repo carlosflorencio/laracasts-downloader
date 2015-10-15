@@ -5,6 +5,7 @@
 namespace App\System;
 
 use App\Downloader;
+use App\Utils\Utils;
 use League\Flysystem\Filesystem;
 
 /**
@@ -127,6 +128,22 @@ class Controller
         }
 
         $this->system->write($file, $lessons);
+    }
+
+    /**
+     * run write commands
+     */
+    public function writeSkipFiles()
+    {
+        Utils::box('Creating skip files');
+
+        $this->writeSkipSeries();
+        Utils::write('Skip files for series created');
+
+        $this->writeSkipLessons();
+        Utils::write('Skip files for lesson created');
+
+        Utils::box('Finished');
     }
 
     /**
