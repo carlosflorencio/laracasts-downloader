@@ -74,11 +74,8 @@ class Downloader
 
             $this->bench->start();
             $localLessons = $this->system->getAllLessons();
-            //$allLessonsOnline = $this->client->getAllLessons();
+            $allLessonsOnline = $this->client->getAllLessons();
             $this->bench->end();
-
-            $allLessonsOnline['lessons'] = ['unique-slugs-in-laravel'];
-            $allLessonsOnline['series']['learning-vue-step-by-step'] = [6];
 
             //Magic to get what to download
             $diff = Utils::resolveFaultyLessons($allLessonsOnline, $localLessons);
