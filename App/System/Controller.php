@@ -63,7 +63,7 @@ class Controller
                 continue;
             } //skip folder, we only want the files
 
-            $serie   = substr($entry['dirname'], strpos($entry['dirname'], DIRECTORY_SEPARATOR) + 1);
+            $serie   = substr($entry['dirname'], strlen(SERIES_FOLDER) + 1);
             $episode = (int)substr($entry['filename'], 0, strpos($entry['filename'], '-'));
 
             $array[$serie][] = $episode;

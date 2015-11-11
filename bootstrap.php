@@ -20,7 +20,7 @@ define('SERIES_FOLDER', $options['series_folder']);
 
 //laracasts
 define('LARACASTS_BASE_URL', 'https://laracasts.com');
-define('LARACASTS_ALL_PATH', 'all');
+define('LARACASTS_ALL_PATH', 'lessons');
 define('LARACASTS_LOGIN_PATH', 'login');
 define('LARACASTS_POST_LOGIN_PATH', 'sessions');
 define('LARACASTS_LESSONS_PATH', 'lessons');

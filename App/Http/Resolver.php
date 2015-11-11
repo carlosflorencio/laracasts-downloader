@@ -11,6 +11,7 @@ use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Event\ProgressEvent;
 use Ubench;
 
 /**
@@ -131,7 +132,7 @@ class Resolver
             throw new SubscriptionNotActiveException();
         }
 
-        return strpos($html, "You are now logged in!") !== FALSE;
+        return strpos($html, "verify your credentials.") === FALSE;
     }
 
     /**
@@ -143,14 +144,15 @@ class Resolver
     public function downloadSerieEpisode($serie, $episode)
     {
         $path = LARACASTS_SERIES_PATH . '/' . $serie . '/episodes/' . $episode;
-        $name = $this->getNameOfEpisode($path);
+        $episodePage = $this->getPage($path);
+        $name = $this->getNameOfEpisode($episodePage, $path);
         $number = sprintf("%02d", $episode);
         $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie . '/' . $number . '-' . $name . '.mp4';
-
         Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
             $number . ' - ' . $name
         ));
-        $this->downloadLessonFromPath($path, $saveTo);
+
+        $this->downloadLessonFromPath($episodePage, $saveTo);
     }
 
     /**
@@ -167,7 +169,20 @@ class Resolver
         Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
             $lesson
         ));
-        $this->downloadLessonFromPath($path, $saveTo);
+        $html = $this->getPage($path);
+        $this->downloadLessonFromPath($html, $saveTo);
+    }
+
+    /**
+     * Helper function to get html of a page
+     * @param $path
+     * @return string
+     */
+    private function getPage($path) {
+        return $this->client
+            ->get($path, ['cookies' => $this->cookie])
+            ->getBody()
+            ->getContents();
     }
 
     /**
@@ -190,15 +205,14 @@ class Resolver
     /**
      * Gets the name of the serie episode.
      *
-     * @param $path
+     * @param $html
      *
+     * @param $path
      * @return string
      */
-    private function getNameOfEpisode($path)
+    private function getNameOfEpisode($html, $path)
     {
-        $response = $this->client->get($path, ['cookies' => $this->cookie]);
-
-        $name = Parser::getNameOfEpisode($response->getBody()->getContents());
+        $name = Parser::getNameOfEpisode($html, $path);
 
         return Utils::parseEpisodeName($name);
     }
@@ -206,22 +220,32 @@ class Resolver
     /**
      * Helper to download the video.
      *
-     * @param $name
-     * @param $path
+     * @param $html
      * @param $saveTo
      */
-    private function downloadLessonFromPath($path, $saveTo)
+    private function downloadLessonFromPath($html, $saveTo)
     {
-        $response = $this->client->get($path, ['cookies' => $this->cookie]);
-        $downloadUrl = Parser::getDownloadLink($response->getBody()->getContents());
+        $downloadUrl = Parser::getDownloadLink($html);
 
         $viemoUrl = $this->getRedirectUrl($downloadUrl);
         $finalUrl = $this->getRedirectUrl($viemoUrl);
 
         $this->bench->start();
-        $this->client->get($finalUrl, [
+
+        $req = $this->client->createRequest('GET', $finalUrl, [
             'save_to' => $saveTo,
         ]);
+
+        if (php_sapi_name() == "cli") { //on cli show progress
+            $req->getEmitter()->on('progress', function (ProgressEvent $e) {
+                printf("> Total: %d%% Downloaded: %s of %s     \r",
+                    Utils::getPercentage($e->downloaded, $e->downloadSize),
+                    Utils::formatBytes($e->downloaded),
+                    Utils::formatBytes($e->downloadSize));
+            });
+        }
+        $this->client->send($req);
+
         $this->bench->end();
 
         Utils::write(sprintf("Elapsed time: %s, Memory: %s",

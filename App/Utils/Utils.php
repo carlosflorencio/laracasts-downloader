@@ -148,4 +148,32 @@ class Utils
         echo self::newLine();
         echo "> ".$text.self::newLine();
     }
+
+    /**
+     * Convert bytes to precision
+     * @param $bytes
+     * @param int $precision
+     * @return string
+     */
+    public static function formatBytes($bytes, $precision = 2) {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
+    }
+
+    /**
+     * Calculate a percentage
+     * @param $cur
+     * @param $total
+     * @return float
+     */
+    public static function getPercentage($cur, $total) {
+        return @($cur/$total * 100); //hide warning division by zero
+    }
 }
