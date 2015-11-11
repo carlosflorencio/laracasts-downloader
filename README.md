@@ -6,11 +6,14 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
+**!!Updated to work with the new website design 11/11/15!!**
+
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
 If your local folder is empty, all lessons and series will be downloaded!
 
-A .skip file is used to prevent downloading lessons deleted for these with space problems. Thanks to @vinicius73
+A .skip file is used to prevent downloading deleted lessons for these with space problems. Thanks to @vinicius73
+Just call `php makeskips.php` before deleting the lessons.
 
 **An account with an active subscription is necessary!**
 
