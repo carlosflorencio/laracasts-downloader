@@ -4,6 +4,7 @@
  */
 namespace App\Html;
 
+use App\Exceptions\NoDownloadLinkException;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -74,10 +75,16 @@ class Parser
      * Gets the download link.
      *
      * @param $html
+     * @return
+     * @throws NoDownloadLinkException
      */
     public static function getDownloadLink($html)
     {
         preg_match('/(\/downloads\/\d+)/', $html, $matches);
+
+        if(isset($matches[0]) == false) {
+            throw new NoDownloadLinkException();
+        }
 
         return $matches[0];
     }

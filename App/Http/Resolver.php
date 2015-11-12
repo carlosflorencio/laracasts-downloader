@@ -6,6 +6,7 @@
 namespace App\Http;
 
 use App\Downloader;
+use App\Exceptions\NoDownloadLinkException;
 use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
 use App\Utils\Utils;
@@ -227,7 +228,12 @@ class Resolver
      */
     private function downloadLessonFromPath($html, $saveTo)
     {
-        $downloadUrl = Parser::getDownloadLink($html);
+        try {
+            $downloadUrl = Parser::getDownloadLink($html);
+        } catch(NoDownloadLinkException $e) {
+            Utils::write(sprintf("Can't download this lesson! :( No download button"));
+            return;
+        }
 
         $viemoUrl = $this->getRedirectUrl($downloadUrl);
         $finalUrl = $this->getRedirectUrl($viemoUrl);
