@@ -82,7 +82,7 @@ class Parser
     {
         preg_match('/(\/downloads\/\d+)/', $html, $matches);
 
-        if(isset($matches[0]) == false) {
+        if(isset($matches[0]) === false) {
             throw new NoDownloadLinkException();
         }
 

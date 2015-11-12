@@ -163,30 +163,33 @@ class Controller
     }
 
     /**
+     * Get skiped lessons
      * @return array
      */
     public function getSkipLessons()
     {
-        $file = LESSONS_FOLDER . '/.skip';
-
-        if ($this->system->has($file)) {
-            $content = $this->system->read($file);
-
-            return unserialize($content);
-        }
-
-        return [];
+        return $this->getSkipedData(LESSONS_FOLDER . '/.skip');
     }
 
     /**
+     * Get skiped series
      * @return array
      */
     public function getSkipSeries()
     {
-        $file = SERIES_FOLDER . '/.skip';
+        return $this->getSkipedData(SERIES_FOLDER . '/.skip');
+    }
 
-        if ($this->system->has($file)) {
-            $content = $this->system->read($file);
+    /**
+     * Read skip file
+     *
+     * @param $pathToSkipFile
+     * @return array|mixed
+     */
+    private function getSkipedData($pathToSkipFile) {
+
+        if ($this->system->has($pathToSkipFile)) {
+            $content = $this->system->read($pathToSkipFile);
 
             return unserialize($content);
         }
