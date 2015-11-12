@@ -38,6 +38,12 @@ class Downloader
     private $bench;
 
     /**
+     * Number of local lessons
+     * @var int
+     */
+    public static $totalLocalLessons;
+
+    /**
      * Current lesson number
      * @var int
      */

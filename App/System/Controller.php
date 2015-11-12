@@ -41,7 +41,7 @@ class Controller
         $array['lessons'] = $this->getLessons(true);
         $array['series']  = $this->getSeries(true);
 
-        Downloader::$currentLessonNumber = count($array['lessons']);
+        Downloader::$totalLocalLessons = count($array['lessons']);
 
         return $array;
     }

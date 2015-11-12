@@ -65,6 +65,8 @@ class Resolver
             Parser::getAllLessons($html, $array);
         }
 
+        Downloader::$currentLessonNumber = count($array['lessons']);
+
         return $array;
     }
 
@@ -163,7 +165,7 @@ class Resolver
     public function downloadLesson($lesson)
     {
         $path = LARACASTS_LESSONS_PATH . '/' . $lesson;
-        $number = sprintf("%04d", ++Downloader::$currentLessonNumber);
+        $number = sprintf("%04d", Downloader::$totalLocalLessons + Downloader::$currentLessonNumber--);
         $saveTo = BASE_FOLDER . '/' . LESSONS_FOLDER . '/' . $number . '-' . $lesson . '.mp4';
 
         Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
