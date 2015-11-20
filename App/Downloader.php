@@ -73,7 +73,9 @@ class Downloader
         try {
             $counter = [
                 'series'  => 1,
-                'lessons' => 1
+                'lessons' => 1,
+                'failed_episode' => 0,
+                'failed_lesson' => 0
             ];
 
             Utils::box('Starting Collecting the data');
@@ -110,9 +112,10 @@ class Downloader
                 $this->downloadEpisodes($diff, $counter, $new_episodes);
             }
 
-            Utils::writeln(sprintf("Finished! Downloaded %d new lessons and %d new episodes.",
-                $new_lessons,
-                $new_episodes
+            Utils::writeln(sprintf("Finished! Downloaded %d new lessons and %d new episodes. Failed: %d",
+                $new_lessons - $counter['failed_lesson'],
+                $new_episodes - $counter['failed_episode'],
+                $counter['failed_lesson'] + $counter['failed_episode']
             ));
         } catch (LoginException $e) {
             Utils::write("Your login details are wrong!");
@@ -147,7 +150,11 @@ class Downloader
         $this->system->createFolderIfNotExists(LESSONS_FOLDER);
         Utils::box('Downloading Lessons');
         foreach ($diff['lessons'] as $lesson) {
-            $this->client->downloadLesson($lesson);
+
+            if($this->client->downloadLesson($lesson) == false) {
+                $counter['failed_lesson']++;
+            }
+
             Utils::write(sprintf("Current: %d of %d total. Left: %d",
                 $counter['lessons']++,
                 $new_lessons,
@@ -169,7 +176,11 @@ class Downloader
         foreach ($diff['series'] as $serie => $episodes) {
             $this->system->createSerieFolderIfNotExists($serie);
             foreach ($episodes as $episode) {
-                $this->client->downloadSerieEpisode($serie, $episode);
+
+                if($this->client->downloadSerieEpisode($serie, $episode) == false) {
+                    $counter['failed_episode'] = $counter['failed_episode'] +1;
+                }
+
                 Utils::write(sprintf("Current: %d of %d total. Left: %d",
                     $counter['series']++,
                     $new_episodes,

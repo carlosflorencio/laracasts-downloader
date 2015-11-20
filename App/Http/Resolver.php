@@ -143,6 +143,7 @@ class Resolver
      *
      * @param $serie
      * @param $episode
+     * @return bool
      */
     public function downloadSerieEpisode($serie, $episode)
     {
@@ -155,13 +156,14 @@ class Resolver
             $number . ' - ' . $name
         ));
 
-        $this->downloadLessonFromPath($episodePage, $saveTo);
+        return $this->downloadLessonFromPath($episodePage, $saveTo);
     }
 
     /**
      * Downloads the lesson.
      *
      * @param $lesson
+     * @return bool
      */
     public function downloadLesson($lesson)
     {
@@ -173,7 +175,7 @@ class Resolver
             $lesson
         ));
         $html = $this->getPage($path);
-        $this->downloadLessonFromPath($html, $saveTo);
+        return $this->downloadLessonFromPath($html, $saveTo);
     }
 
     /**
@@ -225,6 +227,7 @@ class Resolver
      *
      * @param $html
      * @param $saveTo
+     * @return bool
      */
     private function downloadLessonFromPath($html, $saveTo)
     {
@@ -232,7 +235,7 @@ class Resolver
             $downloadUrl = Parser::getDownloadLink($html);
         } catch(NoDownloadLinkException $e) {
             Utils::write(sprintf("Can't download this lesson! :( No download button"));
-            return;
+            return false;
         }
 
         $viemoUrl = $this->getRedirectUrl($downloadUrl);
@@ -260,5 +263,7 @@ class Resolver
             $this->bench->getTime(),
             $this->bench->getMemoryUsage()
         ));
+
+        return true;
     }
 }
