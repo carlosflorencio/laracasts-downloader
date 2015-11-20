@@ -151,7 +151,7 @@ class Downloader
         Utils::box('Downloading Lessons');
         foreach ($diff['lessons'] as $lesson) {
 
-            if($this->client->downloadLesson($lesson) == false) {
+            if($this->client->downloadLesson($lesson) === false) {
                 $counter['failed_lesson']++;
             }
 
@@ -177,7 +177,7 @@ class Downloader
             $this->system->createSerieFolderIfNotExists($serie);
             foreach ($episodes as $episode) {
 
-                if($this->client->downloadSerieEpisode($serie, $episode) == false) {
+                if($this->client->downloadSerieEpisode($serie, $episode) === false) {
                     $counter['failed_episode'] = $counter['failed_episode'] +1;
                 }
 
