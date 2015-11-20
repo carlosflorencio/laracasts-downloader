@@ -62,7 +62,7 @@ class Resolver
         Parser::getAllLessons($html, $array);
 
         while ($nextPage = Parser::hasNextPage($html)) {
-            $html = $this->client->get($nextPage)->getBody()->getContents();
+            $html = $this->client->get($nextPage, ['verify' => false])->getBody()->getContents();
             Parser::getAllLessons($html, $array);
         }
 
@@ -97,7 +97,7 @@ class Resolver
      */
     private function getAllPage()
     {
-        $response = $this->client->get(LARACASTS_ALL_PATH);
+        $response = $this->client->get(LARACASTS_ALL_PATH, ['verify' => false]);
 
         return $response->getBody()->getContents();
     }
@@ -115,6 +115,7 @@ class Resolver
     {
         $response = $this->client->get(LARACASTS_LOGIN_PATH, [
             'cookies' => $this->cookie,
+            'verify' => false
         ]);
 
         $token = Parser::getToken($response->getBody()->getContents());
@@ -127,6 +128,7 @@ class Resolver
                 '_token'   => $token,
                 'remember' => 1,
             ],
+            'verify' => false
         ]);
 
         $html = $response->getBody()->getContents();
@@ -185,7 +187,7 @@ class Resolver
      */
     private function getPage($path) {
         return $this->client
-            ->get($path, ['cookies' => $this->cookie])
+            ->get($path, ['cookies' => $this->cookie, 'verify' => false])
             ->getBody()
             ->getContents();
     }
@@ -202,6 +204,7 @@ class Resolver
         $response = $this->client->get($url, [
             'cookies'         => $this->cookie,
             'allow_redirects' => FALSE,
+            'verify' => false
         ]);
 
         return $response->getHeader('Location');
@@ -245,6 +248,7 @@ class Resolver
 
         $req = $this->client->createRequest('GET', $finalUrl, [
             'save_to' => $saveTo,
+            'verify' => false
         ]);
 
         if (php_sapi_name() == "cli") { //on cli show progress
