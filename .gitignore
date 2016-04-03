@@ -1,4 +1,6 @@
 .idea
 
 config.ini
+config.ini~
+.gitignore~
 vendor
