@@ -263,7 +263,7 @@ class Resolver
 
         $this->bench->end();
 
-        Utils::write(sprintf("Elapsed time: %s, Memory: %s",
+        Utils::write(sprintf("Elapsed time: %s, Memory: %s         ",
             $this->bench->getTime(),
             $this->bench->getMemoryUsage()
         ));
