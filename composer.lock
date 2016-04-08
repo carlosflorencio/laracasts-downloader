@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "dd3f5a927408b93e758442a234f0d37a",
-    "content-hash": "05f6e602669f18098c57e641b70fa1cd",
+    "hash": "26ecd6bfa943fcfb937ccf556f5543a4",
+    "content-hash": "22e6153c0973012e156a1f63bc8109b8",
     "packages": [
         {
             "name": "devster/ubench",
@@ -58,12 +58,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "8e6f5732242fe833eb5fd553648924a200e50492"
+                "reference": "4afc9682f51b2880c6417e9f4aa19c26b53472e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/8e6f5732242fe833eb5fd553648924a200e50492",
-                "reference": "8e6f5732242fe833eb5fd553648924a200e50492",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/4afc9682f51b2880c6417e9f4aa19c26b53472e9",
+                "reference": "4afc9682f51b2880c6417e9f4aa19c26b53472e9",
                 "shasum": ""
             },
             "require": {
@@ -102,7 +102,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2015-08-15 20:00:28"
+            "time": "2016-02-08 19:23:30"
         },
         {
             "name": "guzzlehttp/ringphp",
@@ -211,12 +211,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "5e77b62a894b4c8f1b3bd550447292482ed8b50f"
+                "reference": "a8294fb7d939433abfaeb0fc1a34a278acfa5b39"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/5e77b62a894b4c8f1b3bd550447292482ed8b50f",
-                "reference": "5e77b62a894b4c8f1b3bd550447292482ed8b50f",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/a8294fb7d939433abfaeb0fc1a34a278acfa5b39",
+                "reference": "a8294fb7d939433abfaeb0fc1a34a278acfa5b39",
                 "shasum": ""
             },
             "require": {
@@ -229,8 +229,7 @@
                 "ext-fileinfo": "*",
                 "mockery/mockery": "~0.9",
                 "phpspec/phpspec": "^2.2",
-                "phpspec/prophecy-phpunit": "~1.0",
-                "phpunit/phpunit": "~4.1"
+                "phpunit/phpunit": "~4.8 || ~5.0"
             },
             "suggest": {
                 "ext-fileinfo": "Required for MimeType",
@@ -287,20 +286,20 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2015-10-30 22:12:12"
+            "time": "2016-04-04 14:52:20"
         },
         {
             "name": "react/promise",
-            "version": "v2.2.1",
+            "version": "v2.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise.git",
-                "reference": "3b6fca09c7d56321057fa8867c8dbe1abf648627"
+                "reference": "f942da7b505d1a294284ab343d05df42d02ad6d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise/zipball/3b6fca09c7d56321057fa8867c8dbe1abf648627",
-                "reference": "3b6fca09c7d56321057fa8867c8dbe1abf648627",
+                "url": "https://api.github.com/repos/reactphp/promise/zipball/f942da7b505d1a294284ab343d05df42d02ad6d9",
+                "reference": "f942da7b505d1a294284ab343d05df42d02ad6d9",
                 "shasum": ""
             },
             "require": {
@@ -331,7 +330,7 @@
                 }
             ],
             "description": "A lightweight implementation of CommonJS Promises/A for PHP",
-            "time": "2015-07-03 13:48:55"
+            "time": "2016-03-31 13:10:33"
         },
         {
             "name": "symfony/css-selector",
@@ -339,12 +338,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/css-selector.git",
-                "reference": "2563cd23b8822eac1b2a4a47d99de160b58492c1"
+                "reference": "e17f386efef7258ac671c24e727673abd086b0cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/css-selector/zipball/2563cd23b8822eac1b2a4a47d99de160b58492c1",
-                "reference": "2563cd23b8822eac1b2a4a47d99de160b58492c1",
+                "url": "https://api.github.com/repos/symfony/css-selector/zipball/e17f386efef7258ac671c24e727673abd086b0cf",
+                "reference": "e17f386efef7258ac671c24e727673abd086b0cf",
                 "shasum": ""
             },
             "require": {
@@ -353,7 +352,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.0-dev"
+                    "dev-master": "3.1-dev"
                 }
             },
             "autoload": {
@@ -384,7 +383,7 @@
             ],
             "description": "Symfony CssSelector Component",
             "homepage": "https://symfony.com",
-            "time": "2015-10-30 23:35:59"
+            "time": "2016-03-04 07:56:56"
         },
         {
             "name": "symfony/dom-crawler",
@@ -392,12 +391,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dom-crawler.git",
-                "reference": "740c98235f5b6e2b0b13df2fb97c7a1c7d1a18fc"
+                "reference": "aae5c37d243c6ec11db62221aaff37e7f8005926"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dom-crawler/zipball/740c98235f5b6e2b0b13df2fb97c7a1c7d1a18fc",
-                "reference": "740c98235f5b6e2b0b13df2fb97c7a1c7d1a18fc",
+                "url": "https://api.github.com/repos/symfony/dom-crawler/zipball/aae5c37d243c6ec11db62221aaff37e7f8005926",
+                "reference": "aae5c37d243c6ec11db62221aaff37e7f8005926",
                 "shasum": ""
             },
             "require": {
@@ -440,7 +439,7 @@
             ],
             "description": "Symfony DomCrawler Component",
             "homepage": "https://symfony.com",
-            "time": "2015-11-02 20:29:39"
+            "time": "2016-03-23 13:11:46"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -448,21 +447,24 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "0b6a8940385311a24e060ec1fe35680e17c74497"
+                "reference": "1289d16209491b584839022f29257ad859b8532d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/0b6a8940385311a24e060ec1fe35680e17c74497",
-                "reference": "0b6a8940385311a24e060ec1fe35680e17c74497",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/1289d16209491b584839022f29257ad859b8532d",
+                "reference": "1289d16209491b584839022f29257ad859b8532d",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0-dev"
+                    "dev-master": "1.1-dev"
                 }
             },
             "autoload": {
@@ -496,7 +498,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2015-11-04 20:28:58"
+            "time": "2016-01-20 09:13:37"
         }
     ],
     "packages-dev": [
@@ -506,12 +508,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/digitalnature/php-ref.git",
-                "reference": "19be18c7dc8dc958f53bece371815adffb40886c"
+                "reference": "6aa68f42c548af3facdd5546233160e34c05c6eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/digitalnature/php-ref/zipball/19be18c7dc8dc958f53bece371815adffb40886c",
-                "reference": "19be18c7dc8dc958f53bece371815adffb40886c",
+                "url": "https://api.github.com/repos/digitalnature/php-ref/zipball/6aa68f42c548af3facdd5546233160e34c05c6eb",
+                "reference": "6aa68f42c548af3facdd5546233160e34c05c6eb",
                 "shasum": ""
             },
             "require": {
@@ -533,7 +535,7 @@
                 "debug",
                 "var_dump"
             ],
-            "time": "2015-10-22 13:47:43"
+            "time": "2015-11-15 12:47:49"
         }
     ],
     "aliases": [],
@@ -545,6 +547,8 @@
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "ext-curl": "*"
+    },
     "platform-dev": []
 }
