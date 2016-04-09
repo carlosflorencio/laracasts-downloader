@@ -75,18 +75,18 @@ class Parser
      * Gets the download link.
      *
      * @param $html
-     * @return
+     * @return string
      * @throws NoDownloadLinkException
      */
     public static function getDownloadLink($html)
     {
-        preg_match('/(\/downloads\/\d+)/', $html, $matches);
+        preg_match('(\'\/downloads\/.+\')', $html, $matches);
 
         if(isset($matches[0]) === false) {
             throw new NoDownloadLinkException();
         }
 
-        return $matches[0];
+        return LARACASTS_BASE_URL . substr($matches[0],1,-1);
     }
 
     /**
