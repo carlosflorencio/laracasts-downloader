@@ -4,3 +4,4 @@ config.ini
 config.ini~
 .gitignore~
 vendor
+cacert.pem
