@@ -236,13 +236,20 @@ class Resolver
     {
         try {
             $downloadUrl = Parser::getDownloadLink($html);
+            $viemoUrl = $this->getRedirectUrl($downloadUrl);
+            $finalUrl = $this->getRedirectUrl($viemoUrl);
         } catch(NoDownloadLinkException $e) {
             Utils::write(sprintf("Can't download this lesson! :( No download button"));
-            return false;
-        }
 
-        $viemoUrl = $this->getRedirectUrl($downloadUrl);
-        $finalUrl = $this->getRedirectUrl($viemoUrl);
+            try {
+                Utils::write(sprintf("Tring to find a Wistia.net video"));
+                $Wistia = new Wistia($html,$this->bench);
+                $finalUrl = $Wistia->getDownloadUrl();
+            } catch(NoDownloadLinkException $e) {
+                return false;
+            }
+
+        }
 
         $this->bench->start();
 
