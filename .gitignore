@@ -5,3 +5,7 @@ config.ini~
 .gitignore~
 vendor
 cacert.pem
+
+.env
+
+*.mp4
