@@ -5,3 +5,11 @@ config.ini~
 .gitignore~
 vendor
 cacert.pem
+
+.env
+
+*.mp4
+
+App/.DS_Store
+
+.DS_Store
