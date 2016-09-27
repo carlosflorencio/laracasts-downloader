@@ -25,11 +25,18 @@ Just call `php makeskips.php` before deleting the lessons.
 
 ## Installation
 - Clone this repo to a folder in your machine
-- Add a config.ini with your options, there is a config.example.ini
+- Change your info in .env.example and rename it to .env
 - `composer install`
 - `php start.php`and you are done!
 
 Also works in the browser, but is better from the cli because of the instant feedback
+
+### Using Docker
+- Clone this repo to a folder in your machine
+- Change your info in .env.example and rename it to .env
+- `docker build -t image-name .`
+- `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
+
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` do this:
