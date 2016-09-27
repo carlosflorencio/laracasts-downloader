@@ -6,7 +6,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 09/04/2016**
+**Working good at 27/09/2016**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -16,7 +16,7 @@ A .skip file is used to prevent downloading deleted lessons for these with space
 
 Just call `php makeskips.php` before deleting the lessons.
 
-**An account with an active subscription is necessary!**
+## An account with an active subscription is necessary!
 
 ## Requirements
 - PHP >= 5.4
