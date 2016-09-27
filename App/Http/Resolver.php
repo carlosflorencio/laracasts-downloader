@@ -137,6 +137,10 @@ class Resolver
             throw new SubscriptionNotActiveException();
         }
 
+        if(strpos($html, "The email must be a valid email address.") !== FALSE) {
+            return false;
+        }
+
         return strpos($html, "verify your credentials.") === FALSE;
     }
 
