@@ -78,6 +78,10 @@ class Downloader
                 'failed_lesson' => 0
             ];
 
+            Utils::box('Authenticating');
+
+            $this->doAuth($options);
+
             Utils::box('Starting Collecting the data');
 
             $this->bench->start();
@@ -98,9 +102,6 @@ class Downloader
                     $this->bench->getMemoryUsage())
             );
 
-            Utils::box('Authenticating');
-
-            $this->doAuth($options);
 
             //Download Lessons
             if ($new_lessons > 0) {
