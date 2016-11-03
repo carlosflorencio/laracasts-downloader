@@ -41,6 +41,7 @@ Also works in the browser, but is better from the cli because of the instant fee
 - You can use series and lessons names
 - You can use series and lessons slugs (preferred because there are some custom slugs too)
 - You can download multiples series/lessons
+
 ### Commands to download series
     php start.php -s "Series name example" -s "series-slug-example"
     php start.php --series-name "Series name example" -series-name "series-slug-example"
