@@ -37,15 +37,15 @@ Also works in the browser, but is better from the cli because of the instant fee
 - `docker build -t image-name .`
 - `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
 
-### Downloading specific series or lessons
+## Downloading specific series or lessons
 - You can use series and lessons names
 - You can use series and lessons slugs (preferred because there are some custom slugs too)
 - You can download multiples series/lessons
-#### Commands to download series
+### Commands to download series
     php start.php -s "Series name example" -s "series-slug-example"
     php start.php --series-name "Series name example" -series-name "series-slug-example"
     
-#### Command to download lessons
+### Command to download lessons
     php start.php -l "Lesson name example" -l "lesson-slug-example"
     php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
 
