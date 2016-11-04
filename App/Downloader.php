@@ -9,6 +9,7 @@ use App\Exceptions\SubscriptionNotActiveException;
 use App\Http\Resolver;
 use App\System\Controller;
 use App\Utils\Utils;
+use Cocur\Slugify\Slugify;
 use GuzzleHttp\Client;
 use League\Flysystem\Filesystem;
 use Ubench;
@@ -49,6 +50,9 @@ class Downloader
      */
     public static $currentLessonNumber;
 
+    private $wantSeries = [];
+    private $wantLessons = [];
+
     /**
      * Receives dependencies
      *
@@ -85,10 +89,15 @@ class Downloader
             Utils::box('Starting Collecting the data');
 
             $this->bench->start();
+
             $localLessons = $this->system->getAllLessons();
             $allLessonsOnline = $this->client->getAllLessons();
-            $this->bench->end();
 
+            $this->bench->end();
+            if($this->_haveOptions()):
+                $allLessonsOnline = $this->downloadSeriesAndLessons($allLessonsOnline);
+            endif;
+            Utils::box('Downloading');
             //Magic to get what to download
             $diff = Utils::resolveFaultyLessons($allLessonsOnline, $localLessons);
 
@@ -189,5 +198,86 @@ class Downloader
                 ));
             }
         }
+    }
+
+    protected function _haveOptions()
+    {
+        $found = false;
+
+        $short_options = "s:";
+        $short_options .= "l:";
+
+        $long_options  = array(
+            "series-name:",
+            "lesson-name:"
+        );
+        $options = getopt($short_options, $long_options);
+
+        Utils::box(sprintf("Checking for options %s", json_encode($options)));
+
+        if(count($options) == 0):
+            Utils::write('No options provided');
+            return false;
+        endif;
+
+        if(isset($options['s']) || isset($options['series-name'])):
+            $series = isset($options['s']) ? $options['s'] : $options['series-name'];
+            if(!is_array($series)) $series = [$series];
+            Utils::write(sprintf("Series names provided: %s", json_encode($series)));
+            $slugify = new Slugify();
+            $slugify->addRule("'", '');
+            $this->wantSeries = $slugify->slugify($series);
+            $this->wantSeries = array_map(function($serie) use ($slugify) {return $slugify->slugify($serie); },$series);
+            Utils::write(sprintf("Series names provided: %s", json_encode($this->wantSeries)));
+            $found = true;
+        endif;
+
+        if(isset($options['l']) || isset($options['lesson-name'])):
+            $lessons = isset($options['l']) ? $options['l'] : $options['lesson-name'];
+            if(!is_array($lessons)) $lessons = [$lessons];
+            Utils::write(sprintf("Lesson names provided: %s", json_encode($lessons)));
+            $slugify = new Slugify();
+            $slugify->addRule("'", '');
+            $this->wantLessons = array_map(function($lesson) use ($slugify) {return $slugify->slugify($lesson); },$lessons);
+            Utils::write(sprintf("Lesson names provided: %s", json_encode($this->wantLessons)));
+            $found = true;
+        endif;
+
+        return $found;
+    }
+
+    /**
+     * Download Series and lessons
+     * @param $allLessonsOnline
+     * @return array
+     */
+    public function downloadSeriesAndLessons($allLessonsOnline)
+    {
+        Utils::box('Checking if series and lessons exists');
+
+        $selectedLessonsOnline = [
+            'lessons' => [],
+            'series' => []
+        ];
+
+        foreach($this->wantSeries as $series):
+            if(isset($allLessonsOnline['series'][$series])):
+                Utils::write('Series "'.$series.'" found!');
+                $selectedLessonsOnline['series'][$series] = $allLessonsOnline['series'][$series];
+            else:
+                Utils::write("Series '".$series."' not found!");
+            endif;
+        endforeach;
+
+        foreach($this->wantLessons as $lesson):
+            if(in_array($lesson, $allLessonsOnline['lessons'])):
+                Utils::write('Lesson "'.$lesson.'" found');
+                $selectedLessonsOnline['lessons'][] = $allLessonsOnline['lessons'][array_search($lesson, $allLessonsOnline)];
+            else:
+                Utils::write("Lesson '".$lesson."' not found!");
+            endif;
+        endforeach;
+
+        return $selectedLessonsOnline;
     }
 }

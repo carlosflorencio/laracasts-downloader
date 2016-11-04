@@ -9,7 +9,8 @@
     "symfony/css-selector": "~3.0@dev",
     "devster/ubench": "~1.1@dev",
     "ext-curl": "*",
-    "vlucas/phpdotenv": "^2.3"
+    "vlucas/phpdotenv": "^2.3",
+    "cocur/slugify": "^2.3"
   },
   "require-dev": {
     "digitalnature/php-ref": "dev-master"
