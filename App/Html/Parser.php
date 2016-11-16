@@ -23,13 +23,12 @@ class Parser
     {
         $parser = new Crawler($html);
 
-        $parser->filter('span.Lesson-List__title')->each(function (Crawler $node) use (&$array) {
+        $parser->filter('h5.lesson-list-title')->each(function (Crawler $node) use (&$array) {
             $link = $node->children()->attr('href');
-
             if (preg_match('/'.LARACASTS_LESSONS_PATH.'\/(.+)/', $link, $matches)) { // lesson
                 $array['lessons'][] = $matches[1];
-            } else {
-                $link = $node->children()->eq(1)->attr('href');
+            } else if ($node->children()->count() > 0) {
+                $link = $node->children()->eq(0)->attr('href');
 
                 if (preg_match('/'.LARACASTS_SERIES_PATH.'\/(.+)\/episodes\/(\d+)/', $link, $matches)) { // serie lesson
                     $array['series'][$matches[1]][] = (int) $matches[2];
