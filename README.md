@@ -6,7 +6,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 03/11/2016**
+**Working good at 16/11/2016**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
