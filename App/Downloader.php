@@ -59,10 +59,11 @@ class Downloader
      * @param Client $client
      * @param Filesystem $system
      * @param Ubench $bench
+     * @param bool $retryDownload
      */
-    public function __construct(Client $client, Filesystem $system, Ubench $bench)
+    public function __construct(Client $client, Filesystem $system, Ubench $bench, $retryDownload = false)
     {
-        $this->client = new Resolver($client, $bench);
+        $this->client = new Resolver($client, $bench, $retryDownload);
         $this->system = new Controller($system);
         $this->bench = $bench;
     }

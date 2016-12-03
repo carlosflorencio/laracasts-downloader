@@ -40,16 +40,24 @@ class Resolver
     private $bench;
 
     /**
+     * Retry download on connection fail
+     * @var int
+     */
+    private $retryDownload = false;
+
+    /**
      * Receives dependencies
      *
      * @param Client $client
      * @param Ubench $bench
+     * @param bool $retryDownload
      */
-    public function __construct(Client $client, Ubench $bench)
+    public function __construct(Client $client, Ubench $bench, $retryDownload = false)
     {
         $this->client = $client;
         $this->cookie = new CookieJar();
         $this->bench = $bench;
+        $this->retryDownload = $retryDownload;
     }
 
     /**
@@ -270,7 +278,8 @@ class Resolver
                     Utils::formatBytes($e->downloadSize));
             });
         }
-        $this->client->send($req);
+
+        $this->tryDownload($req);
 
         $this->bench->end();
 
@@ -280,5 +289,17 @@ class Resolver
         ));
 
         return true;
+    }
+
+    private function tryDownload($req) {
+        try {
+            $this->client->send($req);
+        } catch (\Exception $e) {
+            if (!$this->retryDownload) {
+                throw $e;
+            }
+            Utils::write(sprintf("Retry download after connection fail!"));
+            $this->tryDownload($req);
+        }
     }
 }
