@@ -21,6 +21,7 @@ Just call `php makeskips.php` before deleting the lessons.
 ## Requirements
 - PHP >= 5.4
 - php-cURL
+- php-xml
 - Composer
 
 ## Installation
