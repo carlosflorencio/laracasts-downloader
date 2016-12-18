@@ -293,7 +293,7 @@ class Resolver
                     throw $e;
                 }
                 ++$retries;
-                Utils::write(sprintf("Retry download after connection fail!     "));
+                Utils::writeln(sprintf("Retry download after connection fail!     "));
                 continue;
             }
         }
