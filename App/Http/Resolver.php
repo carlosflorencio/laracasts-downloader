@@ -265,21 +265,38 @@ class Resolver
 
         $this->bench->start();
 
-        $req = $this->client->createRequest('GET', $finalUrl, [
-            'save_to' => $saveTo,
-            'verify' => false
-        ]);
+        $retries = 0;
+        while (true) {
+            try {
+                $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
+                $req = $this->client->createRequest('GET', $finalUrl, [
+                    'save_to' => fopen($saveTo, 'a'),
+                    'verify' => false,
+                    'headers' => [
+                        'Range' => 'bytes=' . $downloadedBytes . '-'
+                    ]
+                ]);
 
-        if (php_sapi_name() == "cli") { //on cli show progress
-            $req->getEmitter()->on('progress', function (ProgressEvent $e) {
-                printf("> Total: %d%% Downloaded: %s of %s     \r",
-                    Utils::getPercentage($e->downloaded, $e->downloadSize),
-                    Utils::formatBytes($e->downloaded),
-                    Utils::formatBytes($e->downloadSize));
-            });
+                if (php_sapi_name() == "cli") { //on cli show progress
+                    $req->getEmitter()->on('progress', function (ProgressEvent $e) use ($downloadedBytes) {
+                        printf("> Total: %d%% Downloaded: %s of %s     \r",
+                            Utils::getPercentage($e->downloaded + $downloadedBytes, $e->downloadSize),
+                            Utils::formatBytes($e->downloaded + $downloadedBytes),
+                            Utils::formatBytes($e->downloadSize));
+                    });
+                }
+
+                $this->client->send($req); 
+                break;  
+            } catch (\Exception $e) {
+                if (!$this->retryDownload || ($this->retryDownload && $retries >= 3)) {
+                    throw $e;
+                }
+                ++$retries;
+                Utils::writeln(sprintf("Retry download after connection fail!     "));
+                continue;
+            }
         }
-
-        $this->tryDownload($req);
 
         $this->bench->end();
 
@@ -289,17 +306,5 @@ class Resolver
         ));
 
         return true;
-    }
-
-    private function tryDownload($req) {
-        try {
-            $this->client->send($req);
-        } catch (\Exception $e) {
-            if (!$this->retryDownload) {
-                throw $e;
-            }
-            Utils::write(sprintf("Retry download after connection fail!"));
-            $this->tryDownload($req);
-        }
     }
 }
