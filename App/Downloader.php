@@ -95,9 +95,12 @@ class Downloader
             $allLessonsOnline = $this->client->getAllLessons();
 
             $this->bench->end();
-            if($this->_haveOptions()):
-                $allLessonsOnline = $this->downloadSeriesAndLessons($allLessonsOnline);
-            endif;
+
+
+            if($this->_haveOptions()) {  //filter all online lessons to the selected ones
+                $allLessonsOnline = $this->onlyDownloadProvidedLessonsAndSeries($allLessonsOnline);
+            }
+
             Utils::box('Downloading');
             //Magic to get what to download
             $diff = Utils::resolveFaultyLessons($allLessonsOnline, $localLessons);
@@ -216,43 +219,57 @@ class Downloader
 
         Utils::box(sprintf("Checking for options %s", json_encode($options)));
 
-        if(count($options) == 0):
+        if(count($options) == 0) {
             Utils::write('No options provided');
             return false;
-        endif;
+        }
 
-        if(isset($options['s']) || isset($options['series-name'])):
+        $slugify = new Slugify();
+        $slugify->addRule("'", '');
+
+        if(isset($options['s']) || isset($options['series-name'])) {
             $series = isset($options['s']) ? $options['s'] : $options['series-name'];
-            if(!is_array($series)) $series = [$series];
-            Utils::write(sprintf("Series names provided: %s", json_encode($series)));
-            $slugify = new Slugify();
-            $slugify->addRule("'", '');
-            $this->wantSeries = $slugify->slugify($series);
-            $this->wantSeries = array_map(function($serie) use ($slugify) {return $slugify->slugify($serie); },$series);
-            Utils::write(sprintf("Series names provided: %s", json_encode($this->wantSeries)));
-            $found = true;
-        endif;
+            if(!is_array($series))
+                $series = [$series];
 
-        if(isset($options['l']) || isset($options['lesson-name'])):
-            $lessons = isset($options['l']) ? $options['l'] : $options['lesson-name'];
-            if(!is_array($lessons)) $lessons = [$lessons];
-            Utils::write(sprintf("Lesson names provided: %s", json_encode($lessons)));
-            $slugify = new Slugify();
-            $slugify->addRule("'", '');
-            $this->wantLessons = array_map(function($lesson) use ($slugify) {return $slugify->slugify($lesson); },$lessons);
-            Utils::write(sprintf("Lesson names provided: %s", json_encode($this->wantLessons)));
+            Utils::write(sprintf("Series names provided: %s", json_encode($series)));
+
+
+            $this->wantSeries = array_map(function ($serie) use ($slugify) {
+                return $slugify->slugify($serie);
+            }, $series);
+
+            Utils::write(sprintf("Series names provided: %s", json_encode($this->wantSeries)));
+
             $found = true;
-        endif;
+        }
+
+        if(isset($options['l']) || isset($options['lesson-name'])) {
+            $lessons = isset($options['l']) ? $options['l'] : $options['lesson-name'];
+
+            if(!is_array($lessons))
+                $lessons = [$lessons];
+
+            Utils::write(sprintf("Lesson names provided: %s", json_encode($lessons)));
+
+            $this->wantLessons = array_map(function($lesson) use ($slugify) {
+                return $slugify->slugify($lesson); },$lessons
+            );
+
+            Utils::write(sprintf("Lesson names provided: %s", json_encode($this->wantLessons)));
+
+            $found = true;
+        }
 
         return $found;
     }
 
     /**
-     * Download Series and lessons
+     * Download selected Series and lessons
      * @param $allLessonsOnline
      * @return array
      */
-    public function downloadSeriesAndLessons($allLessonsOnline)
+    public function onlyDownloadProvidedLessonsAndSeries($allLessonsOnline)
     {
         Utils::box('Checking if series and lessons exists');
 
@@ -261,23 +278,23 @@ class Downloader
             'series' => []
         ];
 
-        foreach($this->wantSeries as $series):
-            if(isset($allLessonsOnline['series'][$series])):
+        foreach($this->wantSeries as $series) {
+            if(isset($allLessonsOnline['series'][$series])) {
                 Utils::write('Series "'.$series.'" found!');
                 $selectedLessonsOnline['series'][$series] = $allLessonsOnline['series'][$series];
-            else:
+            } else {
                 Utils::write("Series '".$series."' not found!");
-            endif;
-        endforeach;
+            }
+        }
 
-        foreach($this->wantLessons as $lesson):
-            if(in_array($lesson, $allLessonsOnline['lessons'])):
+        foreach($this->wantLessons as $lesson) {
+            if(in_array($lesson, $allLessonsOnline['lessons'])) {
                 Utils::write('Lesson "'.$lesson.'" found');
                 $selectedLessonsOnline['lessons'][] = $allLessonsOnline['lessons'][array_search($lesson, $allLessonsOnline)];
-            else:
+            } else {
                 Utils::write("Lesson '".$lesson."' not found!");
-            endif;
-        endforeach;
+            }
+        }
 
         return $selectedLessonsOnline;
     }
