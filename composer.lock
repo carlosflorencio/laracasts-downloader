@@ -4,7 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0339170fc3fc8e9969e0df181cc04615",
+    "hash": "7d35941fd36d149186fe2317daa8a0a1",
+    "content-hash": "966a425f454333d7022081f1765b077a",
     "packages": [
         {
             "name": "cocur/slugify",
@@ -121,17 +122,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "70f1fa53b71c4647bf2762c09068a95f77e12fb8"
+                "reference": "fc66319d0027509c3a83166314dfc813fa25ffcc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/70f1fa53b71c4647bf2762c09068a95f77e12fb8",
-                "reference": "70f1fa53b71c4647bf2762c09068a95f77e12fb8",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/fc66319d0027509c3a83166314dfc813fa25ffcc",
+                "reference": "fc66319d0027509c3a83166314dfc813fa25ffcc",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/ringphp": "^1.1",
-                "php": ">=5.4.0"
+                "php": ">=5.4.0",
+                "react/promise": "^2.2"
             },
             "require-dev": {
                 "ext-curl": "*",
@@ -165,7 +167,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2016-07-15 19:28:39"
+            "time": "2017-01-05 06:25:03"
         },
         {
             "name": "guzzlehttp/ringphp",
@@ -173,12 +175,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/RingPHP.git",
-                "reference": "9465032ac5d6beaa55f10923403e6e1c36018d9c"
+                "reference": "4c8fe4c48a0fb7cc5e41ef529e43fecd6da4d539"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/RingPHP/zipball/9465032ac5d6beaa55f10923403e6e1c36018d9c",
-                "reference": "9465032ac5d6beaa55f10923403e6e1c36018d9c",
+                "url": "https://api.github.com/repos/guzzle/RingPHP/zipball/4c8fe4c48a0fb7cc5e41ef529e43fecd6da4d539",
+                "reference": "4c8fe4c48a0fb7cc5e41ef529e43fecd6da4d539",
                 "shasum": ""
             },
             "require": {
@@ -216,7 +218,7 @@
                 }
             ],
             "description": "Provides a simple API and specification that abstracts away the details of HTTP into a single PHP function.",
-            "time": "2015-05-21 17:23:02"
+            "time": "2017-01-13 20:44:38"
         },
         {
             "name": "guzzlehttp/streams",
@@ -274,12 +276,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "17d3c6a16bdc9cda328a90fc433593d0575c08a8"
+                "reference": "08c922799447b4f3038d51aa72db7058d3a13e80"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/17d3c6a16bdc9cda328a90fc433593d0575c08a8",
-                "reference": "17d3c6a16bdc9cda328a90fc433593d0575c08a8",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/08c922799447b4f3038d51aa72db7058d3a13e80",
+                "reference": "08c922799447b4f3038d51aa72db7058d3a13e80",
                 "shasum": ""
             },
             "require": {
@@ -349,7 +351,7 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2016-11-02 08:24:08"
+            "time": "2017-01-29 13:44:21"
         },
         {
             "name": "react/promise",
@@ -357,23 +359,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise.git",
-                "reference": "5131098293d66d58e5750c244988d5a465ffd9df"
+                "reference": "2760f3898b7e931aa71153852dcd48a75c9b95db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise/zipball/5131098293d66d58e5750c244988d5a465ffd9df",
-                "reference": "5131098293d66d58e5750c244988d5a465ffd9df",
+                "url": "https://api.github.com/repos/reactphp/promise/zipball/2760f3898b7e931aa71153852dcd48a75c9b95db",
+                "reference": "2760f3898b7e931aa71153852dcd48a75c9b95db",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4.0"
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "React\\Promise\\": "src/"
@@ -393,7 +390,11 @@
                 }
             ],
             "description": "A lightweight implementation of CommonJS Promises/A for PHP",
-            "time": "2016-10-24 08:39:42"
+            "keywords": [
+                "promise",
+                "promises"
+            ],
+            "time": "2016-12-22 14:09:01"
         },
         {
             "name": "symfony/css-selector",
@@ -401,12 +402,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/css-selector.git",
-                "reference": "3912a05e7ae31afb78101f9de1be6b143c064fac"
+                "reference": "4acd5ee3bc49332ffb60741f6f7260e018264484"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/css-selector/zipball/3912a05e7ae31afb78101f9de1be6b143c064fac",
-                "reference": "3912a05e7ae31afb78101f9de1be6b143c064fac",
+                "url": "https://api.github.com/repos/symfony/css-selector/zipball/4acd5ee3bc49332ffb60741f6f7260e018264484",
+                "reference": "4acd5ee3bc49332ffb60741f6f7260e018264484",
                 "shasum": ""
             },
             "require": {
@@ -415,7 +416,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.2-dev"
+                    "dev-master": "3.3-dev"
                 }
             },
             "autoload": {
@@ -446,7 +447,7 @@
             ],
             "description": "Symfony CssSelector Component",
             "homepage": "https://symfony.com",
-            "time": "2016-09-06 11:07:23"
+            "time": "2017-01-02 20:33:09"
         },
         {
             "name": "symfony/dom-crawler",
@@ -454,12 +455,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dom-crawler.git",
-                "reference": "a94f3fe6f179d6453e5ed8188cf4bfdf933d85f4"
+                "reference": "6225d65e001b3f03f63d43e302a26314f8e1e6fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dom-crawler/zipball/a94f3fe6f179d6453e5ed8188cf4bfdf933d85f4",
-                "reference": "a94f3fe6f179d6453e5ed8188cf4bfdf933d85f4",
+                "url": "https://api.github.com/repos/symfony/dom-crawler/zipball/6225d65e001b3f03f63d43e302a26314f8e1e6fe",
+                "reference": "6225d65e001b3f03f63d43e302a26314f8e1e6fe",
                 "shasum": ""
             },
             "require": {
@@ -502,7 +503,7 @@
             ],
             "description": "Symfony DomCrawler Component",
             "homepage": "https://symfony.com",
-            "time": "2016-10-18 15:35:45"
+            "time": "2017-01-21 16:40:50"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -510,12 +511,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "53ad9faffe141fbe8f98cd6a7fd9a5e84513f56c"
+                "reference": "e79d363049d1c2128f133a2667e4f4190904f7f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/53ad9faffe141fbe8f98cd6a7fd9a5e84513f56c",
-                "reference": "53ad9faffe141fbe8f98cd6a7fd9a5e84513f56c",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/e79d363049d1c2128f133a2667e4f4190904f7f4",
+                "reference": "e79d363049d1c2128f133a2667e4f4190904f7f4",
                 "shasum": ""
             },
             "require": {
@@ -527,7 +528,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.2-dev"
+                    "dev-master": "1.3-dev"
                 }
             },
             "autoload": {
@@ -561,7 +562,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2016-08-30 17:06:17"
+            "time": "2016-11-14 01:06:16"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -569,12 +570,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/phpdotenv.git",
-                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c"
+                "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
-                "reference": "3cc116adbe4b11be5ec557bf1d24dc5e3a21d18c",
+                "url": "https://api.github.com/repos/vlucas/phpdotenv/zipball/08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
+                "reference": "08b7fbc3cc7cf6fc63b18f35ea442d7885b8e910",
                 "shasum": ""
             },
             "require": {
@@ -611,7 +612,7 @@
                 "env",
                 "environment"
             ],
-            "time": "2016-09-01 10:05:43"
+            "time": "2016-12-14 21:01:27"
         }
     ],
     "packages-dev": [
@@ -621,12 +622,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/digitalnature/php-ref.git",
-                "reference": "0f03a7e227d82b73ef380cfe98b727fcc98968d0"
+                "reference": "57a3346f9b7cde2186d6d3eca500dd60e809bf9f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/digitalnature/php-ref/zipball/0f03a7e227d82b73ef380cfe98b727fcc98968d0",
-                "reference": "0f03a7e227d82b73ef380cfe98b727fcc98968d0",
+                "url": "https://api.github.com/repos/digitalnature/php-ref/zipball/57a3346f9b7cde2186d6d3eca500dd60e809bf9f",
+                "reference": "57a3346f9b7cde2186d6d3eca500dd60e809bf9f",
                 "shasum": ""
             },
             "require": {
@@ -648,7 +649,7 @@
                 "debug",
                 "var_dump"
             ],
-            "time": "2016-08-03 09:13:07"
+            "time": "2016-12-21 18:21:24"
         }
     ],
     "aliases": [],
@@ -661,7 +662,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-xml": "*"
     },
     "platform-dev": []
 }
