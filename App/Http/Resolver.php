@@ -149,6 +149,12 @@ class Resolver
             return false;
         }
 
+        // user doesnt provided an email in the .env
+        // laracasts redirects to login page again
+        if(strpos($html, 'name="password"') !== FALSE) {
+            return false;
+        }
+
         return strpos($html, "verify your credentials.") === FALSE;
     }
 
