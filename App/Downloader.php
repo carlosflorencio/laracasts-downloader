@@ -293,7 +293,7 @@ class Downloader
         foreach($this->wantLessons as $lesson) {
             if(in_array($lesson, $allLessonsOnline['lessons'])) {
                 Utils::write('Lesson "'.$lesson.'" found');
-                $selectedLessonsOnline['lessons'][] = $allLessonsOnline['lessons'][array_search($lesson, $allLessonsOnline)];
+                $selectedLessonsOnline['lessons'][] = $lesson;
             } else {
                 Utils::write("Lesson '".$lesson."' not found!");
             }
@@ -306,8 +306,6 @@ class Downloader
         foreach ($allLessons['series'] as $k => $v) {
 
             sort($allLessons['series'][$k], SORT_NUMERIC);
-            $a = 1;
         }
-        $b = 1;
     }
 }
