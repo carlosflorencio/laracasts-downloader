@@ -94,6 +94,9 @@ class Downloader
             $localLessons = $this->system->getAllLessons();
             $allLessonsOnline = $this->client->getAllLessons();
 
+            // Sort series episodes from low to high (download order)
+            $this->sortSeries($allLessonsOnline);
+
             $this->bench->end();
 
 
@@ -297,5 +300,14 @@ class Downloader
         }
 
         return $selectedLessonsOnline;
+    }
+
+    public function sortSeries(&$allLessons) {
+        foreach ($allLessons['series'] as $k => $v) {
+
+            sort($allLessons['series'][$k], SORT_NUMERIC);
+            $a = 1;
+        }
+        $b = 1;
     }
 }
