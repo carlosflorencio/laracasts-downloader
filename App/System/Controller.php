@@ -121,7 +121,7 @@ class Controller
     {
         $file = LESSONS_FOLDER . '/.skip';
 
-        $lessons = serialize($this->getLessons());
+        $lessons = serialize($this->getLessons(true));
 
         if($this->system->has($file)) {
             $this->system->delete($file);
@@ -153,7 +153,7 @@ class Controller
     {
         $file = SERIES_FOLDER . '/.skip';
 
-        $series = serialize($this->getSeries());
+        $series = serialize($this->getSeries(true));
 
         if($this->system->has($file)) {
             $this->system->delete($file);
