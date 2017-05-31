@@ -7,7 +7,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 20/05/2017**
+**Working good at 31/05/2017**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -53,7 +53,7 @@ Also works in the browser, but is better from the cli because of the instant fee
     php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
 
 ## Troubleshooting
-If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` do this:
+If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
 
 - Download [http://curl.haxx.se/ca/cacert.pem](http://curl.haxx.se/ca/cacert.pem)
 - Add `curl.cainfo = "PATH_TO/cacert.pem"` to your php.ini
