@@ -7,7 +7,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 31/05/2017**
+**Working good at 08/08/2017**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -29,15 +29,9 @@ Just call `php makeskips.php` before deleting the lessons.
 - Clone this repo to a folder in your machine
 - Change your info in .env.example and rename it to .env
 - `composer install`
-- `php start.php`and you are done!
+- `php start.php` and you are done!
 
 Also works in the browser, but is better from the cli because of the instant feedback
-
-### Using Docker
-- Clone this repo to a folder in your machine
-- Change your info in .env.example and rename it to .env
-- `docker build -t image-name .`
-- `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
 
 ## Downloading specific series or lessons
 - You can use series and lessons names
@@ -51,6 +45,12 @@ Also works in the browser, but is better from the cli because of the instant fee
 ### Command to download lessons
     php start.php -l "Lesson name example" -l "lesson-slug-example"
     php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
+
+### Using Docker
+- Clone this repo to a folder in your machine
+- Change your info in .env.example and rename it to .env
+- `docker build -t image-name .`
+- `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
