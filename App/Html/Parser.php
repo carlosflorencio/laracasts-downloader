@@ -79,7 +79,7 @@ class Parser
      */
     public static function getDownloadLink($html)
     {
-        preg_match('"\/downloads\/.*?")', $html, $matches);
+        preg_match('("\/downloads\/.*?")', $html, $matches);
 
         if(isset($matches[0]) === false) {
             throw new NoDownloadLinkException();
