@@ -18,6 +18,7 @@ A .skip file is used to prevent downloading deleted lessons for these with space
 Just call `php makeskips.php` before deleting the lessons.
 
 ## An account with an active subscription is necessary!
+Even to download free lessons or series. The download option is only allowed to users with a valid subscription.
 
 ## Requirements
 - PHP >= 5.4
