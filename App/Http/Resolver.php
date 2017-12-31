@@ -292,10 +292,16 @@ class Resolver
                     });
                 }
 
-                $this->client->send($req); 
+                $response = $this->client->send($req); 
+
+                if(strpos($response->getHeader('Content-Type'), 'text/html') !== FALSE) {
+                    Utils::writeln(sprintf("Got HTML instead of the video file, the subscription is probably inactive"));
+                    throw new SubscriptionNotActiveException();
+                } 
+
                 break;  
             } catch (\Exception $e) {
-                if (!$this->retryDownload || ($this->retryDownload && $retries >= 3)) {
+                if (is_a($e, SubscriptionNotActiveException::class) || !$this->retryDownload || ($this->retryDownload && $retries >= 3)) {
                     throw $e;
                 }
                 ++$retries;
