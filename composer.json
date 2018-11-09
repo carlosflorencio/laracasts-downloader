@@ -9,9 +9,11 @@
     "symfony/css-selector": "~3.0@dev",
     "devster/ubench": "~1.1@dev",
     "ext-curl": "*",
+    "ext-json": "*",
     "ext-xml": "*",
     "vlucas/phpdotenv": "^2.3",
-    "cocur/slugify": "^2.3"
+    "cocur/slugify": "^2.3",
+    "algolia/algoliasearch-client-php": "~1.28"
   },
   "require-dev": {
     "digitalnature/php-ref": "dev-master"

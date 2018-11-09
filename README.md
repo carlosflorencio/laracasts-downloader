@@ -6,7 +6,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 14/09/2018**
+**Working good at 10/11/2018**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -23,11 +23,15 @@ Even to download free lessons or series. The download option is only allowed to 
 - PHP >= 5.4
 - php-cURL
 - php-xml
+- php-json
 - Composer
 
 ## Installation
 - Clone this repo to a folder in your machine
 - Change your info in .env.example and rename it to .env
+  - Go to [laracasts.com --> Browse](https://laracasts.com/search), open Dev Tools --> Network,
+   find a request to algolia.net and save `x-algolia-api-key` and `x-algolia-application-id`
+   values to your .env
 - `composer install`
 - `php start.php` and you are done!
 
