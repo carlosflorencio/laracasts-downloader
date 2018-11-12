@@ -61,56 +61,6 @@ class Resolver
     }
 
     /**
-     * Grabs all lessons & series from the website.
-     */
-    public function getAllLessons()
-    {
-        $array = [];
-        $html = $this->getAllPage();
-        Parser::getAllLessons($html, $array);
-
-        while ($nextPage = Parser::hasNextPage($html)) {
-            $html = $this->client->get($nextPage, ['verify' => false])->getBody()->getContents();
-            Parser::getAllLessons($html, $array);
-        }
-
-        Downloader::$currentLessonNumber = count($array['lessons']);
-
-        return $array;
-    }
-
-    /**
-     * Gets the latest lessons only.
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getLatestLessons()
-    {
-        $array = [];
-
-        $html = $this->getAllPage();
-        Parser::getAllLessons($html, $array);
-
-        return $array;
-    }
-
-    /**
-     * Gets the html from the all page.
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    private function getAllPage()
-    {
-        $response = $this->client->get(LARACASTS_ALL_PATH, ['verify' => false]);
-
-        return $response->getBody()->getContents();
-    }
-
-    /**
      * Tries to auth.
      *
      * @param $email

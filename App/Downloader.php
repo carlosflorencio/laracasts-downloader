@@ -7,10 +7,12 @@ namespace App;
 use App\Exceptions\LoginException;
 use App\Exceptions\SubscriptionNotActiveException;
 use App\Http\Resolver;
-use App\System\Controller;
+use App\System\Controller as SystemController;
 use App\Utils\Utils;
 use Cocur\Slugify\Slugify;
-use GuzzleHttp\Client;
+use GuzzleHttp\Client as HttpClient;
+use AlgoliaSearch\Client as AlgoliaClient;
+use App\Algolia\Controller as AlgoliaController;
 use League\Flysystem\Filesystem;
 use Ubench;
 
@@ -28,7 +30,7 @@ class Downloader
 
     /**
      * System object
-     * @var Controller
+     * @var SystemController
      */
     private $system;
 
@@ -37,6 +39,12 @@ class Downloader
      * @var Ubench
      */
     private $bench;
+
+    /**
+     * Algolia object
+     * @var AlgoliaController
+     */
+    private $algolia;
 
     /**
      * Number of local lessons
@@ -56,16 +64,18 @@ class Downloader
     /**
      * Receives dependencies
      *
-     * @param Client $client
+     * @param HttpClient $httpClient
      * @param Filesystem $system
      * @param Ubench $bench
+     * @param AlgoliaClient $algoliaClient
      * @param bool $retryDownload
      */
-    public function __construct(Client $client, Filesystem $system, Ubench $bench, $retryDownload = false)
+    public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench, AlgoliaClient $algoliaClient, $retryDownload = false)
     {
-        $this->client = new Resolver($client, $bench, $retryDownload);
-        $this->system = new Controller($system);
+        $this->client = new Resolver($httpClient, $bench, $retryDownload);
+        $this->system = new SystemController($system);
         $this->bench = $bench;
+        $this->algolia = new AlgoliaController($algoliaClient);
     }
 
     /**
@@ -92,10 +102,7 @@ class Downloader
             $this->bench->start();
 
             $localLessons = $this->system->getAllLessons();
-            $allLessonsOnline = $this->client->getAllLessons();
-
-            // Sort series episodes from low to high (download order)
-            $this->sortSeries($allLessonsOnline);
+            $allLessonsOnline = $this->algolia->getAllLessons();
 
             $this->bench->end();
 
@@ -300,12 +307,5 @@ class Downloader
         }
 
         return $selectedLessonsOnline;
-    }
-
-    public function sortSeries(&$allLessons) {
-        foreach ($allLessons['series'] as $k => $v) {
-
-            sort($allLessons['series'][$k], SORT_NUMERIC);
-        }
     }
 }
