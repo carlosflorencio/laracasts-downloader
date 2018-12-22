@@ -1,7 +1,7 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
     "content-hash": "1b4cb21e9376b88347e97733b7ef7f0b",
@@ -177,12 +177,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "fc66319d0027509c3a83166314dfc813fa25ffcc"
+                "reference": "d9a19b2509af0979de323707c397e87bb00ceb6b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/fc66319d0027509c3a83166314dfc813fa25ffcc",
-                "reference": "fc66319d0027509c3a83166314dfc813fa25ffcc",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/d9a19b2509af0979de323707c397e87bb00ceb6b",
+                "reference": "d9a19b2509af0979de323707c397e87bb00ceb6b",
                 "shasum": ""
             },
             "require": {
@@ -222,7 +222,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2017-01-05T06:25:03+00:00"
+            "time": "2018-12-21T16:20:39+00:00"
         },
         {
             "name": "guzzlehttp/ringphp",
