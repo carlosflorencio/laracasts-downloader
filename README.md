@@ -44,7 +44,7 @@ Also works in the browser, but is better from the cli because of the instant fee
 
 ### Commands to download series
     php start.php -s "Series name example" -s "series-slug-example"
-    php start.php --series-name "Series name example" -series-name "series-slug-example"
+    php start.php --series-name "Series name example" --series-name "series-slug-example"
     
 ### Command to download lessons
     php start.php -l "Lesson name example" -l "lesson-slug-example"
