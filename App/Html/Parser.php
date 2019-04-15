@@ -60,4 +60,12 @@ class Parser
 
         return trim($t);
     }
+
+    public static function getRealEpisodeCount($html)
+    {
+        preg_match('/(\d+) episodes/', $html, $results);
+        $episode_count = intval($results[1]);
+
+        return $episode_count;
+    }
 }

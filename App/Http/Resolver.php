@@ -148,6 +148,13 @@ class Resolver
         return $this->downloadLessonFromPath($html, $saveTo);
     }
 
+    public function getRealEpisodeCount($path)
+    {
+        $episodePage = $this->getPage($path);
+
+        return Parser::getRealEpisodeCount($episodePage);
+    }
+
     /**
      * Helper function to get html of a page
      * @param $path
