@@ -103,7 +103,6 @@ class Downloader
 
             $localLessons = $this->system->getAllLessons();
             $allLessonsOnline = $this->algolia->getAllLessons();
-
             $this->bench->end();
 
 
