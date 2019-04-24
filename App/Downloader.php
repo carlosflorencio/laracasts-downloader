@@ -13,6 +13,7 @@ use Cocur\Slugify\Slugify;
 use GuzzleHttp\Client as HttpClient;
 use AlgoliaSearch\Client as AlgoliaClient;
 use App\Algolia\Controller as AlgoliaController;
+use App\Laracasts\Controller as LaracastsController;
 use League\Flysystem\Filesystem;
 use Ubench;
 
@@ -62,6 +63,11 @@ class Downloader
     private $wantLessons = [];
 
     /**
+     * @var LaracastsController
+     */
+    private $laracasts;
+
+    /**
      * Receives dependencies
      *
      * @param HttpClient $httpClient
@@ -76,6 +82,7 @@ class Downloader
         $this->system = new SystemController($system);
         $this->bench = $bench;
         $this->algolia = new AlgoliaController($algoliaClient);
+        $this->laracasts = new LaracastsController($httpClient);
     }
 
     /**
@@ -102,9 +109,11 @@ class Downloader
             $this->bench->start();
 
             $localLessons = $this->system->getAllLessons();
-            $allLessonsOnline = $this->algolia->getAllLessons();
-            $this->bench->end();
+            $algoliaLessons = $this->algolia->getAllLessons();
+            $this->laracasts->addAlgoliaResults($algoliaLessons);
+            $allLessonsOnline = $this->laracasts->getAllSeries();
 
+            $this->bench->end();
 
             if($this->_haveOptions()) {  //filter all online lessons to the selected ones
                 $allLessonsOnline = $this->onlyDownloadProvidedLessonsAndSeries($allLessonsOnline);
