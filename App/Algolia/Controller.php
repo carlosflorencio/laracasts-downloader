@@ -7,7 +7,6 @@ namespace App\Algolia;
 use AlgoliaSearch\Client;
 use App\Downloader;
 use App\Exceptions\AlgoliaException;
-use App\Http\Resolver;
 
 /**
  * Class Controller
@@ -81,8 +80,7 @@ class Controller
                         break;
                     case 'series':
                         $serieSlug = $lessonInfo['slug'];
-                        $episode_count = $this->getRealEpisodeCount($lessonInfo['path']);
-                        foreach (range(1, $episode_count) as $episode) {
+                        foreach (range(1, $lessonInfo['episode_count']) as $episode) {
                             $array['series'][$serieSlug][] = $episode;
                         }
                         break;
@@ -96,16 +94,6 @@ class Controller
         Downloader::$currentLessonNumber = count($array['lessons']);
 
         return $array;
-    }
-
-    private function getRealEpisodeCount($path)
-    {
-        global $client, $bench;
-        $retryDownload = false;
-
-        $resolver = new Resolver($client, $bench, $retryDownload);
-
-        return $resolver->getRealEpisodeCount($path);
     }
 
 }

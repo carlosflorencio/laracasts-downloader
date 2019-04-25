@@ -61,11 +61,22 @@ class Parser
         return trim($t);
     }
 
-    public static function getRealEpisodeCount($html)
+    public static function getSeriesArray($html)
     {
-        preg_match('/(\d+) episodes/', $html, $results);
-        $episode_count = intval($results[1]);
+        $parser = new Crawler($html);
 
-        return $episode_count;
+        $seriesNodes = $parser->filter(".series-card");
+
+        $series = $seriesNodes->each(function(Crawler $crawler) {
+            $slug = str_replace('/series/', '', $crawler->filter('a.tw-block')->attr('href'));
+            $episode_count = (int) $crawler->filter('.card-bottom .card-stats div div.tw-text-xs.tw-font-semibold')->text();
+
+            return [
+                'slug' => $slug,
+                'episode_count' => $episode_count,
+            ];
+        });
+
+        return $series;
     }
 }
