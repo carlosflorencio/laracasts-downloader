@@ -36,7 +36,7 @@ class Parser
      */
     public static function getDownloadLink($html)
     {
-        preg_match("('\/downloads\/.*?')", $html, $matches);
+        preg_match("(\"\/downloads\/.*?\")", $html, $matches);
 
         if(isset($matches[0]) === false) {
             throw new NoDownloadLinkException();
@@ -56,7 +56,7 @@ class Parser
     public static function getNameOfEpisode($html, $path)
     {
         $parser = new Crawler($html);
-        $t = $parser->filter("a[href='/".$path."'] h6")->text();
+        $t = $parser->filter("h4 a[href='/".$path."']")->text();
 
         return trim($t);
     }
