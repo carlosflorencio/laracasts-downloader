@@ -46,6 +46,23 @@ class Parser
     }
 
     /**
+     * Determine if this episode is scheduled for the future.
+     *
+     * @param $html
+     * @return boolean
+     */
+    public static function scheduledEpisode($html)
+    {
+        preg_match("(return to watch it (.*)\.)", $html, $matches);
+
+        if (isset($matches[1])) {
+            return strip_tags($matches[1]);
+        }
+
+        return false;
+    }
+
+    /**
      * Extracts the name of the episode.
      *
      * @param $html
