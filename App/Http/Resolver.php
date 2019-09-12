@@ -202,6 +202,12 @@ class Resolver
      */
     private function downloadLessonFromPath($html, $saveTo)
     {
+        $scheduled = Parser::scheduledEpisode($html);
+        if ($scheduled !== false) {
+            Utils::write(sprintf("This lesson is not available yet. Retry later: %s", $scheduled));
+            return false;
+        }
+
         try {
             $downloadUrl = Parser::getDownloadLink($html);
             $viemoUrl = $this->getRedirectUrl($downloadUrl);
