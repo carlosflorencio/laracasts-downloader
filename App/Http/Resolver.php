@@ -6,6 +6,7 @@
 namespace App\Http;
 
 use App\Downloader;
+use App\Exceptions\EpisodePageNotFoundException;
 use App\Exceptions\NoDownloadLinkException;
 use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
@@ -117,16 +118,21 @@ class Resolver
      */
     public function downloadSerieEpisode($serie, $episode)
     {
-        $path = LARACASTS_SERIES_PATH . '/' . $serie . '/episodes/' . $episode;
-        $episodePage = $this->getPage($path);
-        $name = $this->getNameOfEpisode($episodePage, $path);
-        $number = sprintf("%02d", $episode);
-        $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie . '/' . $number . '-' . $name . '.mp4';
-        Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
-            $number . ' - ' . $name
-        ));
+        try {
+            $path = LARACASTS_SERIES_PATH . '/' . $serie . '/episodes/' . $episode;
+            $episodePage = $this->getPage($path);
+            $name = $this->getNameOfEpisode($episodePage, $path);
+            $number = sprintf("%02d", $episode);
+            $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie . '/' . $number . '-' . $name . '.mp4';
+            Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
+                $number . ' - ' . $name
+            ));
 
-        return $this->downloadLessonFromPath($episodePage, $saveTo);
+            return $this->downloadLessonFromPath($episodePage, $saveTo);
+        } catch (EpisodePageNotFoundException $e) {
+            Utils::write(sprintf($e->getMessage()));
+            return false;
+        }
     }
 
     /**
@@ -154,10 +160,17 @@ class Resolver
      * @return string
      */
     private function getPage($path) {
-        return $this->client
-            ->get($path, ['cookies' => $this->cookie, 'verify' => false])
-            ->getBody()
-            ->getContents();
+        $response = $this->client->get($path, [
+            'cookies' => $this->cookie,
+            'verify' => false,
+            'allow_redirects' => false
+        ]);
+
+        if ($response->getStatusCode() == 302) {
+            throw new EpisodePageNotFoundException("The episode page not found at: $path");
+        }
+
+        return $response->getBody()->getContents();
     }
 
     /**
@@ -248,14 +261,14 @@ class Resolver
                     });
                 }
 
-                $response = $this->client->send($req); 
+                $response = $this->client->send($req);
 
                 if(strpos($response->getHeader('Content-Type'), 'text/html') !== FALSE) {
                     Utils::writeln(sprintf("Got HTML instead of the video file, the subscription is probably inactive"));
                     throw new SubscriptionNotActiveException();
-                } 
+                }
 
-                break;  
+                break;
             } catch (\Exception $e) {
                 if (is_a($e, SubscriptionNotActiveException::class) || !$this->retryDownload || ($this->retryDownload && $retries >= 3)) {
                     throw $e;
