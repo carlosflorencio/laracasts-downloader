@@ -45,7 +45,7 @@ Also works in the browser, but is better from the cli because of the instant fee
 ### Commands to download series
     php start.php -s "Series name example" -s "series-slug-example"
     php start.php --series-name "Series name example" --series-name "series-slug-example"
-    
+
 ### Command to download lessons
     php start.php -l "Lesson name example" -l "lesson-slug-example"
     php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
@@ -53,8 +53,11 @@ Also works in the browser, but is better from the cli because of the instant fee
 ### Using Docker
 - Clone this repo to a folder in your machine
 - Change your info in .env.example and rename it to .env
-- `docker build -t image-name .`
-- `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
+- `docker-compose build`
+- Then, with the volume path being absolute, run:
+```sh
+$ docker-compose run --rm laracastdl php ./start.php -s "series-slug-example"
+```
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
