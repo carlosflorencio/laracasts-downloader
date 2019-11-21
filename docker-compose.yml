@@ -12,8 +12,6 @@ services:
     laracastdl:
         container_name: laracastdl
         restart: "no"
-        depends_on:
-            - composer
         build:
             context: ./
             dockerfile: docker/laracastdl/dockerfile

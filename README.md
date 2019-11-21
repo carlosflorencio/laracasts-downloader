@@ -61,11 +61,15 @@ $ php start.php [empty for all OR provide flags]
 ```sh
 $ docker-compose build
 ```
-2. Then, run the command of your choice as if we were running it locally, but instead against the docker container:
+2. Install project dependencies:
+```sh
+$ docker-compose run --rm composer
+```
+3. Then, run the command of your choice as if we were running it locally, but instead against the docker container:
 ```sh
 $ docker-compose run --rm laracastdl php ./start.php [empty for all OR provide flags]
 ```
-3. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
+4. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
 
 Also works in the browser, but is better from the cli because of the instant feedback.
 
