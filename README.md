@@ -6,7 +6,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**This is working good as of `2019-11-21`, although you are rate limited to 30 downloads every 24 hours.**
+**This is working as of `2019-11-21`, although you are rate limited to 30 downloads every 24 hours.**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -25,7 +25,9 @@ Even to download free lessons or series. The download option is only allowed to 
 - php-xml
 - php-json
 - Composer
+
 OR
+
 - Docker
 
 ## Installation
