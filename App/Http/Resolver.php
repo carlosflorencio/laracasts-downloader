@@ -5,16 +5,17 @@
 
 namespace App\Http;
 
+use Ubench;
 use App\Downloader;
-use App\Exceptions\EpisodePageNotFoundException;
-use App\Exceptions\NoDownloadLinkException;
-use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Event\ProgressEvent;
-use Ubench;
+use GuzzleHttp\Exception\RequestException;
+use App\Exceptions\NoDownloadLinkException;
+use App\Exceptions\EpisodePageNotFoundException;
+use App\Exceptions\SubscriptionNotActiveException;
 
 /**
  * Class Resolver
@@ -192,6 +193,64 @@ class Resolver
     }
 
     /**
+     * Log the current rate limit remaining to the console.
+     *
+     * @param \GuzzleHttp\Message\Request $response
+     */
+    private function logRateLimitRemaining($response)
+    {
+        $rateLimitLimit = $response->getHeader('x-ratelimit-limit');
+        $rateLimitRemaining = $response->getHeader('x-ratelimit-remaining');
+
+        Utils::writeln(sprintf("Current rate limit remaining: {$rateLimitRemaining}/{$rateLimitLimit}"));
+    }
+
+    /**
+     * Checks and logs the rate limit, if the rate limit
+     * is exceeded, it will hold the script until the rate
+     * limit reset is over.
+     *
+     * @param string $url
+     */
+    private function handleRateLimit($url)
+    {
+        try {
+            $response = $this->client->get($url, [
+                'cookies' => $this->cookie,
+                'allow_redirects' => false,
+                'verify' => false
+            ]);
+
+            $this->logRateLimitRemaining($response);
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+            } else {
+                throw $e;
+            }
+
+            $this->logRateLimitRemaining($response);
+
+            if ($response->getHeader('x-ratelimit-remaining') == 0) {
+                $rateLimitReset = $response->getHeader('x-ratelimit-reset');
+                $rateLimitResetDate = date('r', $rateLimitReset);
+
+                Utils::writeln(sprintf("Looks like the rate limit is reached, holding until {$rateLimitResetDate} as instructed."));
+
+                while (time() <= $rateLimitReset) {
+                    $remainingSeconds = $rateLimitReset - time();
+
+                    printf("> Continuing in: %s     \r", gmdate('H:i:s', $remainingSeconds));
+
+                    sleep(1);
+                }
+            } else {
+                throw $e;
+            }
+        }
+    }
+
+    /**
      * Gets the name of the serie episode.
      *
      * @param $html
@@ -223,6 +282,9 @@ class Resolver
 
         try {
             $downloadUrl = Parser::getDownloadLink($html);
+
+            $this->handleRateLimit($downloadUrl);
+
             $viemoUrl = $this->getRedirectUrl($downloadUrl);
             $finalUrl = $this->getRedirectUrl($viemoUrl);
         } catch(NoDownloadLinkException $e) {
