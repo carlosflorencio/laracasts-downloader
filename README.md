@@ -39,6 +39,7 @@ $ cp .env.example .env
     - Within the URL, find the GET parameters:
         - Copy the `x-algolia-application-id` value to `ALGOLIA_APP_ID` in `.env`.
         - Copy the `x-algolia-api-key` value to `ALGOLIA_API_KEY` in `.env`.
+4. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Using your local machine
 1. Install project dependencies:
@@ -52,11 +53,11 @@ $ php start.php [empty for all OR provide flags]
 3. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
 
 ### Using Docker
-2. Build the image:
+1. Build the image:
 ```sh
 $ docker-compose build
 ```
-3. Then, run the command of your choice as if we were running it locally, but instead against the docker container:
+2. Then, run the command of your choice as if we were running it locally, but instead against the docker container:
 ```sh
 $ docker-compose run --rm laracastdl php ./start.php [empty for all OR provide flags]
 ```
