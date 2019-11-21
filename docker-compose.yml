@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+    composer:
+        image: composer:latest
+        container_name: composer
+        volumes:
+          - .:/usr/src/laracastdl
+        working_dir: /usr/src/laracastdl
+        command: composer install
+
+    laracastdl:
+        container_name: laracastdl
+        restart: "no"
+        build:
+            context: ./
+            dockerfile: docker/laracastdl/dockerfile
+        volumes:
+            - .:/usr/src/laracastdl
+        working_dir: /usr/src/laracastdl

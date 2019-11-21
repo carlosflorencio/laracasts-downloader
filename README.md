@@ -6,7 +6,7 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**Working good at 07/12/2019**
+**This is working as of `2019-11-21`, although you are rate limited to 30 downloads every 24 hours.**
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
@@ -26,35 +26,81 @@ Even to download free lessons or series. The download option is only allowed to 
 - php-json
 - Composer
 
-## Installation
-- Clone this repo to a folder in your machine
-- Change your info in .env.example and rename it to .env
-  - Go to [laracasts.com --> Browse](https://laracasts.com/search), open Dev Tools --> Network,
-   find a request to algolia.net and save `x-algolia-api-key` and `x-algolia-application-id`
-   values to your .env
-- `composer install`
-- `php start.php` and you are done!
+OR
 
-Also works in the browser, but is better from the cli because of the instant feedback
+- Docker
+
+## Installation
+1. Clone this repo to your local machine.
+2. Make a local copy of the `.env` file:
+```sh
+$ cp .env.example .env
+```
+3. Update the `.env` with your login and API information. To obtain this, do the following:
+    - Go to [laracasts.com and navigate to the Browse page](https://laracasts.com/search).
+    - Open your browsers Dev Tools and open the Network tab, then refresh the page.
+    - Find an XHR request to `algolia.net` and look at the request URL.
+    - Within the URL, find the GET parameters:
+        - Copy the `x-algolia-application-id` value to `ALGOLIA_APP_ID` in `.env`.
+        - Copy the `x-algolia-api-key` value to `ALGOLIA_API_KEY` in `.env`.
+4. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
+
+### Using your local machine
+1. Install project dependencies:
+```sh
+$ composer install
+```
+2. To run a download of all content, run the following command:
+```sh
+$ php start.php [empty for all OR provide flags]
+```
+3. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
+
+### Using Docker
+1. Build the image:
+```sh
+$ docker-compose build
+```
+2. Install project dependencies:
+```sh
+$ docker-compose run --rm composer
+```
+3. Then, run the command of your choice as if we were running it locally, but instead against the docker container:
+```sh
+$ docker-compose run --rm laracastdl php ./start.php [empty for all OR provide flags]
+```
+4. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
+
+Also works in the browser, but is better from the cli because of the instant feedback.
 
 ## Downloading specific series or lessons
 - You can use series and lessons names
 - You can use series and lessons slugs (preferred because there are some custom slugs too)
 - You can download multiples series/lessons
 
-### Commands to download series
-    php start.php -s "Series name example" -s "series-slug-example"
-    php start.php --series-name "Series name example" --series-name "series-slug-example"
-    
-### Command to download lessons
-    php start.php -l "Lesson name example" -l "lesson-slug-example"
-    php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
+### Commands to download an entire series
+You can either use the Series slug (preferred):
+```sh
+$ php start.php -s "series-slug-example"
+$ php start.php --series-name "series-slug-example"
+```
+Or the Series name:
+```sh
+$ php start.php -s "Series name example"
+$ php start.php --series-name "Series name example"
+```
 
-### Using Docker
-- Clone this repo to a folder in your machine
-- Change your info in .env.example and rename it to .env
-- `docker build -t image-name .`
-- `docker run -d -v /host-path:/container-path-in-config.ini image-name` and the path should be absolute
+### Command to download specific lessons
+You can either use the Lessons slug (preferred):
+```sh
+$ php start.php -l "lesson-slug-example"
+$ php start.php --lesson-name "lesson-slug-example"
+```
+Or the Lesson name:
+```sh
+$ php start.php -l "Lesson name example"
+$ php start.php --lesson-name "Lessons name example"
+```
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
