@@ -16,7 +16,7 @@ services:
             - composer
         build:
             context: ./
-            dockerfile: docker/app/dockerfile
+            dockerfile: docker/laracastdl/dockerfile
         volumes:
             - .:/usr/src/laracastdl
         working_dir: /usr/src/laracastdl
