@@ -51,10 +51,18 @@ Also works in the browser, but is better from the cli because of the instant fee
     php start.php --lesson-name "Lessons name example" --lesson-name "lesson-slug-example"
 
 ### Using Docker
-- Clone this repo to a folder in your machine
-- Change your info in .env.example and rename it to .env
-- `docker-compose build`
-- Then, with the volume path being absolute, run:
+- Clone this repo to a folder in your machine as per.
+- Make a local copy of the .env file:
+```sh
+$ cp .env.example .env
+```
+- Update the .env with your login and API information
+    - Note: Please leave the `LOCAL_PATH` as `Downloads`, or be sure to update the mapping in the `docker-compose.yml` if you change it.
+- Build the image:
+```sh
+$ docker-compose build
+```
+- Then, run the command of your choice as if we were running it locally, but instead against the docker container:
 ```sh
 $ docker-compose run --rm laracastdl php ./start.php -s "series-slug-example"
 ```
