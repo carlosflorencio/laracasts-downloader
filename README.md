@@ -27,13 +27,27 @@ Even to download free lessons or series. The download option is only allowed to 
 - Composer
 
 ## Installation
-- Clone this repo to a folder in your machine
-- Change your info in .env.example and rename it to .env
-  - Go to [laracasts.com --> Browse](https://laracasts.com/search), open Dev Tools --> Network,
-   find a request to algolia.net and save `x-algolia-api-key` and `x-algolia-application-id`
-   values to your .env
-- `composer install`
-- `php start.php` and you are done!
+- Clone this repo to a folder in your machine.
+- Make a local copy of the `.env` file:
+```sh
+$ cp .env.example .env
+```
+- Update the `.env` with your login and API information. To obtain this, do the following:
+    - Go to [laracasts.com and navigate to the Browse page](https://laracasts.com/search).
+    - Open your browsers Dev Tools and open the Network tab, then refresh the page.
+    - Find an XHR request to `algolia.net` and look at the request URL.
+    - Within the URL, find the GET parameters:
+        - Copy the `x-algolia-application-id` value to `ALGOLIA_APP_ID` in `.env`.
+        - Copy the `x-algolia-api-key` value to `ALGOLIA_APP_ID` in `.env`.
+- Install project dependencies:
+```sh
+$ composer install
+```
+- To run a download of all content, run the following command:
+```sh
+$ php start.php
+```
+- Otherwise, see how to download specific things below!
 
 Also works in the browser, but is better from the cli because of the instant feedback
 
@@ -52,11 +66,11 @@ Also works in the browser, but is better from the cli because of the instant fee
 
 ### Using Docker
 - Clone this repo to a folder in your machine as per.
-- Make a local copy of the .env file:
+- Make a local copy of the `.env` file:
 ```sh
 $ cp .env.example .env
 ```
-- Update the .env with your login and API information
+- Update the `.env` with your login and API information
     - Note: Please leave the `LOCAL_PATH` as `Downloads`, or be sure to update the mapping in the `docker-compose.yml` if you change it.
 - Build the image:
 ```sh
