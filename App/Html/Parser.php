@@ -82,11 +82,11 @@ class Parser
     {
         $parser = new Crawler($html);
 
-        $seriesNodes = $parser->filter(".series-card");
+        $seriesNodes = $parser->filter(".card");
 
         $series = $seriesNodes->each(function(Crawler $crawler) {
-            $slug = str_replace('/series/', '', $crawler->filter('a.tw-block')->attr('href'));
-            $episode_count = (int) $crawler->filter('.card-bottom .card-stats div div.tw-text-xs.tw-font-semibold')->text();
+            $slug = str_replace('/series/', '', $crawler->filter('.expanded-card-heading a')->attr('href'));
+            $episode_count = (int) $crawler->filter('.expanded-card-meta-lessons a')->text();
 
             return [
                 'slug' => $slug,
