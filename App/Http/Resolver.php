@@ -14,6 +14,7 @@ use App\Utils\Utils;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Event\ProgressEvent;
+use GuzzleHttp\Exception\RequestException;
 use Ubench;
 
 /**
@@ -132,6 +133,9 @@ class Resolver
         } catch (EpisodePageNotFoundException $e) {
             Utils::write(sprintf($e->getMessage()));
             return false;
+        } catch (RequestException $e) {
+            Utils::write(sprintf($e->getMessage()));
+            return false;
         }
     }
 
@@ -143,15 +147,22 @@ class Resolver
      */
     public function downloadLesson($lesson)
     {
-        $path = LARACASTS_LESSONS_PATH . '/' . $lesson;
-        $number = sprintf("%04d", Downloader::$totalLocalLessons + Downloader::$currentLessonNumber--);
-        $saveTo = BASE_FOLDER . '/' . LESSONS_FOLDER . '/' . $number . '-' . $lesson . '.mp4';
+        try
+        {
+            $path = LARACASTS_LESSONS_PATH . '/' . $lesson;
+            $number = sprintf("%04d", Downloader::$totalLocalLessons + Downloader::$currentLessonNumber --);
+            $saveTo = BASE_FOLDER . '/' . LESSONS_FOLDER . '/' . $number . '-' . $lesson . '.mp4';
 
-        Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
-            $lesson
-        ));
-        $html = $this->getPage($path);
-        return $this->downloadLessonFromPath($html, $saveTo);
+            Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
+                $lesson
+            ));
+            $html = $this->getPage($path);
+
+            return $this->downloadLessonFromPath($html, $saveTo);
+        } catch (RequestException $e) {
+            Utils::write(sprintf($e->getMessage()));
+            return false;
+        }
     }
 
     /**
