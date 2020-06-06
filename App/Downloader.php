@@ -62,6 +62,11 @@ class Downloader
     private $wantSeries = [];
     private $wantLessons = [];
 
+    //this filters all online episodes to what the user has requested
+        // this filter is applied before checking local (downloaded) videos,
+        // so local videos exclusion  will work as before
+    private $filterSeriesEpisodes = [];
+
     /**
      * @var LaracastsController
      */
@@ -228,40 +233,61 @@ class Downloader
 
         $short_options = "s:";
         $short_options .= "l:";
+        $short_options .= 'e:';
 
         $long_options  = array(
             "series-name:",
-            "lesson-name:"
+            "lesson-name:",
+            "series-episodes:"
         );
         $options = getopt($short_options, $long_options);
-
+        
         Utils::box(sprintf("Checking for options %s", json_encode($options)));
-
+        
         if(count($options) == 0) {
             Utils::write('No options provided');
             return false;
         }
-
+        
         $slugify = new Slugify();
         $slugify->addRule("'", '');
-
+        
         if(isset($options['s']) || isset($options['series-name'])) {
             $series = isset($options['s']) ? $options['s'] : $options['series-name'];
             if(!is_array($series))
-                $series = [$series];
-
+            $series = [$series];
+            
             Utils::write(sprintf("Series names provided: %s", json_encode($series)));
-
-
+            
+            
             $this->wantSeries = array_map(function ($serie) use ($slugify) {
                 return $slugify->slugify($serie);
             }, $series);
-
+            
             Utils::write(sprintf("Series names provided: %s", json_encode($this->wantSeries)));
 
+
+            if(isset($options['e']) || isset($options['series-episodes'])) {
+                $episodes = isset($options['e']) ? $options['e'] : $options['series-episodes'];
+    
+                Utils::write(sprintf("Episode numbers provided: %s", json_encode($episodes)));
+                if(strpos($episodes, ',') === false){
+                    if(!is_array($episodes))
+                        $episodes = [$episodes];
+                }else{
+                    $episodes = explode(',', $episodes);
+                }
+                
+                sort($episodes, SORT_NUMERIC);
+                $this->filterSeriesEpisodes = $episodes;
+    
+                Utils::write(sprintf("Episode numbers provided: %s", json_encode($this->filterSeriesEpisodes)));
+    
+            }
+            
             $found = true;
         }
-
+        
         if(isset($options['l']) || isset($options['lesson-name'])) {
             $lessons = isset($options['l']) ? $options['l'] : $options['lesson-name'];
 
@@ -300,6 +326,9 @@ class Downloader
             if(isset($allLessonsOnline['series'][$series])) {
                 Utils::write('Series "'.$series.'" found!');
                 $selectedLessonsOnline['series'][$series] = $allLessonsOnline['series'][$series];
+                if(is_array($this->filterSeriesEpisodes) && count($this->filterSeriesEpisodes) > 0){
+                    $selectedLessonsOnline['series'][$series] = $this->filterSeriesEpisodes;
+                }
             } else {
                 Utils::write("Series '".$series."' not found!");
             }
@@ -313,7 +342,7 @@ class Downloader
                 Utils::write("Lesson '".$lesson."' not found!");
             }
         }
-
+        
         return $selectedLessonsOnline;
     }
 }

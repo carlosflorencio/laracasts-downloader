@@ -92,6 +92,7 @@ $ php start.php --series-name "Series name example"
 
 ### Filter to download specific episodes of a series
 You can provide episode number(s) saperated by comma ```,```:
+You can add 1 or more episodes.
 ```sh
 $ php start.php -s "lesson-slug-example" -e "12,15"
 $ php start.php --series-name "series-slug-example" --series-episodes "12,15"
