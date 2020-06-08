@@ -90,6 +90,23 @@ $ php start.php -s "Series name example"
 $ php start.php --series-name "Series name example"
 ```
 
+### Filter to download specific episodes of a series
+You can provide episode number(s) saperated by comma ```,```:
+You can add 1 or more episodes.
+```sh
+$ php start.php -s "lesson-slug-example" -e "12,15"
+$ php start.php --series-name "series-slug-example" --series-episodes "12,15"
+```
+Or the with Series name:
+```sh
+$ php start.php -s "Series name example" -e "12"
+$ php start.php --series-name "Series name example" --series-episodes "12"
+```
+This will only download episodes which you mentioned in
+-e or --series-episodes flag, it will also ignor already downloaded episodes
+as usual.
+
+
 ### Command to download specific lessons
 You can either use the Lessons slug (preferred):
 ```sh
