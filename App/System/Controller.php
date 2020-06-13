@@ -62,6 +62,9 @@ class Controller
             if ($entry['type'] != 'file') {
                 continue;
             } //skip folder, we only want the files
+            if (substr($entry['filename'], 0, 2) == '._') {
+                continue;
+            }
 
             $serie   = substr($entry['dirname'], strlen(SERIES_FOLDER) + 1);
             $episode = (int)substr($entry['filename'], 0, strpos($entry['filename'], '-'));
