@@ -6,7 +6,10 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
-**This is working as of `2020-02-09`, although you are rate limited to 30 downloads every 24 hours.**
+### LIMITED FUNCTIONALITY NOTE:
+Due to recent changes in the structure of the series page, it is no longer possible to fetch the full catalog
+of lessons and series. Between a lengthy (unknown) delay on algolia indexing, and incomplete list of content
+on the series page, ability to download is severely hindered.
 
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
