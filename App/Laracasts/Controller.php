@@ -49,16 +49,14 @@ class Controller
     {
         if (empty($this->algoliaResults)) throw new \Exception('algoliaResults is empty, use addAlgoliaResults() to add a result');
 
-        $seriesHtml = $this->getSeriesHtml();
-
         $mergedResult = $this->algoliaResults;
 
-        $series = Parser::getSeriesArray($seriesHtml);
+        foreach($this->algoliaResults['series'] as $slug => $algoliaCourse) {
+            $episodesCount = Parser::getEpisodesCount($this->getCourseHTML($slug));
 
-        foreach ($series as $serie) {
-            foreach (range(1, $serie['episode_count']) as $episode) {
+            foreach (range(1, $episodesCount) as $episode) {
                 $key = $episode - 1; // Since we override we can't just append to the array
-                $mergedResult['series'][$serie['slug']][$key] = $episode;
+                $mergedResult['series'][$slug][$key] = $episode;
             }
         }
 
@@ -74,6 +72,20 @@ class Controller
     {
         return $this->client
             ->get(LARACASTS_BASE_URL . '/' . LARACASTS_SERIES_PATH, ['cookies' => $this->cookie, 'verify' => false])
+            ->getBody()
+            ->getContents();
+    }
+
+    /**
+     * Returns specific course page html
+     *
+     * @param string $slug
+     * @return string
+     */
+    private function getCourseHTML($slug)
+    {
+        return $this->client
+            ->get(LARACASTS_BASE_URL . '/' . LARACASTS_SERIES_PATH . '/' . $slug, ['cookies' => $this->cookie, 'verify' => false])
             ->getBody()
             ->getContents();
     }

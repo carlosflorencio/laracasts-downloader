@@ -132,6 +132,9 @@ class Resolver
         } catch (EpisodePageNotFoundException $e) {
             Utils::write(sprintf($e->getMessage()));
             return false;
+        } catch (\Exception $e) {
+            Utils::write(sprintf($e->getMessage()));
+            return false;
         }
     }
 

@@ -96,4 +96,12 @@ class Parser
 
         return $series;
     }
+
+
+    public static function getEpisodesCount($html)
+    {
+        $parser = new Crawler($html);
+
+        return $parser->filter("ol li.episode-list-item")->count();
+    }
 }
