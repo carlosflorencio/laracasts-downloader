@@ -111,7 +111,8 @@ class Downloader
             $localLessons = $this->system->getAllLessons();
             $algoliaLessons = $this->algolia->getAllLessons();
             $this->laracasts->addAlgoliaResults($algoliaLessons);
-            $allLessonsOnline = $this->laracasts->getAllSeries();
+            $allLessonsOnline = $this->laracasts->getAllSeries($this->system->getCacheData());
+            $this->system->cacheSeriesData($allLessonsOnline);
 
             $this->bench->end();
 

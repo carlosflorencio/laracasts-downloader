@@ -104,4 +104,10 @@ class Parser
 
         return $parser->filter("ol li.episode-list-item")->count();
     }
+
+
+    public static function isCourseComplete($html)
+    {
+        return strpos($html, 'Series still in development. Check back often for updates') === false;
+    }
 }

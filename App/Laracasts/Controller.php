@@ -41,18 +41,27 @@ class Controller
 
     /**
      *  Gets all series with scraping and merges with algolia result
-     *
+     * @param array|null $cacheData
      * @return array
      * @throws \Exception
      */
-    public function getAllSeries()
+    public function getAllSeries($cacheData)
     {
         if (empty($this->algoliaResults)) throw new \Exception('algoliaResults is empty, use addAlgoliaResults() to add a result');
 
         $mergedResult = $this->algoliaResults;
+        $mergedResult['completed_series'] = $cacheData['completed_series'] ?? [];
 
         foreach($this->algoliaResults['series'] as $slug => $algoliaCourse) {
-            $episodesCount = Parser::getEpisodesCount($this->getCourseHTML($slug));
+
+            if ($cacheData['series'][$slug] and in_array($slug, $cacheData['completed_series']))
+                $episodesCount = count($cacheData['series'][$slug]);
+            else {
+                $courseHTML = $this->getCourseHTML($slug);
+                $episodesCount = Parser::getEpisodesCount($courseHTML);
+                if (Parser::isCourseComplete($courseHTML))
+                    array_push($mergedResult['completed_series'], $slug);
+            }
 
             foreach (range(1, $episodesCount) as $episode) {
                 $key = $episode - 1; // Since we override we can't just append to the array

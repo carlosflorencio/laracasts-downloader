@@ -245,4 +245,27 @@ class Controller
             $this->system->createDir($folder);
         }
     }
+
+    /**
+     * Create cache file
+     */
+    public function cacheSeriesData($data)
+    {
+        $file = 'cache.php';
+
+        if ($this->system->has($file)) {
+            $this->system->delete($file);
+        }
+
+        $this->system->write($file, '<?php return ' . var_export($data, true) . ';' . PHP_EOL);
+    }
+
+    public function getCacheData()
+    {
+        $file = 'cache.php';
+
+        return $this->system->has($file)
+            ? require $this->system->getAdapter()->getPathPrefix() . 'cache.php'
+            : null;
+    }
 }
