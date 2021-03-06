@@ -6,6 +6,8 @@
 
 Downloads new lessons and series from laracasts if there are updates. Or the whole catalogue.
 
+**Currently looking for maintainers.**
+
 ### LIMITED FUNCTIONALITY NOTE:
 Due to recent changes in the structure of the series page, it is no longer possible to fetch the full catalog
 of lessons and series. Between a lengthy (unknown) delay on algolia indexing, and incomplete list of content
