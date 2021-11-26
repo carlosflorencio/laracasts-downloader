@@ -25,33 +25,6 @@ class Utils
     }
 
     /**
-     * Count the total lessons of an array of lessons & series.
-     *
-     * @param $array
-     *
-     * @return int
-     */
-    public static function countAllLessons($array)
-    {
-        $total = count($array['lessons']);
-        $total += self::countEpisodes($array);
-
-        return $total;
-    }
-
-    /**
-     * Counts the lessons from the array.
-     *
-     * @param $array
-     *
-     * @return int
-     */
-    public static function countLessons($array)
-    {
-        return count($array['lessons']);
-    }
-
-    /**
      * Counts the episodes from the array.
      *
      * @param $array
@@ -61,8 +34,9 @@ class Utils
     public static function countEpisodes($array)
     {
         $total = 0;
-        foreach ($array['series'] as $serie) {
-            $total += count($serie);
+
+        foreach ($array as $serie) {
+            $total += count($serie['episodes']);
         }
 
         return $total;
@@ -76,31 +50,33 @@ class Utils
      *
      * @return array
      */
-    public static function resolveFaultyLessons($onlineListArray, $localListArray)
+    public static function compareLocalAndOnlineSeries($onlineListArray, $localListArray)
     {
-        $array = [];
-        $array['series'] = [];
-        $array['lessons'] = [];
+        $seriesCollection = new SeriesCollection([]);
 
-        foreach ($onlineListArray['series'] as $serie => $episodes) {
-            if (isset($localListArray['series'][$serie])) {
-                if (count($episodes) == count($localListArray['series'][$serie])) {
+        foreach ($onlineListArray as $serieSlug => $serie) {
+
+            if (array_key_exists($serieSlug, $localListArray)) {
+                if ($serie['episode_count'] == count($localListArray[$serieSlug])) {
                     continue;
                 }
 
-                foreach ($episodes as $episode) {
-                    if (!in_array($episode, $localListArray['series'][$serie])) {
-                        $array['series'][$serie][] = $episode;
+                $episodes = $serie['episodes'];
+                $serie['episodes'] = [];
+
+                foreach ($episodes as $number => $episode) {
+                    if (!in_array($number, $localListArray[$serieSlug])) {
+                        $serie['episodes'][$number] = $episode;
                     }
                 }
+
+                $seriesCollection->add($serie);
             } else {
-                $array['series'][$serie] = $episodes;
+                $seriesCollection->add($serie);
             }
         }
 
-        $array['lessons'] = array_diff($onlineListArray['lessons'], $localListArray['lessons']);
-
-        return $array;
+        return $seriesCollection->get();
     }
 
     /**
