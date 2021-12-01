@@ -89,7 +89,10 @@ class Parser
 
                     return [
                         'title' => $episode['title'],
-                        'download_link' => 'https:' . $episode['download'],
+                        // Some video links starts with '//' and doesn't include protocol
+                        'download_link' => strpos($episode['download'], 'https:') === 0
+                            ? $episode['download']
+                            : 'https:' . $episode['download'],
                         'number' => $episode['position']
                     ];
                 }, $episodes)
