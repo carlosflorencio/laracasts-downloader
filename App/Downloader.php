@@ -91,9 +91,9 @@ class Downloader
 
         $localSeries = $this->system->getSeries();
 
-        $cachedDate = $this->system->getCache();
+        $cachedData = $this->system->getCache();
 
-        $onlineSeries = $this->laracasts->getSeries($cachedDate);
+        $onlineSeries = $this->laracasts->getSeries($cachedData);
 
         $this->system->setCache($onlineSeries);
 
