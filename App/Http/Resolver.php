@@ -5,9 +5,6 @@
 
 namespace App\Http;
 
-use App\Exceptions\EpisodePageNotFoundException;
-use App\Exceptions\LoginException;
-use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
@@ -114,26 +111,35 @@ class Resolver
     /**
      * Download the episode of the serie.
      *
-     * @param $serieSlug
+     * @param string $serieSlug
      * @param array $episode
      * @return bool
      */
-    public function downloadSerieEpisode($serieSlug, $episode)
+    public function downloadEpisode($serieSlug, $episode)
     {
         try {
             $name = $episode['title'];
+
             $number = sprintf("%02d", $episode['number']);
-            $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serieSlug . '/' . $number . '-' . $name . '.mp4';
-            Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serieSlug . ' folder.',
-                $number . ' - ' . $name
+
+            $saveTo = BASE_FOLDER
+                . DIRECTORY_SEPARATOR
+                . SERIES_FOLDER
+                . DIRECTORY_SEPARATOR
+                . $serieSlug
+                . DIRECTORY_SEPARATOR
+                . $number . '-' . Utils::parseEpisodeName($name) . '.mp4';
+
+            Utils::writeln(
+                sprintf(
+                    "Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serieSlug,
+                    $number . ' - ' . $name
             ));
 
-            return $this->downloadLessonFromPath($episode['download_link'], $saveTo);
-        } catch (EpisodePageNotFoundException $e) {
-            Utils::write(sprintf($e->getMessage()));
-            return false;
+            return $this->downloadVideo($episode['download_link'], $saveTo);
         } catch (RequestException $e) {
             Utils::write(sprintf($e->getMessage()));
+
             return false;
         }
     }
@@ -167,27 +173,6 @@ class Resolver
     }
 
     /**
-     * Helper function to get html of a page
-     *
-     * @param $path
-     * @return string
-     */
-    private function getPage($path)
-    {
-        $response = $this->client->get($path, [
-            'cookies' => $this->cookie,
-            'verify' => false,
-            'allow_redirects' => false
-        ]);
-
-        if ($response->getStatusCode() == 302) {
-            throw new EpisodePageNotFoundException("The episode page not found at: $path");
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-    /**
      * Helper to get the Location header.
      *
      * @param $url
@@ -207,17 +192,18 @@ class Resolver
     /**
      * Helper to download the video.
      *
-     * @param $html
+     * @param $downloadUrl
      * @param $saveTo
      * @return bool
      */
-    private function downloadLessonFromPath($downloadUrl, $saveTo)
+    private function downloadVideo($downloadUrl, $saveTo)
     {
         $this->bench->start();
 
         $finalUrl = $this->getRedirectUrl($downloadUrl);
 
         $retries = 0;
+
         while (true) {
             try {
                 $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
@@ -238,18 +224,10 @@ class Resolver
                     });
                 }
 
-                $response = $this->client->send($req);
-
-                if (strpos($response->getHeader('Content-Type'), 'text/html') !== false) {
-                    Utils::writeln(sprintf("Got HTML instead of the video file, the subscription is probably inactive"));
-                    throw new SubscriptionNotActiveException();
-                }
+                $this->client->send($req);
 
                 break;
             } catch (\Exception $e) {
-                if (is_a($e, SubscriptionNotActiveException::class) || ! $this->retryDownload || ($this->retryDownload && $retries >= 3)) {
-                    throw $e;
-                }
                 ++$retries;
                 Utils::writeln(sprintf("Retry download after connection fail!     "));
                 continue;

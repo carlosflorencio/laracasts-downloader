@@ -111,15 +111,7 @@ class Utils
      */
     public static function parseEpisodeName($name)
     {
-        $toRemove = 'New';
-        $striped = preg_replace('/[^A-Za-z0-9\- _]/', '', $name);
-
-        if (strpos($striped, $toRemove) !== false) { //remove last New string
-            $striped = preg_replace('/'. preg_quote($toRemove, '/') . '$/', '', $striped);
-            return rtrim($striped);
-        }
-
-        return $striped;
+        return preg_replace('/[^A-Za-z0-9\- _]/', '', $name);
     }
 
     /**

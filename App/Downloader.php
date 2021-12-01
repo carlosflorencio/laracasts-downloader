@@ -179,7 +179,7 @@ class Downloader
 
             foreach ($serie['episodes'] as $episode) {
 
-                if ($this->client->downloadSerieEpisode($serie['slug'], $episode) === false) {
+                if ($this->client->downloadEpisode($serie['slug'], $episode) === false) {
                     $counter['failed_episode'] = $counter['failed_episode'] + 1;
                 }
 
