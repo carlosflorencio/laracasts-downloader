@@ -16,8 +16,14 @@ A .skip file is used to prevent downloading deleted lessons for these with space
 
 Just call `php makeskips.php` before deleting the lessons.
 
-## An account with an active subscription is necessary!
-Even to download free lessons or series. The download option is only allowed to users with a valid subscription.
+## Do I need an active subscription account?
+You ONLY can download free episodes as guest and need active subscription to download all series.
+
+I suggest starting the script as a guest at first step, this helps you to don't exceed daily download limits.
+Then fill your account credentials in ``.env`` and re-run project.
+
+> You need active subscription account to take advantage of cache feature.
+
 
 ## Requirements
 - PHP >= 5.4
