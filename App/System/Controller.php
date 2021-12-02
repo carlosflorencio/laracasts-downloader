@@ -4,7 +4,6 @@
  */
 namespace App\System;
 
-use App\Downloader;
 use App\Utils\Utils;
 use League\Flysystem\Filesystem;
 
@@ -31,29 +30,13 @@ class Controller
     }
 
     /**
-     * Gets the array of the local lessons & series.
-     *
-     * @return array
-     */
-    public function getAllLessons()
-    {
-        $array            = [];
-        $array['lessons'] = $this->getLessons(true);
-        $array['series']  = $this->getSeries(true);
-
-        Downloader::$totalLocalLessons = count($array['lessons']);
-
-        return $array;
-    }
-
-    /**
      * Get the series
      *
      * @param bool $skip
      *
      * @return array
      */
-    private function getSeries($skip = false)
+    public function getSeries($skip = false)
     {
         $list  = $this->system->listContents(SERIES_FOLDER, true);
         $array = [];
@@ -61,7 +44,9 @@ class Controller
         foreach ($list as $entry) {
             if ($entry['type'] != 'file') {
                 continue;
-            } //skip folder, we only want the files
+            }
+
+            //skip folder, we only want the files
             if (substr($entry['filename'], 0, 2) == '._') {
                 continue;
             }
@@ -72,65 +57,23 @@ class Controller
             $array[$serie][] = $episode;
         }
 
+        // TODO: #Issue# returns array with index 0
         if($skip) {
-            foreach($this->getSkipSeries() as $skipSerie => $episodes) {
+            foreach($this->getSkippedSeries() as $skipSerie => $episodes) {
                 if(!isset($array[$skipSerie])) {
                     $array[$skipSerie] = $episodes;
                     continue;
                 }
 
-                $array[$skipSerie] = array_merge($array[$skipSerie], $episodes);
-                $array[$skipSerie] = array_filter(array_unique($array[$skipSerie]));
+                $array[$skipSerie] = array_filter(
+                    array_unique(
+                        array_merge($array[$skipSerie], $episodes)
+                    )
+                );
             }
         }
 
         return $array;
-    }
-
-    /**
-     * Gets the lessons in the folder.
-     *
-     * @param bool $skip
-     *
-     * @return array
-     */
-    public function getLessons($skip = false)
-    {
-        $list  = $this->system->listContents(LESSONS_FOLDER);
-        $array = [];
-
-        foreach ($list as $entry) {
-            if ($entry['type'] != 'file') {
-                continue;
-            }
-
-            $originalName = $entry['filename'];
-
-            $array[] = substr($originalName, strpos($originalName, '-') + 1);
-        }
-
-        if ($skip) {
-            $array = array_merge($this->getSkipLessons(), $array);
-            $array = array_filter(array_unique($array));
-        }
-
-        return $array;
-    }
-
-    /**
-     * Create skip file to lessons
-     */
-    public function writeSkipLessons()
-    {
-        $file = LESSONS_FOLDER . '/.skip';
-
-        $lessons = serialize($this->getLessons(true));
-
-        if($this->system->has($file)) {
-            $this->system->delete($file);
-        }
-
-        $this->system->write($file, $lessons);
     }
 
     /**
@@ -141,18 +84,14 @@ class Controller
         Utils::box('Creating skip files');
 
         $this->writeSkipSeries();
+
         Utils::write('Skip files for series created');
-
-        $this->writeSkipLessons();
-        Utils::write('Skip files for lesson created');
-
-        Utils::box('Finished');
     }
 
     /**
      * Create skip file to lessons
      */
-    public function writeSkipSeries()
+    private function writeSkipSeries()
     {
         $file = SERIES_FOLDER . '/.skip';
 
@@ -166,21 +105,12 @@ class Controller
     }
 
     /**
-     * Get skiped lessons
+     * Get skipped series
      * @return array
      */
-    public function getSkipLessons()
+    private function getSkippedSeries()
     {
-        return $this->getSkipedData(LESSONS_FOLDER . '/.skip');
-    }
-
-    /**
-     * Get skiped series
-     * @return array
-     */
-    public function getSkipSeries()
-    {
-        return $this->getSkipedData(SERIES_FOLDER . '/.skip');
+        return $this->getSkippedData(SERIES_FOLDER . '/.skip');
     }
 
     /**
@@ -189,8 +119,8 @@ class Controller
      * @param $pathToSkipFile
      * @return array|mixed
      */
-    private function getSkipedData($pathToSkipFile) {
-
+    private function getSkippedData($pathToSkipFile)
+    {
         if ($this->system->has($pathToSkipFile)) {
             $content = $this->system->read($pathToSkipFile);
 
@@ -201,40 +131,13 @@ class Controller
     }
 
     /**
-     * Rename lessons, adding 0 padding to the number.
-     */
-    public function renameLessonsWithRightPadding()
-    {
-        $list = $this->system->listContents(LESSONS_FOLDER);
-
-        foreach ($list as $entry) {
-            if ($entry['type'] != 'file') {
-                continue;
-            }
-
-            $originalName = $entry['basename'];
-            $oldNumber    = substr($originalName, 0, strpos($originalName, '-'));
-
-            if (strlen($oldNumber) == 4) {
-                continue;
-            } // already correct
-
-            $newNumber         = sprintf("%04d", $oldNumber);
-            $nameWithoutNumber = substr($originalName, strpos($originalName, '-') + 1);
-            $newName           = $newNumber . '-' . $nameWithoutNumber;
-
-            $this->system->rename(LESSONS_FOLDER . '/' . $originalName, LESSONS_FOLDER . '/' . $newName);
-        }
-    }
-
-    /**
      * Create series folder if not exists.
      *
-     * @param $serie
+     * @param $serieSlug
      */
-    public function createSerieFolderIfNotExists($serie)
+    public function createSerieFolderIfNotExists($serieSlug)
     {
-        $this->createFolderIfNotExists(SERIES_FOLDER . '/' . $serie);
+        $this->createFolderIfNotExists(SERIES_FOLDER . '/' . $serieSlug);
     }
 
     /**
@@ -247,5 +150,37 @@ class Controller
         if ($this->system->has($folder) === false) {
             $this->system->createDir($folder);
         }
+    }
+
+    /**
+     * Create cache file
+     *
+     * @param array $data
+     * @throws \League\Flysystem\FileExistsException
+     * @throws \League\Flysystem\FileNotFoundException
+     */
+    public function setCache($data)
+    {
+        $file = 'cache.php';
+
+        if ($this->system->has($file)) {
+            $this->system->delete($file);
+        }
+
+        $this->system->write($file, '<?php return ' . var_export($data, true) . ';' . PHP_EOL);
+    }
+
+    /**
+     * Get cached items
+     *
+     * @return array
+     */
+    public function getCache()
+    {
+        $file = 'cache.php';
+
+        return $this->system->has($file)
+            ? require $this->system->getAdapter()->getPathPrefix() . $file
+            : [];
     }
 }

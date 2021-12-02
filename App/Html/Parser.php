@@ -2,98 +2,137 @@
 /**
  * Dom Parser
  */
+
 namespace App\Html;
 
-use App\Exceptions\NoDownloadLinkException;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Class Parser
+ *
  * @package App\Html
  */
 class Parser
 {
     /**
-     * Gets the token input.
+     * Return list of topics data
      *
-     * @param $html
-     *
-     * @return string
+     * @param string $html
+     * @return array
      */
-    public static function getToken($html)
+    public static function getTopicsData($html)
     {
-        $parser = new Crawler($html);
+        $data = self::getData($html);
 
-        return $parser->filter("input[name=_token]")->attr('value');
-    }
-
-    /**
-     * Gets the download link.
-     *
-     * @param $html
-     * @return string
-     * @throws NoDownloadLinkException
-     */
-    public static function getDownloadLink($html)
-    {
-        preg_match("(\"\/downloads\/.*?\")", $html, $matches);
-
-        if(isset($matches[0]) === false) {
-            throw new NoDownloadLinkException();
-        }
-
-        return LARACASTS_BASE_URL . substr($matches[0],1,-1);
-    }
-
-    /**
-     * Determine if this episode is scheduled for the future.
-     *
-     * @param $html
-     * @return boolean
-     */
-    public static function scheduledEpisode($html)
-    {
-        preg_match("(return to watch it (.*)\.)", $html, $matches);
-
-        if (isset($matches[1])) {
-            return strip_tags($matches[1]);
-        }
-
-        return false;
-    }
-
-    /**
-     * Extracts the name of the episode.
-     *
-     * @param $html
-     *
-     * @param $path
-     * @return string
-     */
-    public static function getNameOfEpisode($html, $path)
-    {
-        $parser = new Crawler($html);
-        $t = $parser->filter("h4 a[href='/".$path."']")->text();
-
-        return trim($t);
-    }
-
-    public static function getSeriesArray($html)
-    {
-        $parser = new Crawler($html);
-
-        $seriesNodes = $parser->filter(".expanded-card-meta-lessons a");
-
-        $series = $seriesNodes->each(function(Crawler $crawler) {
-            $slug = str_replace('/series/', '', $crawler->attr('href'));
-            $episode_count = (int) $crawler->text();
-
+        return array_map(function($topic) {
             return [
-                'slug' => $slug,
-                'episode_count' => $episode_count,
+                'slug' => str_replace(LARACASTS_BASE_URL . '/topics/', '', $topic['path']),
+                'path' => $topic['path'],
+                'episode_count' => $topic['episode_count'],
+                'series_count' => $topic['series_count']
             ];
-        });
+        }, $data['props']['topics']);
+    }
 
-        return $series;
+    /**
+     * Return full list of series for given topic HTML page.
+     *
+     * @param string $html
+     * @return array
+     */
+    public static function getSeriesData($html)
+    {
+        $data = self::getData($html);
+
+        $series = $data['props']['topic']['series'];
+
+        return array_combine(
+            array_column($series, 'slug'),
+            array_map(function($serie) {
+                return [
+                    'slug' => $serie['slug'],
+                    'path' => LARACASTS_BASE_URL . $serie['path'],
+                    'episode_count' => $serie['episodeCount'],
+                    'is_complete' => $serie['complete']
+                ];
+            }, $series)
+        );
+    }
+
+    /**
+     * Return full list of episodes for given series HTML page.
+     *
+     * @param string $html
+     * @return array
+     */
+    public static function getEpisodesData($html)
+    {
+        $data = self::getData($html);
+
+        $episodes = [];
+
+        $chapters = $data['props']['series']['chapters'];
+
+        foreach ($chapters as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                array_push($episodes, $episode);
+            }
+        }
+
+        return array_filter(
+            array_combine(
+                array_column($episodes, 'position'),
+                array_map(function($episode) {
+                    // In case you don't have active subscription.
+                    if (! array_key_exists('download', $episode))
+                        return null;
+
+                    return [
+                        'title' => $episode['title'],
+                        // Some video links starts with '//' and doesn't include protocol
+                        'download_link' => strpos($episode['download'], 'https:') === 0
+                            ? $episode['download']
+                            : 'https:' . $episode['download'],
+                        'number' => $episode['position']
+                    ];
+                }, $episodes)
+            )
+        );
+    }
+
+    public static function getCsrfToken($html)
+    {
+        preg_match('/"csrfToken": \'([^\s]+)\'/', $html, $matches);
+
+        return $matches[1];
+    }
+
+    public static function getUserData($html)
+    {
+
+        $data = self::getData($html);
+
+        $props = $data['props'];
+
+        return [
+            'error' => empty($props['errors']) ? null : $props['errors']['auth'],
+            'signedIn' => $props['auth']['signedIn'],
+            'data' => $props['auth']['user']
+        ];
+    }
+
+    /**
+     * Returns decoded version of data-page attribute in HTML page
+     *
+     * @param string $html
+     * @return array
+     */
+    private static function getData($html)
+    {
+        $parser = new Crawler($html);
+
+        $data = $parser->filter("#app")->attr('data-page');
+
+        return json_decode($data, true);
     }
 }

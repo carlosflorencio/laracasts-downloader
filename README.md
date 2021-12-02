@@ -8,11 +8,6 @@ Downloads new lessons and series from laracasts if there are updates. Or the who
 
 **Currently looking for maintainers.**
 
-### LIMITED FUNCTIONALITY NOTE:
-Due to recent changes in the structure of the series page, it is no longer possible to fetch the full catalog
-of lessons and series. Between a lengthy (unknown) delay on algolia indexing, and incomplete list of content
-on the series page, ability to download is severely hindered.
-
 ## Description
 Syncs your local folder with the laracasts website, when there are new lessons the app download it for you.
 If your local folder is empty, all lessons and series will be downloaded!
@@ -21,11 +16,17 @@ A .skip file is used to prevent downloading deleted lessons for these with space
 
 Just call `php makeskips.php` before deleting the lessons.
 
-## An account with an active subscription is necessary!
-Even to download free lessons or series. The download option is only allowed to users with a valid subscription.
+## Do I need an active subscription account?
+You ONLY can download free episodes as guest and need active subscription to download all series.
+
+I suggest starting the script as a guest at first step, this helps you to don't exceed daily download limits.
+Then fill your account credentials in ``.env`` and re-run project.
+
+> You need active subscription account to take advantage of cache feature.
+
 
 ## Requirements
-- PHP >= 5.4
+- PHP >= 7.0
 - php-cURL
 - php-xml
 - php-json
@@ -41,13 +42,7 @@ OR
 ```sh
 $ cp .env.example .env
 ```
-3. Update the `.env` with your login and API information. To obtain this, do the following:
-    - Go to [laracasts.com and navigate to the Browse page](https://laracasts.com/search).
-    - Open your browsers Dev Tools and open the Network tab, then refresh the page.
-    - Find an XHR request to `algolia.net` and look at the request URL.
-    - Within the URL, find the GET parameters:
-        - Copy the `x-algolia-application-id` value to `ALGOLIA_APP_ID` in `.env`.
-        - Copy the `x-algolia-api-key` value to `ALGOLIA_API_KEY` in `.env`.
+3. Update your laracasts account credentials (EMAIL, PASSWORD) in ``.env``
 4. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Using your local machine
@@ -111,18 +106,6 @@ This will only download episodes which you mentioned in
 -e or --series-episodes flag, it will also ignor already downloaded episodes
 as usual.
 
-
-### Command to download specific lessons
-You can either use the Lessons slug (preferred):
-```sh
-$ php start.php -l "lesson-slug-example"
-$ php start.php --lesson-name "lesson-slug-example"
-```
-Or the Lesson name:
-```sh
-$ php start.php -l "Lesson name example"
-$ php start.php --lesson-name "Lessons name example"
-```
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:

@@ -5,76 +5,101 @@ namespace App\Laracasts;
 
 
 use App\Html\Parser;
-use GuzzleHttp\Client;
-use GuzzleHttp\Cookie\CookieJar;
+use App\Http\Resolver;
+use App\Utils\SeriesCollection;
+use App\Utils\Utils;
 
 class Controller
 {
     /**
-     * @var \GuzzleHttp\Client
+     * @var \App\Http\Resolver
      */
     private $client;
-    /**
-     * @var array
-     */
-    private $algoliaResults;
 
     /**
      * Controller constructor.
-     * @param Client $client
+     *
+     * @param Resolver $client
      */
-    public function __construct(Client $client)
+    public function __construct(Resolver $client)
     {
         $this->client = $client;
-        $this->cookie = new CookieJar();
     }
 
     /**
-     * Adds algolia results for use while merging
+     *  Gets all series using scraping
      *
-     * @param array $algoliaLessons
-     */
-    public function addAlgoliaResults(array $algoliaLessons)
-    {
-        $this->algoliaResults = $algoliaLessons;
-    }
-
-    /**
-     *  Gets all series with scraping and merges with algolia result
-     *
+     * @param array $cachedData
      * @return array
-     * @throws \Exception
      */
-    public function getAllSeries()
+    public function getSeries($cachedData)
     {
-        if (empty($this->algoliaResults)) throw new \Exception('algoliaResults is empty, use addAlgoliaResults() to add a result');
+        $seriesCollection = new SeriesCollection($cachedData);
 
-        $seriesHtml = $this->getSeriesHtml();
+        $topics = Parser::getTopicsData($this->client->getTopicsHtml());
 
-        $mergedResult = $this->algoliaResults;
+        foreach ($topics as $topic) {
 
-        $series = Parser::getSeriesArray($seriesHtml);
+            if ($this->isTopicUpdated($seriesCollection, $topic))
+                continue;
 
-        foreach ($series as $serie) {
-            foreach (range(1, $serie['episode_count']) as $episode) {
-                $key = $episode - 1; // Since we override we can't just append to the array
-                $mergedResult['series'][$serie['slug']][$key] = $episode;
+            Utils::box($topic['slug']);
+
+            $topicHtml = $this->client->getHtml($topic['path']);
+
+            $series = Parser::getSeriesData($topicHtml);
+
+            foreach ($series as $serie) {
+                if ($this->isSerieUpdated($seriesCollection, $serie))
+                    continue;
+
+                Utils::writeln("Getting serie: {$serie['slug']} ...");
+
+                $seriHtml = $this->client->getHtml($serie['path']);
+
+                $serie['topic'] = $topic['slug'];
+
+                $serie['episodes'] = Parser::getEpisodesData($seriHtml);
+
+                $seriesCollection->add($serie);
             }
+
         }
 
-        return $mergedResult;
+        return $seriesCollection->get();
+    }
+
+
+    /**
+     *  Determine is specific topic has been changed compared to cached data
+     *
+     * @param SeriesCollection $series
+     * @param array $topic
+     * @return bool
+     * */
+    public function isTopicUpdated($series, $topic)
+    {
+        $series = $series->where('topic', $topic['slug']);
+
+        return
+            $series->exists()
+            and
+            $topic['series_count'] == $series->count()
+            and
+            $topic['episode_count'] == $series->sum('episode_count', true);
     }
 
     /**
-     * Returns series page html
+     * Determine is specific series has been changed compared to cached data
      *
-     * @return string
+     * @param SeriesCollection $series
+     * @param array $serie
+     * @return bool
      */
-    private function getSeriesHtml()
+    private function isSerieUpdated($series, $serie)
     {
-        return $this->client
-            ->get(LARACASTS_BASE_URL . '/' . LARACASTS_SERIES_PATH, ['cookies' => $this->cookie, 'verify' => false])
-            ->getBody()
-            ->getContents();
+        $target = $series->where('slug', $serie['slug'])->first();
+
+        return ! is_null($target) and (count($target['episodes']) == $serie['episode_count']);
     }
 }

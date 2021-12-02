@@ -5,10 +5,6 @@
 
 namespace App\Http;
 
-use App\Downloader;
-use App\Exceptions\EpisodePageNotFoundException;
-use App\Exceptions\NoDownloadLinkException;
-use App\Exceptions\SubscriptionNotActiveException;
 use App\Html\Parser;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
@@ -19,30 +15,35 @@ use Ubench;
 
 /**
  * Class Resolver
+ *
  * @package App\Http
  */
 class Resolver
 {
     /**
      * Guzzle client
+     *
      * @var Client
      */
     private $client;
 
     /**
      * Guzzle cookie
+     *
      * @var CookieJar
      */
     private $cookie;
 
     /**
      * Ubench lib
+     *
      * @var Ubench
      */
     private $bench;
 
     /**
      * Retry download on connection fail
+     *
      * @var int
      */
     private $retryDownload = false;
@@ -63,139 +64,125 @@ class Resolver
     }
 
     /**
-     * Tries to auth.
+     * Tries to authenticate user.
      *
-     * @param $email
-     * @param $password
-     *
-     * @return bool
-     * @throws SubscriptionNotActiveException
+     * @param string $email
+     * @param string $password
+     * @return array
      */
-    public function doAuth($email, $password)
+    public function login($email, $password)
     {
-        $response = $this->client->get(LARACASTS_LOGIN_PATH, [
-            'cookies' => $this->cookie,
-            'verify' => false
-        ]);
-
-        $token = Parser::getToken($response->getBody()->getContents());
-
         $response = $this->client->post(LARACASTS_POST_LOGIN_PATH, [
             'cookies' => $this->cookie,
-            'body'    => [
-                'email'    => $email,
-                'password' => $password,
-                '_token'   => $token,
-                'remember' => 1,
+            'headers' => [
+                "X-CSRF-TOKEN" => $this->getCsrfToken(),
+                'content-type' => 'application/json',
             ],
+            'body' => json_encode([
+                'email' => $email,
+                'password' => $password,
+                'remember' => 1
+            ]),
             'verify' => false
         ]);
 
         $html = $response->getBody()->getContents();
 
-        if (strpos($html, "Reactivate") !== FALSE) {
-            throw new SubscriptionNotActiveException();
-        }
+        return Parser::getUserData($html);
+    }
 
-        if(strpos($html, "The email must be a valid email address.") !== FALSE) {
-            return false;
-        }
+    /**
+     * Returns CSRF token
+     *
+     * @return string
+     */
+    public function getCsrfToken()
+    {
+        $response = $this->client->get(LARACASTS_BASE_URL, [
+            'cookies' => $this->cookie,
+            'verify' => false
+        ]);
 
-        // user doesnt provided an email in the .env
-        // laracasts redirects to login page again
-        if(strpos($html, 'name="password"') !== FALSE) {
-            return false;
-        }
+        $html = $response->getBody()->getContents();
 
-        return strpos($html, "verify your credentials.") === FALSE;
+        return Parser::getCsrfToken($html);
     }
 
     /**
      * Download the episode of the serie.
      *
-     * @param $serie
-     * @param $episode
+     * @param string $serieSlug
+     * @param array $episode
      * @return bool
      */
-    public function downloadSerieEpisode($serie, $episode)
+    public function downloadEpisode($serieSlug, $episode)
     {
         try {
-            $path = LARACASTS_SERIES_PATH . '/' . $serie . '/episodes/' . $episode;
-            $episodePage = $this->getPage($path);
-            $name = $this->getNameOfEpisode($episodePage, $path);
-            $number = sprintf("%02d", $episode);
-            $saveTo = BASE_FOLDER . '/' . SERIES_FOLDER . '/' . $serie . '/' . $number . '-' . $name . '.mp4';
-            Utils::writeln(sprintf("Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serie . ' folder.',
-                $number . ' - ' . $name
+            $name = $episode['title'];
+
+            $number = sprintf("%02d", $episode['number']);
+
+            $saveTo = BASE_FOLDER
+                . DIRECTORY_SEPARATOR
+                . SERIES_FOLDER
+                . DIRECTORY_SEPARATOR
+                . $serieSlug
+                . DIRECTORY_SEPARATOR
+                . $number . '-' . Utils::parseEpisodeName($name) . '.mp4';
+
+            Utils::writeln(
+                sprintf(
+                    "Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serieSlug,
+                    $number . ' - ' . $name
             ));
 
-            return $this->downloadLessonFromPath($episodePage, $saveTo);
-        } catch (EpisodePageNotFoundException $e) {
-            Utils::write(sprintf($e->getMessage()));
-            return false;
+            return $this->downloadVideo($episode['download_link'], $saveTo);
         } catch (RequestException $e) {
             Utils::write(sprintf($e->getMessage()));
+
             return false;
         }
     }
 
+
     /**
-     * Downloads the lesson.
+     * Returns topics page html
      *
-     * @param $lesson
-     * @return bool
-     */
-    public function downloadLesson($lesson)
-    {
-        try
-        {
-            $path = LARACASTS_LESSONS_PATH . '/' . $lesson;
-            $number = sprintf("%04d", Downloader::$totalLocalLessons + Downloader::$currentLessonNumber --);
-            $saveTo = BASE_FOLDER . '/' . LESSONS_FOLDER . '/' . $number . '-' . $lesson . '.mp4';
-
-            Utils::writeln(sprintf("Download started: %s . . . . Saving on " . LESSONS_FOLDER . ' folder.',
-                $lesson
-            ));
-            $html = $this->getPage($path);
-
-            return $this->downloadLessonFromPath($html, $saveTo);
-        } catch (RequestException $e) {
-            Utils::write(sprintf($e->getMessage()));
-            return false;
-        }
-    }
-
-    /**
-     * Helper function to get html of a page
-     * @param $path
      * @return string
      */
-    private function getPage($path) {
-        $response = $this->client->get($path, [
-            'cookies' => $this->cookie,
-            'verify' => false,
-            'allow_redirects' => false
-        ]);
+    public function getTopicsHtml()
+    {
+        return $this->client
+            ->get(LARACASTS_BASE_URL . '/' . LARACASTS_TOPICS_PATH, ['cookies' => $this->cookie, 'verify' => false])
+            ->getBody()
+            ->getContents();
+    }
 
-        if ($response->getStatusCode() == 302) {
-            throw new EpisodePageNotFoundException("The episode page not found at: $path");
-        }
-
-        return $response->getBody()->getContents();
+    /**
+     * Returns html content of specific url
+     *
+     * @param string $url
+     * @return string
+     */
+    public function getHtml($url)
+    {
+        return $this->client
+            ->get($url, ['cookies' => $this->cookie, 'verify' => false])
+            ->getBody()
+            ->getContents();
     }
 
     /**
      * Helper to get the Location header.
      *
      * @param $url
-     *
      * @return string
      */
     private function getRedirectUrl($url)
     {
         $response = $this->client->get($url, [
-            'cookies'         => $this->cookie,
-            'allow_redirects' => FALSE,
+            'cookies' => $this->cookie,
+            'allow_redirects' => false,
             'verify' => false
         ]);
 
@@ -203,55 +190,20 @@ class Resolver
     }
 
     /**
-     * Gets the name of the serie episode.
-     *
-     * @param $html
-     *
-     * @param $path
-     * @return string
-     */
-    private function getNameOfEpisode($html, $path)
-    {
-        $name = Parser::getNameOfEpisode($html, $path);
-
-        return Utils::parseEpisodeName($name);
-    }
-
-    /**
      * Helper to download the video.
      *
-     * @param $html
+     * @param $downloadUrl
      * @param $saveTo
      * @return bool
      */
-    private function downloadLessonFromPath($html, $saveTo)
+    private function downloadVideo($downloadUrl, $saveTo)
     {
-        $scheduled = Parser::scheduledEpisode($html);
-        if ($scheduled !== false) {
-            Utils::write(sprintf("This lesson is not available yet. Retry later: %s", $scheduled));
-            return false;
-        }
-
-        try {
-            $downloadUrl = Parser::getDownloadLink($html);
-            $viemoUrl = $this->getRedirectUrl($downloadUrl);
-            $finalUrl = $this->getRedirectUrl($viemoUrl);
-        } catch(NoDownloadLinkException $e) {
-            Utils::write(sprintf("Can't download this lesson! :( No download button"));
-
-            try {
-                Utils::write(sprintf("Tring to find a Wistia.net video"));
-                $Wistia = new Wistia($html,$this->bench);
-                $finalUrl = $Wistia->getDownloadUrl();
-            } catch(NoDownloadLinkException $e) {
-                return false;
-            }
-
-        }
-
         $this->bench->start();
 
+        $finalUrl = $this->getRedirectUrl($downloadUrl);
+
         $retries = 0;
+
         while (true) {
             try {
                 $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
@@ -264,7 +216,7 @@ class Resolver
                 ]);
 
                 if (php_sapi_name() == "cli") { //on cli show progress
-                    $req->getEmitter()->on('progress', function (ProgressEvent $e) use ($downloadedBytes) {
+                    $req->getEmitter()->on('progress', function(ProgressEvent $e) use ($downloadedBytes) {
                         printf("> Total: %d%% Downloaded: %s of %s     \r",
                             Utils::getPercentage($e->downloaded + $downloadedBytes, $e->downloadSize),
                             Utils::formatBytes($e->downloaded + $downloadedBytes),
@@ -272,18 +224,10 @@ class Resolver
                     });
                 }
 
-                $response = $this->client->send($req);
-
-                if(strpos($response->getHeader('Content-Type'), 'text/html') !== FALSE) {
-                    Utils::writeln(sprintf("Got HTML instead of the video file, the subscription is probably inactive"));
-                    throw new SubscriptionNotActiveException();
-                }
+                $this->client->send($req);
 
                 break;
             } catch (\Exception $e) {
-                if (is_a($e, SubscriptionNotActiveException::class) || !$this->retryDownload || ($this->retryDownload && $retries >= 3)) {
-                    throw $e;
-                }
                 ++$retries;
                 Utils::writeln(sprintf("Retry download after connection fail!     "));
                 continue;
