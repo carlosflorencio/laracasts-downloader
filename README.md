@@ -26,7 +26,7 @@ Then fill your account credentials in ``.env`` and re-run project.
 
 
 ## Requirements
-- PHP >= 5.4
+- PHP >= 7.0
 - php-cURL
 - php-xml
 - php-json
