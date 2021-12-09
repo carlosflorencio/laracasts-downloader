@@ -66,6 +66,22 @@ class Controller
 
         }
 
+        Utils::box('Larabits');
+
+        $larabitsHtml = $this->client->getHtml(LARACASTS_BASE_URL . '/bits');
+
+        $bits = Parser::extractLarabitsSeries($larabitsHtml);
+
+        foreach ($bits as $bit) {
+            Utils::writeln("Getting serie: $bit ...");
+
+            $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL . '/series/' . $bit);
+
+            $serie = Parser::getLarabitsData($seriHtml);
+
+            $seriesCollection->add($serie);
+        }
+
         return $seriesCollection->get();
     }
 
