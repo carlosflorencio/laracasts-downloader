@@ -30,16 +30,20 @@ class Controller
      *  Gets all series using scraping
      *
      * @param array $cachedData
+     * @param array $filters
      * @return array
      */
-    public function getSeries($cachedData)
+    public function getSeries($cachedData, $filters)
     {
-        $seriesCollection = new SeriesCollection($cachedData);
+        $seriesCollection = new SeriesCollection(empty($filters) ? $cachedData : []);
 
         $topics = Parser::getTopicsData($this->client->getTopicsHtml());
 
         foreach ($topics as $topic) {
 
+            // TODO: It's not gonna work fine
+            // for example blade topic has 2 series (11e+9e=20)
+            // cache file only includes 1 series in with blade topic and the other in alpine-js category
             if ($this->isTopicUpdated($seriesCollection, $topic))
                 continue;
 
@@ -50,20 +54,28 @@ class Controller
             $series = Parser::getSeriesData($topicHtml);
 
             foreach ($series as $serie) {
+                if (! empty($filters) and ! array_key_exists($serie['slug'], $filters))
+                    continue;
+
                 if ($this->isSerieUpdated($seriesCollection, $serie))
                     continue;
 
                 Utils::writeln("Getting serie: {$serie['slug']} ...");
 
-                $seriHtml = $this->client->getHtml($serie['path']);
-
                 $serie['topic'] = $topic['slug'];
 
-                $serie['episodes'] = Parser::getEpisodesData($seriHtml);
+                $episodes = (isset($filters[$serie['slug']]) and ! empty($filters[$serie['slug']]))
+                    ? $filters[$serie['slug']]
+                    : range(1, $serie['episode_count']);
+
+                foreach ($episodes as $episode) {
+                    $episodeHtml = $this->client->getHtml($serie['path'] . '/episodes/' . $episode);
+
+                    $serie['episodes'][] = Parser::getEpisodesData($episodeHtml);
+                }
 
                 $seriesCollection->add($serie);
             }
-
         }
 
         Utils::box('Larabits');
@@ -73,11 +85,21 @@ class Controller
         $bits = Parser::extractLarabitsSeries($larabitsHtml);
 
         foreach ($bits as $bit) {
+            if (! empty($filters) and ! array_key_exists($bit, $filters))
+                continue;
+
             Utils::writeln("Getting serie: $bit ...");
 
             $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL . '/series/' . $bit);
 
             $serie = Parser::getLarabitsData($seriHtml);
+            $serie['topic'] = 'larabits';
+
+            foreach (range(1, $serie['episode_count']) as $episode) {
+                $episodeHtml = $this->client->getHtml($serie['path'] . '/episodes/' . $episode);
+
+                $serie['episodes'][] = Parser::getEpisodesData($episodeHtml);
+            }
 
             $seriesCollection->add($serie);
         }

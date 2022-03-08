@@ -202,6 +202,9 @@ class Resolver
 
         $finalUrl = $this->getRedirectUrl($downloadUrl);
 
+        if (strpos($finalUrl, 'player.vimeo') !== false)
+            $finalUrl = $this->getRedirectUrl($finalUrl);
+
         $retries = 0;
 
         while (true) {

@@ -69,7 +69,14 @@ class Parser
     {
         $data = self::getData($html);
 
-        return static::getEpisodes($data['props']['series']['chapters']);
+        $link = $data['props']['downloadLink'];
+
+        return [
+            'title' => $data['props']['lesson']['title'],
+            // Some video links starts with '//' and doesn't include protocol
+            'download_link' => strpos($link, 'https:') === 0 ? $link : 'https:' . $link,
+            'number' => $data['props']['lesson']['position']
+        ];
     }
 
     public static function extractLarabitsSeries($html)
@@ -91,15 +98,11 @@ class Parser
     {
         $data = self::getData($html);
 
-        $episodes = static::getEpisodes($data['props']['series']['chapters']);
-
         return [
             'slug' => $data['props']['series']['slug'],
             'path' => LARACASTS_BASE_URL . $data['props']['series']['path'],
             'episode_count' => $data['props']['series']['episodeCount'],
             'is_complete' => $data['props']['series']['complete'],
-            'topic' => '',
-            'episodes' => $episodes
         ];
     }
 
@@ -137,39 +140,5 @@ class Parser
         $data = $parser->filter("#app")->attr('data-page');
 
         return json_decode($data, true);
-    }
-
-    /**
-     * @param array $chapters
-     * @return array
-    */
-    private static function getEpisodes($chapters) {
-        $episodes = [];
-
-        foreach ($chapters as $chapter) {
-            foreach ($chapter['episodes'] as $episode) {
-                array_push($episodes, $episode);
-            }
-        }
-
-        return array_filter(
-            array_combine(
-                array_column($episodes, 'position'),
-                array_map(function($episode) {
-                    // In case you don't have active subscription.
-                    if (! array_key_exists('download', $episode))
-                        return null;
-
-                    return [
-                        'title' => $episode['title'],
-                        // Some video links starts with '//' and doesn't include protocol
-                        'download_link' => strpos($episode['download'], 'https:') === 0
-                            ? $episode['download']
-                            : 'https:' . $episode['download'],
-                        'number' => $episode['position']
-                    ];
-                }, $episodes)
-            )
-        );
     }
 }
