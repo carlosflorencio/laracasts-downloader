@@ -16,13 +16,7 @@ A .skip file is used to prevent downloading deleted lessons for these with space
 
 Just call `php makeskips.php` before deleting the lessons.
 
-## Do I need an active subscription account?
-You ONLY can download free episodes as guest and need active subscription to download all series.
-
-I suggest starting the script as a guest at first step, this helps you to don't exceed daily download limits.
-Then fill your account credentials in ``.env`` and re-run project.
-
-> You need active subscription account to take advantage of cache feature.
+> You need an active subscription account to use this script.
 
 
 ## Requirements
@@ -42,8 +36,9 @@ OR
 ```sh
 $ cp .env.example .env
 ```
-3. Update your laracasts account credentials (EMAIL, PASSWORD) in ``.env``
-4. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
+3. Update your laracasts account credentials (**EMAIL**, **PASSWORD**) in ``.env``
+4. Choose your preferred quality (1080p, 720p, 540p, 360p) by changing **VIDEO_QUALITY** in ``.env``.
+5. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Using your local machine
 1. Install project dependencies:
@@ -52,7 +47,7 @@ $ composer install
 ```
 2. To run a download of all content, run the following command:
 ```sh
-$ php start.php [empty for all OR provide flags]
+$ php start.php
 ```
 3. See [downloading specific series or lessons](#downloading-specific-series-or-lessons) for optional flags.
 
@@ -91,21 +86,28 @@ $ php start.php --series-name "Series name example"
 ```
 
 ### Filter to download specific episodes of a series
-You can provide episode number(s) saperated by comma ```,```:
-You can add 1 or more episodes.
+You can provide episode number(s) separated by comma ```,```:
+
 ```sh
 $ php start.php -s "lesson-slug-example" -e "12,15"
 $ php start.php --series-name "series-slug-example" --series-episodes "12,15"
 ```
-Or the with Series name:
-```sh
-$ php start.php -s "Series name example" -e "12"
-$ php start.php --series-name "Series name example" --series-episodes "12"
-```
+
 This will only download episodes which you mentioned in
--e or --series-episodes flag, it will also ignor already downloaded episodes
+-e or --series-episodes flag, it will also ignore already downloaded episodes
 as usual.
 
+```sh
+$ php start.php -s "nuxtjs-from-scratch" -e "12,15" -s "laravel-from-scratch" -e "5"
+```
+
+It will download episode 12 and 15 for "nuxtjs-from-scratch" and episode 5 for "laravel-from-scratch" course.
+
+```sh
+$ php start.php -s "nuxtjs-from-scratch" -e "12,15" -s "laravel-from-scratch"
+```
+
+It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all episodes for "laravel-from-scratch" course.
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:

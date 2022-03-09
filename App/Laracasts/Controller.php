@@ -40,6 +40,7 @@ class Controller
 
         foreach ($topics as $topic) {
 
+            // TODO: It's not gonna work fine because each series may have multiple topics
             if ($this->isTopicUpdated($seriesCollection, $topic))
                 continue;
 
@@ -47,7 +48,7 @@ class Controller
 
             $topicHtml = $this->client->getHtml($topic['path']);
 
-            $series = Parser::getSeriesData($topicHtml);
+            $series = Parser::getSeriesDataFromTopic($topicHtml);
 
             foreach ($series as $serie) {
                 if ($this->isSerieUpdated($seriesCollection, $serie))
@@ -55,15 +56,14 @@ class Controller
 
                 Utils::writeln("Getting serie: {$serie['slug']} ...");
 
-                $seriHtml = $this->client->getHtml($serie['path']);
-
                 $serie['topic'] = $topic['slug'];
 
-                $serie['episodes'] = Parser::getEpisodesData($seriHtml);
+                $episodeHtml = $this->client->getHtml($serie['path'] . '/episodes/1');
+
+                $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
 
                 $seriesCollection->add($serie);
             }
-
         }
 
         Utils::box('Larabits');
@@ -77,7 +77,32 @@ class Controller
 
             $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL . '/series/' . $bit);
 
-            $serie = Parser::getLarabitsData($seriHtml);
+            $serie = Parser::getSerieData($seriHtml);
+
+            $serie['topic'] = 'larabits';
+
+            $episodeHtml = $this->client->getHtml($serie['path'] . '/episodes/1');
+
+            $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
+
+            $seriesCollection->add($serie);
+        }
+
+        return $seriesCollection->get();
+    }
+
+    public function getFilteredSeries($filters)
+    {
+        $seriesCollection = new SeriesCollection([]);
+
+        foreach($filters as $serieSlug => $filteredEpisodes) {
+            $seriesHtml = $this->client->getHtml("series/$serieSlug");
+
+            $serie = Parser::getSerieData($seriesHtml);
+
+            $episodeHtml = $this->client->getHtml($serie['path'] . '/episodes/1');
+
+            $serie['episodes'] = Parser::getEpisodesData($episodeHtml, $filteredEpisodes);
 
             $seriesCollection->add($serie);
         }
