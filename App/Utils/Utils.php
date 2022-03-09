@@ -2,10 +2,12 @@
 /**
  * Utilities
  */
+
 namespace App\Utils;
 
 /**
  * Class Utils
+ *
  * @package App\Utils
  */
 class Utils
@@ -28,7 +30,6 @@ class Utils
      * Counts the episodes from the array.
      *
      * @param $array
-     *
      * @return int
      */
     public static function countEpisodes($array)
@@ -47,7 +48,6 @@ class Utils
      *
      * @param $onlineListArray
      * @param $localListArray
-     *
      * @return array
      */
     public static function compareLocalAndOnlineSeries($onlineListArray, $localListArray)
@@ -64,9 +64,9 @@ class Utils
                 $episodes = $serie['episodes'];
                 $serie['episodes'] = [];
 
-                foreach ($episodes as $number => $episode) {
-                    if (!in_array($number, $localListArray[$serieSlug])) {
-                        $serie['episodes'][$number] = $episode;
+                foreach ($episodes as $episode) {
+                    if (! in_array($episode['number'], $localListArray[$serieSlug])) {
+                        $serie['episodes'][] = $episode;
                     }
                 }
 
@@ -87,9 +87,9 @@ class Utils
     public static function box($text)
     {
         echo self::newLine();
-        echo "====================================".self::newLine();
-        echo $text.self::newLine();
-        echo "====================================".self::newLine();
+        echo "====================================" . self::newLine();
+        echo $text . self::newLine();
+        echo "====================================" . self::newLine();
     }
 
     /**
@@ -99,14 +99,13 @@ class Utils
      */
     public static function write($text)
     {
-        echo "> ".$text.self::newLine();
+        echo "> " . $text . self::newLine();
     }
 
     /**
      * Remove specials chars that windows does not support for filenames.
      *
      * @param $name
-     *
      * @return mixed
      */
     public static function parseEpisodeName($name)
@@ -122,16 +121,18 @@ class Utils
     public static function writeln($text)
     {
         echo self::newLine();
-        echo "> ".$text.self::newLine();
+        echo "> " . $text . self::newLine();
     }
 
     /**
      * Convert bytes to precision
+     *
      * @param $bytes
      * @param int $precision
      * @return string
      */
-    public static function formatBytes($bytes, $precision = 2) {
+    public static function formatBytes($bytes, $precision = 2)
+    {
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
 
         $bytes = max($bytes, 0);
@@ -145,11 +146,13 @@ class Utils
 
     /**
      * Calculate a percentage
+     *
      * @param $cur
      * @param $total
      * @return float
      */
-    public static function getPercentage($cur, $total) {
-        return @($cur/$total * 100); //hide warning division by zero
+    public static function getPercentage($cur, $total)
+    {
+        return @($cur / $total * 100); //hide warning division by zero
     }
 }

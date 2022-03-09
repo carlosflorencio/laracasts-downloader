@@ -134,9 +134,13 @@ class Resolver
                 sprintf(
                     "Download started: %s . . . . Saving on " . SERIES_FOLDER . '/' . $serieSlug,
                     $number . ' - ' . $name
-            ));
+                ));
 
-            return $this->downloadVideo($episode['download_link'], $saveTo);
+            $links = $this->getVimeoLinks($episode['vimeo_id']);
+
+            $downloadLink = $links[VIDEO_QUALITY] ?? current($links);
+
+            return $this->downloadVideo($downloadLink, $saveTo);
         } catch (RequestException $e) {
             Utils::write(sprintf($e->getMessage()));
 
@@ -189,6 +193,28 @@ class Resolver
         return $response->getHeader('Location');
     }
 
+    private function getVimeoLinks($viemoId)
+    {
+        $content = $this->client->get('https://player.vimeo.com/video/' . $viemoId, [
+            'cookies' => $this->cookie,
+            'verify' => false,
+            'headers' => [
+                'Referer' => 'https://laracasts.com/'
+            ]
+        ])->getBody()->getContents();
+        preg_match('/"progressive":\[(.+?)\]/', $content, $matches);
+
+        $result = json_decode('{' . $matches[0] . '}', true);
+
+        $output = [];
+
+        foreach ($result['progressive'] as $progressive) {
+            $output[$progressive['quality']] = $progressive['url']; //. '?download=1'
+        }
+
+        return $output;
+    }
+
     /**
      * Helper to download the video.
      *
@@ -200,10 +226,15 @@ class Resolver
     {
         $this->bench->start();
 
-        $finalUrl = $this->getRedirectUrl($downloadUrl);
+        $finalUrl = $downloadUrl;
 
-        if (strpos($finalUrl, 'player.vimeo') !== false)
-            $finalUrl = $this->getRedirectUrl($finalUrl);
+        // We need this to send proper range otherwise will face "416 Range Not Satisfiable" error
+        // @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/416
+        $contentRange = $this->client->get($finalUrl, [
+            'headers' => ['Range' => 'bytes=0-0']
+        ])->getHeader('Content-Range');
+
+        $downloadSize = substr($contentRange, strpos($contentRange, '/') + 1);
 
         $retries = 0;
 
@@ -214,7 +245,7 @@ class Resolver
                     'save_to' => fopen($saveTo, 'a'),
                     'verify' => false,
                     'headers' => [
-                        'Range' => 'bytes=' . $downloadedBytes . '-'
+                        'Range' => 'bytes=' . $downloadedBytes . '-' . $downloadSize,
                     ]
                 ]);
 

@@ -34,13 +34,21 @@ class Parser
         }, $data['props']['topics']);
     }
 
+
+    public static function getSerieData($serieHtml)
+    {
+        $data = self::getData($serieHtml);
+
+        return self::extractSerieData($data['props']['series']);
+    }
+
     /**
      * Return full list of series for given topic HTML page.
      *
      * @param string $html
      * @return array
      */
-    public static function getSeriesData($html)
+    public static function getSeriesDataFromTopic($html)
     {
         $data = self::getData($html);
 
@@ -49,34 +57,58 @@ class Parser
         return array_combine(
             array_column($series, 'slug'),
             array_map(function($serie) {
-                return [
-                    'slug' => $serie['slug'],
-                    'path' => LARACASTS_BASE_URL . $serie['path'],
-                    'episode_count' => $serie['episodeCount'],
-                    'is_complete' => $serie['complete']
-                ];
+                return self::extractSerieData($serie);
             }, $series)
         );
     }
 
     /**
-     * Return full list of episodes for given series HTML page.
+     * Only extracts data we need for each serie and returns them
      *
-     * @param string $html
+     * @param array $serie
      * @return array
      */
-    public static function getEpisodesData($html)
+    public static function extractSerieData($serie)
     {
-        $data = self::getData($html);
-
-        $link = $data['props']['downloadLink'];
-
         return [
-            'title' => $data['props']['lesson']['title'],
-            // Some video links starts with '//' and doesn't include protocol
-            'download_link' => strpos($link, 'https:') === 0 ? $link : 'https:' . $link,
-            'number' => $data['props']['lesson']['position']
+            'slug' => $serie['slug'],
+            'path' => LARACASTS_BASE_URL . $serie['path'],
+            'episode_count' => $serie['episodeCount'],
+            'is_complete' => $serie['complete']
         ];
+    }
+
+    /**
+     * Return full list of episodes for given series HTML page.
+     *
+     * @param string $episodeHtml
+     * @param number[] $filteredEpisodes
+     * @return array
+     */
+    public static function getEpisodesData($episodeHtml, $filteredEpisodes = [])
+    {
+        $episodes = [];
+
+        $data = self::getData($episodeHtml);
+
+        $chapters = $data['props']['series']['chapters'];
+
+        foreach ($chapters as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                // TODO: It's not the parser responsibility to filter episodes
+                if (! empty($filteredEpisodes) and ! in_array($episode['position'], $filteredEpisodes)) {
+                    continue;
+                }
+
+                $episodes[] = [
+                    'title' => $episode['title'],
+                    'vimeo_id' => $episode['vimeoId'],
+                    'number' => $episode['position']
+                ];
+            }
+        }
+
+        return $episodes;
     }
 
     public static function extractLarabitsSeries($html)
@@ -86,24 +118,6 @@ class Parser
         preg_match_all('"\/series\/([a-z-]+-larabits)"', $html, $matches);
 
         return array_unique($matches[1]);
-    }
-
-    /**
-     * Return larabits data
-     *
-     * @param string $html
-     * @return array
-     */
-    public static function getLarabitsData($html)
-    {
-        $data = self::getData($html);
-
-        return [
-            'slug' => $data['props']['series']['slug'],
-            'path' => LARACASTS_BASE_URL . $data['props']['series']['path'],
-            'episode_count' => $data['props']['series']['episodeCount'],
-            'is_complete' => $data['props']['series']['complete'],
-        ];
     }
 
     public static function getCsrfToken($html)

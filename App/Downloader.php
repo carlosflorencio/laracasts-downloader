@@ -89,12 +89,15 @@ class Downloader
 
         $localSeries = $this->system->getSeries();
 
-        $cachedData = $this->system->getCache();
+        if (empty($this->filters)) {
+            $cachedData = $this->system->getCache();
 
-        $onlineSeries = $this->laracasts->getSeries($cachedData, $this->filters);
+            $onlineSeries = $this->laracasts->getSeries($cachedData);
 
-        if (empty($this->filters))
             $this->system->setCache($onlineSeries);
+        } else {
+            $onlineSeries = $this->laracasts->getFilteredSeries($this->filters);
+        }
 
         $this->bench->end();
 
@@ -133,12 +136,8 @@ class Downloader
     {
         Utils::box('Authenticating');
 
-        if (empty($email) and empty($password)) {
-            Utils::write("No EMAIL and PASSWORD is set in .env file");
-            Utils::write("Browsing as guest and can only download free lessons.");
-
-            return false;
-        }
+        if (empty($email) or empty($password))
+            throw new LoginException("No EMAIL and PASSWORD is set in .env file");
 
         $user = $this->client->login($email, $password);
 
@@ -148,10 +147,8 @@ class Downloader
         if ($user['signedIn'])
             Utils::write("Logged in as " . $user['data']['email']);
 
-        if (! $user['data']['subscribed']) {
-            Utils::write("You don't have active subscription!");
-            Utils::write("You can only download free lessons.");
-        }
+        if (! $user['data']['subscribed'])
+            throw new LoginException("You don't have active subscription!");
 
         return $user['signedIn'];
     }
