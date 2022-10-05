@@ -80,7 +80,7 @@ class Resolver
                 "X-XSRF-TOKEN" => $token,
                 'content-type' => 'application/json',
                 'x-requested-with' => 'XMLHttpRequest',
-                'referer' => 'https://laracasts.com/',
+                'referer' => LARACASTS_BASE_URL,
             ],
             'body' => json_encode([
                 'email' => $email,
@@ -107,7 +107,7 @@ class Resolver
             'headers' => [
                 'content-type' => 'application/json',
                 'accept' => 'application/json',
-                'referer' => 'https://laracasts.com/',
+                'referer' => LARACASTS_BASE_URL,
             ],
             'verify' => false
         ]);
