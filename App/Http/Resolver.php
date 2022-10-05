@@ -72,11 +72,15 @@ class Resolver
      */
     public function login($email, $password)
     {
+        $token = $this->getCsrfToken();
+
         $response = $this->client->post(LARACASTS_POST_LOGIN_PATH, [
             'cookies' => $this->cookie,
             'headers' => [
-                "X-CSRF-TOKEN" => $this->getCsrfToken(),
+                "X-XSRF-TOKEN" => $token,
                 'content-type' => 'application/json',
+                'x-requested-with' => 'XMLHttpRequest',
+                'referer' => 'https://laracasts.com/',
             ],
             'body' => json_encode([
                 'email' => $email,
@@ -98,14 +102,23 @@ class Resolver
      */
     public function getCsrfToken()
     {
-        $response = $this->client->get(LARACASTS_BASE_URL, [
+        $this->client->get(LARACASTS_BASE_URL, [
             'cookies' => $this->cookie,
+            'headers' => [
+                'content-type' => 'application/json',
+                'accept' => 'application/json',
+                'referer' => 'https://laracasts.com/',
+            ],
             'verify' => false
         ]);
 
-        $html = $response->getBody()->getContents();
+        $token = current(
+            array_filter($this->cookie->toArray(), function($cookie) {
+                return $cookie['Name'] === 'XSRF-TOKEN';
+            })
+        );
 
-        return Parser::getCsrfToken($html);
+        return urldecode($token['Value']);
     }
 
     /**
