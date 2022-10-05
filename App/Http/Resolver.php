@@ -32,7 +32,7 @@ class Resolver
      *
      * @var CookieJar
      */
-    private $cookie;
+    private $cookies;
 
     /**
      * Ubench lib
@@ -58,7 +58,7 @@ class Resolver
     public function __construct(Client $client, Ubench $bench, $retryDownload = false)
     {
         $this->client = $client;
-        $this->cookie = new CookieJar();
+        $this->cookies = new CookieJar();
         $this->bench = $bench;
         $this->retryDownload = $retryDownload;
     }
@@ -75,7 +75,7 @@ class Resolver
         $token = $this->getCsrfToken();
 
         $response = $this->client->post(LARACASTS_POST_LOGIN_PATH, [
-            'cookies' => $this->cookie,
+            'cookies' => $this->cookies,
             'headers' => [
                 "X-XSRF-TOKEN" => $token,
                 'content-type' => 'application/json',
@@ -103,7 +103,7 @@ class Resolver
     public function getCsrfToken()
     {
         $this->client->get(LARACASTS_BASE_URL, [
-            'cookies' => $this->cookie,
+            'cookies' => $this->cookies,
             'headers' => [
                 'content-type' => 'application/json',
                 'accept' => 'application/json',
@@ -113,7 +113,7 @@ class Resolver
         ]);
 
         $token = current(
-            array_filter($this->cookie->toArray(), function($cookie) {
+            array_filter($this->cookies->toArray(), function($cookie) {
                 return $cookie['Name'] === 'XSRF-TOKEN';
             })
         );
@@ -170,7 +170,7 @@ class Resolver
     public function getTopicsHtml()
     {
         return $this->client
-            ->get(LARACASTS_BASE_URL . '/' . LARACASTS_TOPICS_PATH, ['cookies' => $this->cookie, 'verify' => false])
+            ->get(LARACASTS_BASE_URL . '/' . LARACASTS_TOPICS_PATH, ['cookies' => $this->cookies, 'verify' => false])
             ->getBody()
             ->getContents();
     }
@@ -184,32 +184,15 @@ class Resolver
     public function getHtml($url)
     {
         return $this->client
-            ->get($url, ['cookies' => $this->cookie, 'verify' => false])
+            ->get($url, ['cookies' => $this->cookies, 'verify' => false])
             ->getBody()
             ->getContents();
-    }
-
-    /**
-     * Helper to get the Location header.
-     *
-     * @param $url
-     * @return string
-     */
-    private function getRedirectUrl($url)
-    {
-        $response = $this->client->get($url, [
-            'cookies' => $this->cookie,
-            'allow_redirects' => false,
-            'verify' => false
-        ]);
-
-        return $response->getHeader('Location');
     }
 
     private function getVimeoLinks($viemoId)
     {
         $content = $this->client->get('https://player.vimeo.com/video/' . $viemoId, [
-            'cookies' => $this->cookie,
+            'cookies' => $this->cookies,
             'verify' => false,
             'headers' => [
                 'Referer' => 'https://laracasts.com/'
