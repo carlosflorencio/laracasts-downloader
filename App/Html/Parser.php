@@ -100,6 +100,11 @@ class Parser
                     continue;
                 }
 
+                // vimeoId is null for upcoming episodes
+                if (! $episode['vimeoId']) {
+                    continue;
+                }
+
                 $episodes[] = [
                     'title' => $episode['title'],
                     'vimeo_id' => $episode['vimeoId'],
