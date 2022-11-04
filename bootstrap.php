@@ -32,7 +32,6 @@ define('BASE_FOLDER', $options['local_path']);
 define('LESSONS_FOLDER', $options['lessons_folder']);
 define('SERIES_FOLDER', $options['series_folder']);
 define('RETRY_DOWNLOAD', $options['retry_download']);
-define('VIDEO_QUALITY', getenv('VIDEO_QUALITY'));
 
 
 //laracasts

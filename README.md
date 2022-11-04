@@ -37,7 +37,7 @@ OR
 $ cp .env.example .env
 ```
 3. Update your laracasts account credentials (**EMAIL**, **PASSWORD**) in ``.env``
-4. Choose your preferred quality (1080p, 720p, 540p, 360p) by changing **VIDEO_QUALITY** in ``.env``.
+4. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
 5. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Using your local machine

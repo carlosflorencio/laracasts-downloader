@@ -116,6 +116,13 @@ class Parser
         return $episodes;
     }
 
+    public static function getEpisodeDownloadLink($episodeHtml)
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['downloadLink'];
+    }
+
     public static function extractLarabitsSeries($html)
     {
         $html = str_replace('\/', '/', html_entity_decode($html));
