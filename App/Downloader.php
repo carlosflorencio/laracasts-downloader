@@ -183,7 +183,7 @@ class Downloader
 
                 Utils::write(
                     sprintf(
-                        "Current: %d of %d total. Left: %d",
+                        "Current: %d of %d total. Left: %d              ",
                         $counter['series']++,
                         $newEpisodesCount,
                         $newEpisodesCount - $counter['series'] + 1
