@@ -100,6 +100,11 @@ class Parser
                     continue;
                 }
 
+                // vimeoId is null for upcoming episodes
+                if (! $episode['vimeoId']) {
+                    continue;
+                }
+
                 $episodes[] = [
                     'title' => $episode['title'],
                     'vimeo_id' => $episode['vimeoId'],
@@ -109,6 +114,13 @@ class Parser
         }
 
         return $episodes;
+    }
+
+    public static function getEpisodeDownloadLink($episodeHtml)
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['downloadLink'];
     }
 
     public static function extractLarabitsSeries($html)

@@ -25,6 +25,7 @@ Just call `php makeskips.php` before deleting the lessons.
 - php-xml
 - php-json
 - Composer
+- [FFmpeg](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwio6vX03pT7AhU0X_EDHSx9BMkQFnoECAkQAQ&url=https%3A%2F%2Fffmpeg.org%2F&usg=AOvVaw19lCX0sMAnAOlyM2Pvp5-v) (required if ``DOWNLOAD_SOURCE=vimeo``)
 
 OR
 
@@ -36,9 +37,12 @@ OR
 ```sh
 $ cp .env.example .env
 ```
-3. Update your laracasts account credentials (**EMAIL**, **PASSWORD**) in ``.env``
-4. Choose your preferred quality (1080p, 720p, 540p, 360p) by changing **VIDEO_QUALITY** in ``.env``.
-5. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
+3. Update your Laracasts account credentials (`EMAIL`, `PASSWORD`) in .env
+4. Decide whether you want to use **vimeo** or **laracasts** as `DOWNLOAD_SOURCE`.
+   By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
+6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
+   (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
+7. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Using your local machine
 1. Install project dependencies:

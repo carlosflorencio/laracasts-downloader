@@ -54,10 +54,10 @@ class Downloader
     /**
      * Receives dependencies
      *
-     * @param HttpClient $httpClient
-     * @param Filesystem $system
-     * @param Ubench $bench
-     * @param bool $retryDownload
+     * @param  HttpClient  $httpClient
+     * @param  Filesystem  $system
+     * @param  Ubench  $bench
+     * @param  bool  $retryDownload
      */
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench, $retryDownload = false)
     {
@@ -103,32 +103,38 @@ class Downloader
 
         Utils::box('Downloading');
 
-        $diff = Utils::compareLocalAndOnlineSeries($onlineSeries, $localSeries);
+        $newEpisodes = Utils::compareLocalAndOnlineSeries($onlineSeries, $localSeries);
 
-        $new_episodes = Utils::countEpisodes($diff);
+        $newEpisodesCount = Utils::countEpisodes($newEpisodes);
 
-        Utils::write(sprintf("%d new episodes. %s elapsed with %s of memory usage.",
-                $new_episodes,
+        Utils::write(
+            sprintf(
+                "%d new episodes. %s elapsed with %s of memory usage.",
+                $newEpisodesCount,
                 $this->bench->getTime(),
-                $this->bench->getMemoryUsage())
+                $this->bench->getMemoryUsage()
+            )
         );
 
-        //Download Episodes
-        if ($new_episodes > 0) {
-            $this->downloadEpisodes($diff, $counter, $new_episodes);
+        if ($newEpisodesCount > 0) {
+            $this->downloadEpisodes($newEpisodes, $counter, $newEpisodesCount);
         }
 
-        Utils::writeln(sprintf("Finished! Downloaded %d new episodes. Failed: %d",
-            $new_episodes - $counter['failed_episode'],
-            $counter['failed_episode']
-        ));
+        Utils::writeln(
+            sprintf(
+                "Finished! Downloaded %d new episodes. Failed: %d",
+                $newEpisodesCount - $counter['failed_episode'],
+                $counter['failed_episode']
+            )
+        );
     }
 
     /**
      * Tries to login.
      *
-     * @param string $email
-     * @param string $password
+     * @param  string  $email
+     * @param  string  $password
+     *
      * @return bool
      * @throws LoginException
      */
@@ -145,7 +151,7 @@ class Downloader
             throw new LoginException($user['error']);
 
         if ($user['signedIn'])
-            Utils::write("Logged in as " . $user['data']['email']);
+            Utils::write("Logged in as ".$user['data']['email']);
 
         if (! $user['data']['subscribed'])
             throw new LoginException("You don't have active subscription!");
@@ -156,17 +162,17 @@ class Downloader
     /**
      * Download Episodes
      *
-     * @param $diff
+     * @param $newEpisodes
      * @param $counter
-     * @param $new_episodes
+     * @param $newEpisodesCount
      */
-    public function downloadEpisodes(&$diff, &$counter, $new_episodes)
+    public function downloadEpisodes($newEpisodes, &$counter, $newEpisodesCount)
     {
         $this->system->createFolderIfNotExists(SERIES_FOLDER);
 
         Utils::box('Downloading Series');
 
-        foreach ($diff as $serie) {
+        foreach ($newEpisodes as $serie) {
             $this->system->createSerieFolderIfNotExists($serie['slug']);
 
             foreach ($serie['episodes'] as $episode) {
@@ -175,11 +181,14 @@ class Downloader
                     $counter['failed_episode'] = $counter['failed_episode'] + 1;
                 }
 
-                Utils::write(sprintf("Current: %d of %d total. Left: %d",
-                    $counter['series']++,
-                    $new_episodes,
-                    $new_episodes - $counter['series'] + 1
-                ));
+                Utils::write(
+                    sprintf(
+                        "Current: %d of %d total. Left: %d              ",
+                        $counter['series']++,
+                        $newEpisodesCount,
+                        $newEpisodesCount - $counter['series'] + 1
+                    )
+                );
             }
         }
     }
@@ -189,10 +198,10 @@ class Downloader
         $short_options = "s:";
         $short_options .= 'e:';
 
-        $long_options = array(
+        $long_options = [
             "series-name:",
-            "series-episodes:"
-        );
+            "series-episodes:",
+        ];
 
         $options = getopt($short_options, $long_options);
 
@@ -200,6 +209,7 @@ class Downloader
 
         if (count($options) == 0) {
             Utils::write('No options provided');
+
             return false;
         }
 
@@ -207,11 +217,11 @@ class Downloader
 
         $this->setEpisodesFilter($options);
 
-        $diff = count($this->filters['episodes']) - count($this->filters['series']);
+        $newEpisodes = count($this->filters['episodes']) - count($this->filters['series']);
 
         $this->filters['episodes'] = array_merge(
             $this->filters['episodes'],
-            array_fill(0, abs($diff), [])
+            array_fill(0, abs($newEpisodes), [])
         );
 
         $this->filters = array_combine(
