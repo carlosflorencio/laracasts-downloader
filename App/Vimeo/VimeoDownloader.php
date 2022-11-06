@@ -96,7 +96,7 @@ class VimeoDownloader
         $output = [];
 
         if (PHP_OS=='WINNT'){
-            $exec_string = "ffmpeg -i \"$videoPath\" -i \"$audioPath\" -vcodec copy -acodec copy -strict -2 \"$outputPath\"";
+            $exec_string = "ffmpeg -i \"$videoPath\" -i \"$audioPath\" -vcodec copy -acodec copy -strict -2 \"$outputPath\" 2> nul";
         } else {
             $exec_string = "ffmpeg -i '$videoPath' -i '$audioPath' -vcodec copy -acodec copy -strict -2 '$outputPath' >/dev/null 2>&1";
         }
