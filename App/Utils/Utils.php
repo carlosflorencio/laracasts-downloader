@@ -175,7 +175,7 @@ class Utils
                 printf("> Downloaded %s of %s (%d%%)      \r",
                     Utils::formatBytes($e->downloaded + $downloadedBytes),
                     Utils::formatBytes($totalBytes),
-                    Utils::getPercentage($e->downloaded + $downloadedBytes, $totalBytes),
+                    Utils::getPercentage($e->downloaded + $downloadedBytes, $totalBytes)
                 );
             });
         }
