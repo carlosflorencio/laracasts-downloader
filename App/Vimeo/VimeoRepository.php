@@ -31,7 +31,7 @@ class VimeoRepository
 
         preg_match('/"streams":(\[{.+?}\])/', $content, $streams);
 
-        preg_match('/"akfire_interconnect_quic":({.+?})/', $content, $cdns);
+        preg_match('/"(?:google_skyfire|akfire_interconnect_quic)":({.+?})/', $content, $cdns);
 
         $vimeo = new VideoDTO();
         return $vimeo->setMasterURL(json_decode($cdns[1], true)['url'])
