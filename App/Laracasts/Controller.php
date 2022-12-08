@@ -30,11 +30,16 @@ class Controller
      *  Gets all series using scraping
      *
      * @param array $cachedData
+     * @param bool $cacheOnly
      * @return array
      */
-    public function getSeries($cachedData)
+    public function getSeries($cachedData, $cacheOnly = false)
     {
         $seriesCollection = new SeriesCollection($cachedData);
+
+        if ($cacheOnly) {
+            return $seriesCollection->get();
+        }
 
         $topics = Parser::getTopicsData($this->client->getTopicsHtml());
 

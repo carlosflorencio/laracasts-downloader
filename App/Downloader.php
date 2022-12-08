@@ -51,6 +51,9 @@ class Downloader
      */
     private $laracasts;
 
+    /** @var bool Don't scrap pages and only get from existing cache */
+    private $cacheOnly = false;
+
     /**
      * Receives dependencies
      *
@@ -92,7 +95,7 @@ class Downloader
         if (empty($this->filters)) {
             $cachedData = $this->system->getCache();
 
-            $onlineSeries = $this->laracasts->getSeries($cachedData);
+            $onlineSeries = $this->laracasts->getSeries($cachedData, $this->cacheOnly);
 
             $this->system->setCache($onlineSeries);
         } else {
@@ -195,15 +198,21 @@ class Downloader
 
     protected function setFilters()
     {
-        $short_options = "s:";
-        $short_options .= 'e:';
+        $shortOptions = "s:";
+        $shortOptions .= 'e:';
 
-        $long_options = [
+        $longOptions = [
             "series-name:",
             "series-episodes:",
+            "cache-only"
         ];
 
-        $options = getopt($short_options, $long_options);
+        $options = getopt($shortOptions, $longOptions);
+
+        if (array_key_exists('cache-only', $options)) {
+            $this->cacheOnly = true;
+            unset($options['cache-only']);
+        }
 
         Utils::box(sprintf("Checking for options %s", json_encode($options)));
 
