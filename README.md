@@ -20,7 +20,7 @@ Just call `php makeskips.php` before deleting the lessons.
 
 
 ## Requirements
-- PHP >= 7.0
+- PHP >= 7.2
 - php-cURL
 - php-xml
 - php-json
@@ -72,24 +72,31 @@ $ docker-compose run --rm laracastdl php ./start.php [empty for all OR provide f
 
 Also works in the browser, but is better from the cli because of the instant feedback.
 
-## Downloading specific series or lessons
-- You can use series and lessons names
-- You can use series and lessons slugs (preferred because there are some custom slugs too)
-- You can download multiples series/lessons
+## Options
 
-### Commands to download an entire series
+### Disable Scrapping
+
+The script scraps each Laracasts pages and caches them to memories its latest state
+and stores them in ``Downloads/cache.php``. If you already make sure this file is updated
+and do not want to experience impatience of scrapping; you can use ``--cache-only`` option.
+
+```sh
+php start.php --cache-only
+```
+
+### Download specific series
 You can either use the Series slug (preferred):
 ```sh
 $ php start.php -s "series-slug-example"
 $ php start.php --series-name "series-slug-example"
 ```
-Or the Series name:
+Or the Series name (NOT recommended):
 ```sh
 $ php start.php -s "Series name example"
 $ php start.php --series-name "Series name example"
 ```
 
-### Filter to download specific episodes of a series
+### Download specific episodes
 You can provide episode number(s) separated by comma ```,```:
 
 ```sh
