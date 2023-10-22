@@ -44,6 +44,12 @@ $ cp .env.example .env
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
 7. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
+### Details About Vimeo 
+
+If you using vimeo source, will download 2 files for each episode, a video file and an audio file. 
+
+After all download will be done, the project will merge files and will moving to your respective folder. 
+
 ### Using your local machine
 1. Install project dependencies:
 ```sh
