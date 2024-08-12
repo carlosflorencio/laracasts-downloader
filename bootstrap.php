@@ -33,6 +33,8 @@ define('LESSONS_FOLDER', $options['lessons_folder']);
 define('SERIES_FOLDER', $options['series_folder']);
 define('RETRY_DOWNLOAD', $options['retry_download']);
 
+define("REQUEST_USER_AGENT", "Mozilla/5.3 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36");
+
 
 //laracasts
 define('LARACASTS_BASE_URL', 'https://laracasts.com');

@@ -81,9 +81,11 @@ class Resolver
             'cookies' => $this->cookies,
             'headers' => [
                 "X-XSRF-TOKEN" => $token,
-                'content-type' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'x-requested-with' => 'XMLHttpRequest',
                 'referer' => LARACASTS_BASE_URL,
+                'User-Agent' => REQUEST_USER_AGENT,
             ],
             'body' => json_encode([
                 'email' => $email,
@@ -108,9 +110,11 @@ class Resolver
         $this->client->get(LARACASTS_BASE_URL, [
             'cookies' => $this->cookies,
             'headers' => [
-                'content-type' => 'application/json',
-                'accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
                 'referer' => LARACASTS_BASE_URL,
+                'x-requested-with' => 'XMLHttpRequest',
+                'User-Agent' => REQUEST_USER_AGENT,
             ],
             'verify' => false,
         ]);
