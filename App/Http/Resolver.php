@@ -85,7 +85,6 @@ class Resolver
                 'Accept' => 'application/json',
                 'x-requested-with' => 'XMLHttpRequest',
                 'referer' => LARACASTS_BASE_URL,
-                'User-Agent' => REQUEST_USER_AGENT,
             ],
             'body' => json_encode([
                 'email' => $email,
@@ -114,7 +113,6 @@ class Resolver
                 'Accept' => 'application/json',
                 'referer' => LARACASTS_BASE_URL,
                 'x-requested-with' => 'XMLHttpRequest',
-                'User-Agent' => REQUEST_USER_AGENT,
             ],
             'verify' => false,
         ]);

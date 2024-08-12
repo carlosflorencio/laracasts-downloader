@@ -18,7 +18,7 @@ $bench = new Ubench();
  * Set default headers
  */
 $headers = $client->getDefaultOption('headers');
-$headers = array_merge($headers, ['User-Agent' => REQUEST_USER_AGENT, 'Referer' => LARACASTS_BASE_URL]);
+$headers = array_merge($headers, ['User-Agent' => REQUEST_USER_AGENT]);
 $client->setDefaultOption('headers', $headers);
 
 
