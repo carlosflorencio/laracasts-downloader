@@ -6,9 +6,9 @@ use Rector\Config\RectorConfig;
 
 return RectorConfig::configure()
     ->withPaths([
-        __DIR__ . '/App',
+        __DIR__.'/App',
     ])
-    ->withPhpSets(php83:true)
+    ->withPhpSets(php83: true)
     ->withPreparedSets(
         deadCode: true,  // Enable dead code removal
         codeQuality: true,  // Enable code quality improvements

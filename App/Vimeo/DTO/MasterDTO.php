@@ -27,7 +27,7 @@ class MasterDTO
      */
     public function getVideos()
     {
-        return array_map(function($video) {
+        return array_map(function ($video) {
             $video['extension'] = '.m4v';
 
             return $video;
@@ -36,7 +36,6 @@ class MasterDTO
 
     /**
      * @param  array  $videos
-     *
      * @return self
      */
     public function setVideos($videos)
@@ -51,7 +50,7 @@ class MasterDTO
      */
     public function getAudios()
     {
-        return array_map(function($audio) {
+        return array_map(function ($audio) {
             $audio['extension'] = '.m4a';
 
             return $audio;
@@ -60,7 +59,6 @@ class MasterDTO
 
     /**
      * @param  array  $audios
-     *
      * @return self
      */
     public function setAudios($audios)
@@ -74,7 +72,6 @@ class MasterDTO
      * Get video by id or the one with the highest quality
      *
      * @param  null|string  $id
-     *
      * @return array
      */
     public function getVideoById($id)
@@ -90,9 +87,7 @@ class MasterDTO
             }
         }
 
-        usort($videos, function($a, $b) {
-            return $a['height'] <=> $b['height'];
-        });
+        usort($videos, fn ($a, $b) => $a['height'] <=> $b['height']);
 
         return end($videos);
     }
@@ -101,9 +96,7 @@ class MasterDTO
     {
         $audios = $this->getAudios();
 
-        usort($audios, function($a, $b) {
-            return $a['bitrate'] <=> $b['bitrate'];
-        });
+        usort($audios, fn ($a, $b) => $a['bitrate'] <=> $b['bitrate']);
 
         return end($audios);
     }
@@ -118,7 +111,6 @@ class MasterDTO
 
     /**
      * @param  string  $masterURL
-     *
      * @return $this
      */
     public function setMasterURL($masterURL)
@@ -138,7 +130,6 @@ class MasterDTO
 
     /**
      * @param  string  $baseURL
-     *
      * @return self
      */
     public function setBaseURL($baseURL)
@@ -150,11 +141,12 @@ class MasterDTO
 
     /**
      * Make final URL from combination of absolute and relate ones
+     *
      * @return string
      */
     public function resolveURL($url)
     {
-        return (string)Psr7\UriResolver::resolve(
+        return (string) Psr7\UriResolver::resolve(
             $this->getMasterURL(),
             Psr7\Utils::uriFor($this->getBaseURL().$url)
         );
@@ -170,7 +162,6 @@ class MasterDTO
 
     /**
      * @param  string  $clipId
-     *
      * @return self
      */
     public function setClipId($clipId)
@@ -179,5 +170,4 @@ class MasterDTO
 
         return $this;
     }
-
 }

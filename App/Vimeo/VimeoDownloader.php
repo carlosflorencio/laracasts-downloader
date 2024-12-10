@@ -15,7 +15,7 @@ class VimeoDownloader
 
     public function __construct()
     {
-        $this->client = new Client();
+        $this->client = new Client;
 
         $this->repository = new VimeoRepository($this->client);
     }
@@ -50,11 +50,9 @@ class VimeoDownloader
 
     private function downloadSource($baseURL, $sourceData, $filepath)
     {
-        file_put_contents($filepath, base64_decode($sourceData['init_segment'], true));
+        file_put_contents($filepath, base64_decode((string) $sourceData['init_segment'], true));
 
-        $segmentURLs = array_map(function($segment) use ($baseURL) {
-            return $baseURL.$segment['url'];
-        }, $sourceData['segments']);
+        $segmentURLs = array_map(fn ($segment) => $baseURL.$segment['url'], $sourceData['segments']);
 
         $sizes = array_column($sourceData['segments'], 'size');
 
@@ -63,7 +61,7 @@ class VimeoDownloader
 
     private function downloadSegments($segmentURLs, $filepath, $sizes)
     {
-        $type = strpos($filepath, 'm4v') !== false ? 'video' : 'audio';
+        $type = str_contains((string) $filepath, 'm4v') ? 'video' : 'audio';
         Utils::writeln("Downloading $type...");
 
         $downloadedBytes = 0;
@@ -87,7 +85,6 @@ class VimeoDownloader
      * @param  string  $videoPath
      * @param  string  $audioPath
      * @param  string  $outputPath
-     *
      * @return bool
      */
     private function mergeSources($videoPath, $audioPath, $outputPath)
@@ -95,7 +92,7 @@ class VimeoDownloader
         $code = 0;
         $output = [];
 
-        if (PHP_OS=='WINNT'){
+        if (PHP_OS === 'WINNT') {
             $command = "ffmpeg -i \"$videoPath\" -i \"$audioPath\" -vcodec copy -acodec copy -strict -2 \"$outputPath\" 2> nul";
         } else {
             $command = "ffmpeg -i '$videoPath' -i '$audioPath' -vcodec copy -acodec copy -strict -2 '$outputPath' >/dev/null 2>&1";

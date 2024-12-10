@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Main cycle of the app
  */
@@ -17,8 +18,6 @@ use Ubench;
 
 /**
  * Class Downloader
- *
- * @package App
  */
 class Downloader
 {
@@ -57,9 +56,6 @@ class Downloader
     /**
      * Receives dependencies
      *
-     * @param  HttpClient  $httpClient
-     * @param  Filesystem  $system
-     * @param  Ubench  $bench
      * @param  bool  $retryDownload
      */
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench, $retryDownload = false)
@@ -72,8 +68,6 @@ class Downloader
 
     /**
      * All the logic
-     *
-     * @param $options
      */
     public function start($options)
     {
@@ -112,7 +106,7 @@ class Downloader
 
         Utils::write(
             sprintf(
-                "%d new episodes. %s elapsed with %s of memory usage.",
+                '%d new episodes. %s elapsed with %s of memory usage.',
                 $newEpisodesCount,
                 $this->bench->getTime(),
                 $this->bench->getMemoryUsage()
@@ -125,7 +119,7 @@ class Downloader
 
         Utils::writeln(
             sprintf(
-                "Finished! Downloaded %d new episodes. Failed: %d",
+                'Finished! Downloaded %d new episodes. Failed: %d',
                 $newEpisodesCount - $counter['failed_episode'],
                 $counter['failed_episode']
             )
@@ -137,37 +131,37 @@ class Downloader
      *
      * @param  string  $email
      * @param  string  $password
-     *
      * @return bool
+     *
      * @throws LoginException
      */
     public function authenticate($email, $password)
     {
         Utils::box('Authenticating');
 
-        if (empty($email) or empty($password))
-            throw new LoginException("No EMAIL and PASSWORD is set in .env file");
+        if (empty($email) || empty($password)) {
+            throw new LoginException('No EMAIL and PASSWORD is set in .env file');
+        }
 
         $user = $this->client->login($email, $password);
 
-        if (! is_null($user['error']))
+        if (! is_null($user['error'])) {
             throw new LoginException($user['error']);
+        }
 
-        if ($user['signedIn'])
-            Utils::write("Logged in as ".$user['data']['email']);
+        if ($user['signedIn']) {
+            Utils::write('Logged in as '.$user['data']['email']);
+        }
 
-        if (! $user['data']['subscribed'])
+        if (! $user['data']['subscribed']) {
             throw new LoginException("You don't have active subscription!");
+        }
 
         return $user['signedIn'];
     }
 
     /**
      * Download Episodes
-     *
-     * @param $newEpisodes
-     * @param $counter
-     * @param $newEpisodesCount
      */
     public function downloadEpisodes($newEpisodes, &$counter, $newEpisodesCount)
     {
@@ -181,12 +175,12 @@ class Downloader
             foreach ($serie['episodes'] as $episode) {
 
                 if ($this->client->downloadEpisode($serie['slug'], $episode) === false) {
-                    $counter['failed_episode'] = $counter['failed_episode'] + 1;
+                    $counter['failed_episode'] += 1;
                 }
 
                 Utils::write(
                     sprintf(
-                        "Current: %d of %d total. Left: %d              ",
+                        'Current: %d of %d total. Left: %d              ',
                         $counter['series']++,
                         $newEpisodesCount,
                         $newEpisodesCount - $counter['series'] + 1
@@ -198,13 +192,13 @@ class Downloader
 
     protected function setFilters()
     {
-        $shortOptions = "s:";
+        $shortOptions = 's:';
         $shortOptions .= 'e:';
 
         $longOptions = [
-            "series-name:",
-            "series-episodes:",
-            "cache-only"
+            'series-name:',
+            'series-episodes:',
+            'cache-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -214,7 +208,7 @@ class Downloader
             unset($options['cache-only']);
         }
 
-        Utils::box(sprintf("Checking for options %s", json_encode($options)));
+        Utils::box(sprintf('Checking for options %s', json_encode($options)));
 
         if (count($options) == 0) {
             Utils::write('No options provided');
@@ -244,19 +238,18 @@ class Downloader
     private function setSeriesFilter($options)
     {
         if (isset($options['s']) || isset($options['series-name'])) {
-            $series = isset($options['s']) ? $options['s'] : $options['series-name'];
+            $series = $options['s'] ?? $options['series-name'];
 
-            if (! is_array($series))
+            if (! is_array($series)) {
                 $series = [$series];
+            }
 
-            $slugify = new Slugify();
+            $slugify = new Slugify;
             $slugify->addRule("'", '');
 
-            $this->filters['series'] = array_map(function($serie) use ($slugify) {
-                return $slugify->slugify($serie);
-            }, $series);
+            $this->filters['series'] = array_map(fn ($serie) => $slugify->slugify($serie), $series);
 
-            Utils::write(sprintf("Series names provided: %s", json_encode($this->filters['series'])));
+            Utils::write(sprintf('Series names provided: %s', json_encode($this->filters['series'])));
         }
     }
 
@@ -265,16 +258,16 @@ class Downloader
         $this->filters['episodes'] = [];
 
         if (isset($options['e']) || isset($options['series-episodes'])) {
-            $episodes = isset($options['e']) ? $options['e'] : $options['series-episodes'];
+            $episodes = $options['e'] ?? $options['series-episodes'];
 
-            Utils::write(sprintf("Episode numbers provided: %s", json_encode($episodes)));
+            Utils::write(sprintf('Episode numbers provided: %s', json_encode($episodes)));
 
             if (! is_array($episodes)) {
                 $episodes = [$episodes];
             }
 
             foreach ($episodes as $episode) {
-                $positions = explode(',', $episode);
+                $positions = explode(',', (string) $episode);
 
                 sort($positions, SORT_NUMERIC);
 

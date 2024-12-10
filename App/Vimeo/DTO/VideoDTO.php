@@ -24,7 +24,6 @@ class VideoDTO
 
     /**
      * @param  string  $masterURL
-     *
      * @return self
      */
     public function setMasterURL($masterURL)
@@ -43,8 +42,6 @@ class VideoDTO
     }
 
     /**
-     * @param  array  $streams
-     *
      * @return self
      */
     public function setStreams(array $streams)
@@ -63,7 +60,7 @@ class VideoDTO
 
         foreach ($this->getStreams() as $stream) {
             if ($stream['quality'] === getenv('VIDEO_QUALITY')) {
-                $id = explode("-", $stream['id'])[0];
+                $id = explode('-', (string) $stream['id'])[0];
             }
         }
 

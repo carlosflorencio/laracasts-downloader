@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Http functions
  */
@@ -17,18 +18,9 @@ use Ubench;
 
 /**
  * Class Resolver
- *
- * @package App\Http
  */
 class Resolver
 {
-    /**
-     * Guzzle client
-     *
-     * @var Client
-     */
-    private $client;
-
     /**
      * Guzzle cookie
      *
@@ -37,32 +29,19 @@ class Resolver
     private $cookies;
 
     /**
-     * Ubench lib
-     *
-     * @var Ubench
-     */
-    private $bench;
-
-    /**
-     * Retry download on connection fail
-     *
-     * @var int
-     */
-    private $retryDownload = false;
-
-    /**
      * Receives dependencies
-     *
-     * @param  Client  $client
-     * @param  Ubench  $bench
-     * @param  bool  $retryDownload
      */
-    public function __construct(Client $client, Ubench $bench, $retryDownload = false)
+    public function __construct(
+        /**
+         * Guzzle client
+         */
+        private readonly Client $client,
+        /**
+         * Ubench lib
+         */
+        private readonly Ubench $bench)
     {
-        $this->client = $client;
-        $this->cookies = new CookieJar();
-        $this->bench = $bench;
-        $this->retryDownload = $retryDownload;
+        $this->cookies = new CookieJar;
     }
 
     /**
@@ -70,7 +49,6 @@ class Resolver
      *
      * @param  string  $email
      * @param  string  $password
-     *
      * @return array
      */
     public function login($email, $password)
@@ -80,7 +58,7 @@ class Resolver
         $response = $this->client->post(LARACASTS_POST_LOGIN_PATH, [
             'cookies' => $this->cookies,
             'headers' => [
-                "X-XSRF-TOKEN" => $token,
+                'X-XSRF-TOKEN' => $token,
                 'content-type' => 'application/json',
                 'x-requested-with' => 'XMLHttpRequest',
                 'referer' => LARACASTS_BASE_URL,
@@ -116,12 +94,10 @@ class Resolver
         ]);
 
         $token = current(
-            array_filter($this->cookies->toArray(), function($cookie) {
-                return $cookie['Name'] === 'XSRF-TOKEN';
-            })
+            array_filter($this->cookies->toArray(), fn ($cookie) => $cookie['Name'] === 'XSRF-TOKEN')
         );
 
-        return urldecode($token['Value']);
+        return urldecode((string) $token['Value']);
     }
 
     /**
@@ -129,31 +105,30 @@ class Resolver
      *
      * @param  string  $serieSlug
      * @param  array  $episode
-     *
      * @return bool
      */
     public function downloadEpisode($serieSlug, $episode)
     {
         try {
-            $number = sprintf("%02d", $episode['number']);
+            $number = sprintf('%02d', $episode['number']);
             $name = $episode['title'];
             $filepath = $this->getFilename($serieSlug, $number, $name);
 
             Utils::writeln(
                 sprintf(
-                    "Download started: %s . . . . Saving on ".SERIES_FOLDER.'/'.$serieSlug,
+                    'Download started: %s . . . . Saving on '.SERIES_FOLDER.'/'.$serieSlug,
                     $number.' - '.$name
                 )
             );
 
             $source = getenv('DOWNLOAD_SOURCE');
 
-            if (! $source or $source === 'laracasts') {
+            if (! $source || $source === 'laracasts') {
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
 
                 return $this->downloadVideo($downloadLink, $filepath);
             } else {
-                $vimeoDownloader = new VimeoDownloader();
+                $vimeoDownloader = new VimeoDownloader;
 
                 return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
             }
@@ -168,7 +143,6 @@ class Resolver
      * @param  string  $serieSlug
      * @param  string  $number
      * @param  string  $episodeName
-     *
      * @return string
      */
     private function getFilename($serieSlug, $number, $episodeName)
@@ -202,7 +176,6 @@ class Resolver
      * Returns html content of specific url
      *
      * @param  string  $url
-     *
      * @return string
      */
     public function getHtml($url)
@@ -218,7 +191,6 @@ class Resolver
      *
      * @param  string  $serieSlug
      * @param  int  $episodeNumber
-     *
      * @return string
      */
     private function getLaracastsLink($serieSlug, $episodeNumber)
@@ -231,7 +203,6 @@ class Resolver
     /**
      * Helper to get the Location header.
      *
-     * @param $url
      *
      * @return string
      */
@@ -249,8 +220,6 @@ class Resolver
     /**
      * Helper to download the video.
      *
-     * @param $downloadUrl
-     * @param $saveTo
      *
      * @return bool
      */
@@ -281,7 +250,7 @@ class Resolver
 
         Utils::write(
             sprintf(
-                "Elapsed time: %s, Memory: %s       ",
+                'Elapsed time: %s, Memory: %s       ',
                 $this->bench->getTime(),
                 $this->bench->getMemoryUsage()
             )
@@ -291,8 +260,8 @@ class Resolver
     }
 
     /**
-     * @param string $url
-    */
+     * @param  string  $url
+     */
     private function prepareDownloadLink($url)
     {
         $url = $this->getRedirectUrl($url);
@@ -301,7 +270,7 @@ class Resolver
 
         return [
             'query' => $parts['query'],
-            'url' => $parts['scheme'].'://'.$parts['host'].$parts['path']
+            'url' => $parts['scheme'].'://'.$parts['host'].$parts['path'],
         ];
     }
 }

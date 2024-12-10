@@ -8,13 +8,10 @@ use GuzzleHttp\Client;
 
 class VimeoRepository
 {
-    /** @var Client */
-    private $client;
-
-    public function __construct($client)
-    {
-        $this->client = $client;
-    }
+    /**
+     * @param  Client  $client
+     */
+    public function __construct(private $client) {}
 
     /**
      * @return VideoDTO
@@ -33,7 +30,8 @@ class VimeoRepository
 
         preg_match('/"(?:google_skyfire|akfire_interconnect_quic)":({.+?})/', $content, $cdns);
 
-        $vimeo = new VideoDTO();
+        $vimeo = new VideoDTO;
+
         return $vimeo->setMasterURL(json_decode($cdns[1], true)['url'])
             ->setStreams(json_decode($streams[1], true));
     }
@@ -50,7 +48,8 @@ class VimeoRepository
 
         $data = json_decode($content, true);
 
-        $master = new MasterDTO();
+        $master = new MasterDTO;
+
         return $master
             ->setMasterURL($video->getMasterURL())
             ->setBaseURL($data['base_url'])

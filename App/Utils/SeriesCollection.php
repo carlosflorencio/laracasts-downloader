@@ -1,24 +1,14 @@
 <?php
 
-
 namespace App\Utils;
-
 
 class SeriesCollection
 {
-    /**
-     * @var array
-     */
-    private $series;
-
-    public function __construct(array $series)
-    {
-        $this->series = $series;
-    }
+    public function __construct(private array $series) {}
 
     /**
-     * @param string $key
-     * @param string $value
+     * @param  string  $key
+     * @param  string  $value
      * @return $this
      */
     public function where($key, $value)
@@ -27,7 +17,7 @@ class SeriesCollection
 
         foreach ($this->series as $serie) {
             if ($serie[$key] == $value) {
-                array_push($series, $serie);
+                $series[] = $serie;
             }
         }
 
@@ -40,7 +30,7 @@ class SeriesCollection
 
         foreach ($this->series as $serie) {
             if ($actual) {
-                $sum += intval(count($serie[str_replace('_count', '', $key) . 's']));
+                $sum += intval(count($serie[str_replace('_count', '', $key).'s']));
             } else {
                 $sum += intval($serie[$key]);
             }
@@ -51,7 +41,7 @@ class SeriesCollection
 
     public function count()
     {
-        return (int) count($this->series);
+        return count($this->series);
     }
 
     public function get()
