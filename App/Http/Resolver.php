@@ -232,7 +232,7 @@ class Resolver
             $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
             $this->client->request('GET', $link['url'], [
                 'query' => $link['query'],
-                'save_to' => fopen($saveTo, 'a'),
+                'sink' => fopen($saveTo, 'a'),
                 'progress' => fn ($downloadTotal, $downloadedBytes) => Utils::showProgressBar($downloadedBytes, $downloadTotal),
             ]);
         } catch (Exception $e) {

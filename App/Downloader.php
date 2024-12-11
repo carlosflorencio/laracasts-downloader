@@ -60,7 +60,7 @@ class Downloader
      */
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench, $retryDownload = false)
     {
-        $this->client = new Resolver($httpClient, $bench, $retryDownload);
+        $this->client = new Resolver($httpClient, $bench);
         $this->system = new SystemController($system);
         $this->bench = $bench;
         $this->laracasts = new LaracastsController($this->client);

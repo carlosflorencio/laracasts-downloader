@@ -70,7 +70,7 @@ class VimeoDownloader
 
         foreach ($segmentURLs as $index => $segmentURL) {
             $this->client->request('GET', $segmentURL, [
-                'save_to' => fopen($filepath, 'a'),
+                'sink' => fopen($filepath, 'a'),
                 'progress' => fn ($total, $downloaded) => Utils::showProgressBar($downloaded + $downloadedBytes, $totalBytes),
             ]);
 
