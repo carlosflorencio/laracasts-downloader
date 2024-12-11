@@ -6,7 +6,6 @@
 
 namespace App\Utils;
 
-use GuzzleHttp\Event\ProgressEvent;
 use GuzzleHttp\Message\RequestInterface;
 
 /**
@@ -143,6 +142,10 @@ class Utils
     public static function getPercentage($cur, $total)
     {
         // Hide warning division by zero
+        if ($total === 0) {
+            return 0;
+        }
+
         return round(@($cur / $total * 100));
     }
 
@@ -151,19 +154,14 @@ class Utils
      * @param  int  $downloadedBytes
      * @param  int|null  $totalBytes
      */
-    public static function showProgressBar($request, $downloadedBytes, $totalBytes = null)
+    public static function showProgressBar($downloadedBytes, $totalBytes = null)
     {
         if (php_sapi_name() == 'cli') {
-            $request->getEmitter()->on('progress', function (ProgressEvent $e) use ($downloadedBytes, $totalBytes): void {
-
-                $totalBytes ??= $e->downloadSize;
-
-                printf("> Downloaded %s of %s (%d%%)      \r",
-                    Utils::formatBytes($e->downloaded + $downloadedBytes),
-                    Utils::formatBytes($totalBytes),
-                    Utils::getPercentage($e->downloaded + $downloadedBytes, $totalBytes)
-                );
-            });
+            printf("> Downloaded %s of %s (%d%%)      \r",
+                Utils::formatBytes($downloadedBytes),
+                Utils::formatBytes($totalBytes),
+                Utils::getPercentage($downloadedBytes, $totalBytes)
+            );
         }
     }
 }

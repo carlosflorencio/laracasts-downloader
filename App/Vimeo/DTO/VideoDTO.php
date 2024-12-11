@@ -59,7 +59,7 @@ class VideoDTO
         $id = null;
 
         foreach ($this->getStreams() as $stream) {
-            if ($stream['quality'] === getenv('VIDEO_QUALITY')) {
+            if ($stream['quality'] === $_ENV['VIDEO_QUALITY']) {
                 $id = explode('-', (string) $stream['id'])[0];
             }
         }

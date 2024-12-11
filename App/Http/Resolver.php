@@ -13,7 +13,6 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Query;
 use Ubench;
 
 /**
@@ -39,8 +38,8 @@ class Resolver
         /**
          * Ubench lib
          */
-        private readonly Ubench $bench)
-    {
+        private readonly Ubench $bench,
+    ) {
         $this->cookies = new CookieJar;
     }
 
@@ -121,7 +120,7 @@ class Resolver
                 )
             );
 
-            $source = getenv('DOWNLOAD_SOURCE');
+            $source = $_ENV['DOWNLOAD_SOURCE'];
 
             if (! $source || $source === 'laracasts') {
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
@@ -231,15 +230,11 @@ class Resolver
 
         try {
             $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
-            $req = $this->client->createRequest('GET', $link['url'], [
-                'query' => Query::fromString($link['query'], false),
+            $this->client->request('GET', $link['url'], [
+                'query' => $link['query'],
                 'save_to' => fopen($saveTo, 'a'),
+                'progress' => fn ($downloadTotal, $downloadedBytes) => Utils::showProgressBar($downloadedBytes, $downloadTotal),
             ]);
-
-            Utils::showProgressBar($req, $downloadedBytes);
-
-            $this->client->send($req);
-
         } catch (Exception $e) {
             echo $e->getMessage().PHP_EOL;
 

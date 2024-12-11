@@ -69,13 +69,10 @@ class VimeoDownloader
         $totalBytes = array_sum($sizes);
 
         foreach ($segmentURLs as $index => $segmentURL) {
-            $request = $this->client->createRequest('GET', $segmentURL, [
+            $this->client->request('GET', $segmentURL, [
                 'save_to' => fopen($filepath, 'a'),
+                'progress' => fn ($total, $downloaded) => Utils::showProgressBar($downloaded + $downloadedBytes, $totalBytes),
             ]);
-
-            Utils::showProgressBar($request, $downloadedBytes, $totalBytes);
-
-            $this->client->send($request);
 
             $downloadedBytes += $sizes[$index];
         }

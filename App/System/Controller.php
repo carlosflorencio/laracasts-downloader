@@ -139,7 +139,7 @@ class Controller
     public function createFolderIfNotExists($folder)
     {
         if ($this->system->has($folder) === false) {
-            $this->system->createDir($folder);
+            $this->system->createDirectory($folder);
         }
     }
 
@@ -172,7 +172,7 @@ class Controller
         $file = 'cache.php';
 
         return $this->system->has($file)
-            ? require $this->system->getAdapter()->getPathPrefix().$file
+            ? ''.$file
             : [];
     }
 }
