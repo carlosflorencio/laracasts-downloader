@@ -93,9 +93,9 @@ class Utils
     /**
      * Remove specials chars that windows does not support for filenames.
      */
-    public static function parseEpisodeName($name): ?string
+    public static function parseEpisodeName(string $name): ?string
     {
-        return preg_replace('/[^A-Za-z0-9\- _]/', '', (string) $name);
+        return preg_replace('/[^A-Za-z0-9\- _]/', '', $name);
     }
 
     /**

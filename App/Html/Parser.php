@@ -15,10 +15,8 @@ class Parser
 {
     /**
      * Return list of topics data
-     *
-     * @param  string  $html
      */
-    public static function getTopicsData($html): array
+    public static function getTopicsData(string $html): array
     {
         $data = self::getData($html);
 
@@ -30,7 +28,7 @@ class Parser
         ], $data['props']['topics']);
     }
 
-    public static function getSerieData($serieHtml): array
+    public static function getSerieData(string $serieHtml): array
     {
         $data = self::getData($serieHtml);
 
@@ -39,10 +37,8 @@ class Parser
 
     /**
      * Return full list of series for given topic HTML page.
-     *
-     * @param  string  $html
      */
-    public static function getSeriesDataFromTopic($html): array
+    public static function getSeriesDataFromTopic(string $html): array
     {
         $data = self::getData($html);
 
@@ -70,10 +66,9 @@ class Parser
     /**
      * Return full list of episodes for given series HTML page.
      *
-     * @param  string  $episodeHtml
      * @param  number[]  $filteredEpisodes
      */
-    public static function getEpisodesData($episodeHtml, $filteredEpisodes = []): array
+    public static function getEpisodesData(string $episodeHtml, $filteredEpisodes = []): array
     {
         $episodes = [];
 
@@ -104,30 +99,30 @@ class Parser
         return $episodes;
     }
 
-    public static function getEpisodeDownloadLink($episodeHtml)
+    public static function getEpisodeDownloadLink(string $episodeHtml)
     {
         $data = self::getData($episodeHtml);
 
         return $data['props']['downloadLink'];
     }
 
-    public static function extractLarabitsSeries($html): array
+    public static function extractLarabitsSeries(string $html): array
     {
-        $html = str_replace('\/', '/', html_entity_decode((string) $html));
+        $html = str_replace('\/', '/', html_entity_decode($html));
 
         preg_match_all('"\/series\/([a-z-]+-larabits)"', $html, $matches);
 
         return array_unique($matches[1]);
     }
 
-    public static function getCsrfToken($html): string
+    public static function getCsrfToken(string $html): string
     {
-        preg_match('/"csrfToken": \'([^\s]+)\'/', (string) $html, $matches);
+        preg_match('/"csrfToken": \'([^\s]+)\'/', $html, $matches);
 
         return $matches[1];
     }
 
-    public static function getUserData($html): array
+    public static function getUserData(string $html): array
     {
 
         $data = self::getData($html);
@@ -144,10 +139,9 @@ class Parser
     /**
      * Returns decoded version of data-page attribute in HTML page
      *
-     * @param  string  $html
      * @return array
      */
-    private static function getData($html): mixed
+    private static function getData(string $html): mixed
     {
         $parser = new Crawler($html);
 
