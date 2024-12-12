@@ -9,9 +9,8 @@ class SeriesCollection
     /**
      * @param  string  $key
      * @param  string  $value
-     * @return $this
      */
-    public function where($key, $value)
+    public function where($key, $value): \App\Utils\SeriesCollection
     {
         $series = [];
 
@@ -24,7 +23,7 @@ class SeriesCollection
         return new SeriesCollection($series);
     }
 
-    public function sum($key, $actual)
+    public function sum($key, $actual): int
     {
         $sum = 0;
 
@@ -39,19 +38,19 @@ class SeriesCollection
         return $sum;
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->series);
     }
 
-    public function get()
+    public function get(): array
     {
         return $this->series;
     }
 
-    public function exists()
+    public function exists(): bool
     {
-        return ! empty($this->series);
+        return $this->series !== [];
     }
 
     public function first()
@@ -59,7 +58,7 @@ class SeriesCollection
         return $this->exists() ? $this->series[0] : null;
     }
 
-    public function add($serie)
+    public function add(array $serie): void
     {
         $this->series[$serie['slug']] = $serie;
     }

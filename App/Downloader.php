@@ -23,42 +23,31 @@ class Downloader
 {
     /**
      * Http resolver object
-     *
-     * @var Resolver
      */
-    private $client;
+    private readonly Resolver $client;
 
     /**
      * System object
-     *
-     * @var SystemController
      */
-    private $system;
+    private readonly \App\System\Controller $system;
 
     /**
      * Ubench lib
-     *
-     * @var Ubench
      */
-    private $bench;
+    private readonly Ubench $bench;
 
     // [string => number[]]
-    private $filters = [];
+    private array $filters = [];
 
-    /**
-     * @var LaracastsController
-     */
-    private $laracasts;
+    private readonly LaracastsController $laracasts;
 
     /** @var bool Don't scrap pages and only get from existing cache */
-    private $cacheOnly = false;
+    private bool $cacheOnly = false;
 
     /**
      * Receives dependencies
-     *
-     * @param  bool  $retryDownload
      */
-    public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench, $retryDownload = false)
+    public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
         $this->system = new SystemController($system);
@@ -69,7 +58,7 @@ class Downloader
     /**
      * All the logic
      */
-    public function start($options)
+    public function start(array $options): void
     {
         $counter = [
             'series' => 1,
@@ -86,7 +75,7 @@ class Downloader
 
         $localSeries = $this->system->getSeries();
 
-        if (empty($this->filters)) {
+        if ($this->filters === []) {
             $cachedData = $this->system->getCache();
 
             $onlineSeries = $this->laracasts->getSeries($cachedData, $this->cacheOnly);
@@ -163,7 +152,7 @@ class Downloader
     /**
      * Download Episodes
      */
-    public function downloadEpisodes($newEpisodes, &$counter, $newEpisodesCount)
+    public function downloadEpisodes($newEpisodes, array &$counter, $newEpisodesCount): void
     {
         $this->system->createFolderIfNotExists(SERIES_FOLDER);
 
@@ -190,7 +179,7 @@ class Downloader
         }
     }
 
-    protected function setFilters()
+    protected function setFilters(): bool
     {
         $shortOptions = 's:';
         $shortOptions .= 'e:';
@@ -235,7 +224,7 @@ class Downloader
         return true;
     }
 
-    private function setSeriesFilter($options)
+    private function setSeriesFilter($options): void
     {
         if (isset($options['s']) || isset($options['series-name'])) {
             $series = $options['s'] ?? $options['series-name'];
@@ -247,13 +236,13 @@ class Downloader
             $slugify = new Slugify;
             $slugify->addRule("'", '');
 
-            $this->filters['series'] = array_map(fn ($serie) => $slugify->slugify($serie), $series);
+            $this->filters['series'] = array_map(fn ($serie): string => $slugify->slugify($serie), $series);
 
             Utils::write(sprintf('Series names provided: %s', json_encode($this->filters['series'])));
         }
     }
 
-    private function setEpisodesFilter($options)
+    private function setEpisodesFilter($options): void
     {
         $this->filters['episodes'] = [];
 

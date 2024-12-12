@@ -15,10 +15,8 @@ class Utils
 {
     /**
      * New line supporting cli or browser.
-     *
-     * @return string
      */
-    public static function newLine()
+    public static function newLine(): string
     {
         if (php_sapi_name() == 'cli') {
             return "\n";
@@ -29,10 +27,8 @@ class Utils
 
     /**
      * Counts the episodes from the array.
-     *
-     * @return int
      */
-    public static function countEpisodes($array)
+    public static function countEpisodes($array): int
     {
         $total = 0;
 
@@ -45,10 +41,8 @@ class Utils
 
     /**
      * Compare two arrays and returns the diff array.
-     *
-     * @return array
      */
-    public static function compareLocalAndOnlineSeries($onlineListArray, $localListArray)
+    public static function compareLocalAndOnlineSeries($onlineListArray, array $localListArray): array
     {
         $seriesCollection = new SeriesCollection([]);
 
@@ -80,7 +74,7 @@ class Utils
     /**
      * Echo's text in a nice box.
      */
-    public static function box($text)
+    public static function box(string $text): void
     {
         echo self::newLine();
         echo '===================================='.self::newLine();
@@ -91,17 +85,15 @@ class Utils
     /**
      * Echo's a message.
      */
-    public static function write($text)
+    public static function write(string $text): void
     {
         echo '> '.$text.self::newLine();
     }
 
     /**
      * Remove specials chars that windows does not support for filenames.
-     *
-     * @return mixed
      */
-    public static function parseEpisodeName($name)
+    public static function parseEpisodeName($name): ?string
     {
         return preg_replace('/[^A-Za-z0-9\- _]/', '', (string) $name);
     }
@@ -109,7 +101,7 @@ class Utils
     /**
      * Echo's a message in a new line.
      */
-    public static function writeln($text)
+    public static function writeln(string $text): void
     {
         echo self::newLine();
         echo '> '.$text.self::newLine();
@@ -119,9 +111,8 @@ class Utils
      * Convert bytes to precision
      *
      * @param  int  $precision
-     * @return string
      */
-    public static function formatBytes($bytes, $precision = 2)
+    public static function formatBytes($bytes, $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
@@ -139,7 +130,7 @@ class Utils
      *
      * @return float
      */
-    public static function getPercentage($cur, $total)
+    public static function getPercentage($cur, $total): int|float
     {
         // Hide warning division by zero
         if ($total === 0) {
@@ -154,7 +145,7 @@ class Utils
      * @param  int  $downloadedBytes
      * @param  int|null  $totalBytes
      */
-    public static function showProgressBar($downloadedBytes, $totalBytes = null)
+    public static function showProgressBar($downloadedBytes, $totalBytes = null): void
     {
         if (php_sapi_name() == 'cli') {
             printf("> Downloaded %s of %s (%d%%)      \r",

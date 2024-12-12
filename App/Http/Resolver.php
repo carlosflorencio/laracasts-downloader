@@ -22,10 +22,8 @@ class Resolver
 {
     /**
      * Guzzle cookie
-     *
-     * @var CookieJar
      */
-    private $cookies;
+    private readonly CookieJar $cookies;
 
     /**
      * Receives dependencies
@@ -48,9 +46,8 @@ class Resolver
      *
      * @param  string  $email
      * @param  string  $password
-     * @return array
      */
-    public function login($email, $password)
+    public function login($email, $password): array
     {
         $token = $this->getCsrfToken();
 
@@ -77,10 +74,8 @@ class Resolver
 
     /**
      * Returns CSRF token
-     *
-     * @return string
      */
-    public function getCsrfToken()
+    public function getCsrfToken(): string
     {
         $this->client->get(LARACASTS_BASE_URL, [
             'cookies' => $this->cookies,
@@ -93,7 +88,7 @@ class Resolver
         ]);
 
         $token = current(
-            array_filter($this->cookies->toArray(), fn ($cookie) => $cookie['Name'] === 'XSRF-TOKEN')
+            array_filter($this->cookies->toArray(), fn ($cookie): bool => $cookie['Name'] === 'XSRF-TOKEN')
         );
 
         return urldecode((string) $token['Value']);
@@ -102,11 +97,9 @@ class Resolver
     /**
      * Download the episode of the serie.
      *
-     * @param  string  $serieSlug
-     * @param  array  $episode
      * @return bool
      */
-    public function downloadEpisode($serieSlug, $episode)
+    public function downloadEpisode(string $serieSlug, array $episode)
     {
         try {
             $number = sprintf('%02d', $episode['number']);
@@ -139,12 +132,9 @@ class Resolver
     }
 
     /**
-     * @param  string  $serieSlug
-     * @param  string  $number
      * @param  string  $episodeName
-     * @return string
      */
-    private function getFilename($serieSlug, $number, $episodeName)
+    private function getFilename(string $serieSlug, string $number, $episodeName): string
     {
         return BASE_FOLDER
             .DIRECTORY_SEPARATOR
@@ -160,10 +150,8 @@ class Resolver
 
     /**
      * Returns topics page html
-     *
-     * @return string
      */
-    public function getTopicsHtml()
+    public function getTopicsHtml(): string
     {
         return $this->client
             ->get(LARACASTS_BASE_URL.'/'.LARACASTS_TOPICS_PATH, ['cookies' => $this->cookies, 'verify' => false])
@@ -175,9 +163,8 @@ class Resolver
      * Returns html content of specific url
      *
      * @param  string  $url
-     * @return string
      */
-    public function getHtml($url)
+    public function getHtml($url): string
     {
         return $this->client
             ->get($url, ['cookies' => $this->cookies, 'verify' => false])
@@ -188,11 +175,10 @@ class Resolver
     /**
      * Get Laracasts download link for given episode
      *
-     * @param  string  $serieSlug
      * @param  int  $episodeNumber
      * @return string
      */
-    private function getLaracastsLink($serieSlug, $episodeNumber)
+    private function getLaracastsLink(string $serieSlug, $episodeNumber)
     {
         $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
 
@@ -205,7 +191,7 @@ class Resolver
      *
      * @return string
      */
-    private function getRedirectUrl($url)
+    private function getRedirectUrl($url): array
     {
         $response = $this->client->get($url, [
             'cookies' => $this->cookies,
@@ -218,11 +204,8 @@ class Resolver
 
     /**
      * Helper to download the video.
-     *
-     *
-     * @return bool
      */
-    private function downloadVideo($downloadUrl, $saveTo)
+    private function downloadVideo($downloadUrl, string $saveTo): bool
     {
         $this->bench->start();
 
@@ -257,7 +240,7 @@ class Resolver
     /**
      * @param  string  $url
      */
-    private function prepareDownloadLink($url)
+    private function prepareDownloadLink($url): array
     {
         $url = $this->getRedirectUrl($url);
         $url = $this->getRedirectUrl($url);

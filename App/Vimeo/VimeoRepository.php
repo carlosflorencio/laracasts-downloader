@@ -13,10 +13,7 @@ class VimeoRepository
      */
     public function __construct(private $client) {}
 
-    /**
-     * @return VideoDTO
-     */
-    public function get($vimeoId)
+    public function get($vimeoId): VideoDTO
     {
         $content = $this->client->get("https://player.vimeo.com/video/$vimeoId", [
             'headers' => [
@@ -38,9 +35,8 @@ class VimeoRepository
 
     /**
      * @param  VideoDTO  $video
-     * @return MasterDTO
      */
-    public function getMaster($video)
+    public function getMaster($video): MasterDTO
     {
         $content = $this->client->get($video->getMasterURL())
             ->getBody()

@@ -9,10 +9,7 @@ class VideoDTO
      */
     private $masterURL;
 
-    /**
-     * @var array
-     */
-    private $streams;
+    private ?array $streams = null;
 
     /**
      * @return string
@@ -24,37 +21,27 @@ class VideoDTO
 
     /**
      * @param  string  $masterURL
-     * @return self
      */
-    public function setMasterURL($masterURL)
+    public function setMasterURL($masterURL): static
     {
         $this->masterURL = $masterURL;
 
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getStreams()
+    public function getStreams(): ?array
     {
         return $this->streams;
     }
 
-    /**
-     * @return self
-     */
-    public function setStreams(array $streams)
+    public function setStreams(array $streams): static
     {
         $this->streams = $streams;
 
         return $this;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getVideoIdByQuality()
+    public function getVideoIdByQuality(): ?string
     {
         $id = null;
 

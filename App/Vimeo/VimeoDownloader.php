@@ -7,8 +7,7 @@ use GuzzleHttp\Client;
 
 class VimeoDownloader
 {
-    /** @var VimeoRepository */
-    private $repository;
+    private readonly VimeoRepository $repository;
 
     /** @var Client */
     public $client;
@@ -20,10 +19,7 @@ class VimeoDownloader
         $this->repository = new VimeoRepository($this->client);
     }
 
-    /**
-     * @return bool
-     */
-    public function download($vimeoId, $filepath)
+    public function download($vimeoId, $filepath): bool
     {
         $video = $this->repository->get($vimeoId);
 
@@ -48,20 +44,20 @@ class VimeoDownloader
         return $this->mergeSources($filenames[0], $filenames[1], $filepath);
     }
 
-    private function downloadSource($baseURL, $sourceData, $filepath)
+    private function downloadSource(string $baseURL, array $sourceData, string $filepath): void
     {
         file_put_contents($filepath, base64_decode((string) $sourceData['init_segment'], true));
 
-        $segmentURLs = array_map(fn ($segment) => $baseURL.$segment['url'], $sourceData['segments']);
+        $segmentURLs = array_map(fn ($segment): string => $baseURL.$segment['url'], $sourceData['segments']);
 
         $sizes = array_column($sourceData['segments'], 'size');
 
         $this->downloadSegments($segmentURLs, $filepath, $sizes);
     }
 
-    private function downloadSegments($segmentURLs, $filepath, $sizes)
+    private function downloadSegments(array $segmentURLs, string $filepath, array $sizes): void
     {
-        $type = str_contains((string) $filepath, 'm4v') ? 'video' : 'audio';
+        $type = str_contains($filepath, 'm4v') ? 'video' : 'audio';
         Utils::writeln("Downloading $type...");
 
         $downloadedBytes = 0;
@@ -79,12 +75,9 @@ class VimeoDownloader
     }
 
     /**
-     * @param  string  $videoPath
-     * @param  string  $audioPath
      * @param  string  $outputPath
-     * @return bool
      */
-    private function mergeSources($videoPath, $audioPath, $outputPath)
+    private function mergeSources(string $videoPath, string $audioPath, $outputPath): bool
     {
         $code = 0;
         $output = [];

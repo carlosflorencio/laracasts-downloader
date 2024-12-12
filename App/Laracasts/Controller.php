@@ -19,9 +19,8 @@ class Controller
      *
      * @param  array  $cachedData
      * @param  bool  $cacheOnly
-     * @return array
      */
-    public function getSeries($cachedData, $cacheOnly = false)
+    public function getSeries($cachedData, $cacheOnly = false): array
     {
         $seriesCollection = new SeriesCollection($cachedData);
 
@@ -86,7 +85,7 @@ class Controller
         return $seriesCollection->get();
     }
 
-    public function getFilteredSeries($filters)
+    public function getFilteredSeries($filters): array
     {
         $seriesCollection = new SeriesCollection([]);
 
@@ -109,10 +108,8 @@ class Controller
      *  Determine is specific topic has been changed compared to cached data
      *
      * @param  SeriesCollection  $series
-     * @param  array  $topic
-     * @return bool
      * */
-    public function isTopicUpdated($series, $topic)
+    public function isTopicUpdated($series, array $topic): bool
     {
         $series = $series->where('topic', $topic['slug']);
 
@@ -121,12 +118,8 @@ class Controller
 
     /**
      * Determine is specific series has been changed compared to cached data
-     *
-     * @param  SeriesCollection  $series
-     * @param  array  $serie
-     * @return bool
      */
-    private function isSerieUpdated($series, $serie)
+    private function isSerieUpdated(SeriesCollection $series, array $serie): bool
     {
         $target = $series->where('slug', $serie['slug'])->first();
 

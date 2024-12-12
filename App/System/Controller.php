@@ -28,9 +28,8 @@ class Controller
      * Get the series
      *
      * @param  bool  $skip
-     * @return array
      */
-    public function getSeries($skip = false)
+    public function getSeries($skip = false): array
     {
         $list = $this->system->listContents(SERIES_FOLDER, true);
         $array = [];
@@ -74,7 +73,7 @@ class Controller
     /**
      * run write commands
      */
-    public function writeSkipFiles()
+    public function writeSkipFiles(): void
     {
         Utils::box('Creating skip files');
 
@@ -86,7 +85,7 @@ class Controller
     /**
      * Create skip file to lessons
      */
-    private function writeSkipSeries()
+    private function writeSkipSeries(): void
     {
         $file = SERIES_FOLDER.'/.skip';
 
@@ -114,7 +113,7 @@ class Controller
      *
      * @return array|mixed
      */
-    private function getSkippedData($pathToSkipFile)
+    private function getSkippedData(string $pathToSkipFile)
     {
         if ($this->system->has($pathToSkipFile)) {
             $content = $this->system->read($pathToSkipFile);
@@ -128,7 +127,7 @@ class Controller
     /**
      * Create series folder if not exists.
      */
-    public function createSerieFolderIfNotExists($serieSlug)
+    public function createSerieFolderIfNotExists(string $serieSlug): void
     {
         $this->createFolderIfNotExists(SERIES_FOLDER.'/'.$serieSlug);
     }
@@ -136,7 +135,7 @@ class Controller
     /**
      * Create folder if not exists.
      */
-    public function createFolderIfNotExists($folder)
+    public function createFolderIfNotExists($folder): void
     {
         if ($this->system->has($folder) === false) {
             $this->system->createDirectory($folder);
@@ -151,7 +150,7 @@ class Controller
      * @throws \League\Flysystem\FileExistsException
      * @throws \League\Flysystem\FileNotFoundException
      */
-    public function setCache($data)
+    public function setCache($data): void
     {
         $file = 'cache.php';
 
@@ -167,7 +166,7 @@ class Controller
      *
      * @return array
      */
-    public function getCache()
+    public function getCache(): array|string
     {
         $file = 'cache.php';
 

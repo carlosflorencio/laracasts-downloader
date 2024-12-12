@@ -2,7 +2,8 @@
 
 namespace App\Vimeo\DTO;
 
-use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\UriResolver;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\UriInterface;
 
 class MasterDTO
@@ -22,12 +23,9 @@ class MasterDTO
     /** @var string */
     private $clipId;
 
-    /**
-     * @return array
-     */
-    public function getVideos()
+    public function getVideos(): array
     {
-        return array_map(function ($video) {
+        return array_map(function (array $video) {
             $video['extension'] = '.m4v';
 
             return $video;
@@ -36,21 +34,17 @@ class MasterDTO
 
     /**
      * @param  array  $videos
-     * @return self
      */
-    public function setVideos($videos)
+    public function setVideos($videos): static
     {
         $this->videos = $videos;
 
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getAudios()
+    public function getAudios(): array
     {
-        return array_map(function ($audio) {
+        return array_map(function (array $audio) {
             $audio['extension'] = '.m4a';
 
             return $audio;
@@ -59,9 +53,8 @@ class MasterDTO
 
     /**
      * @param  array  $audios
-     * @return self
      */
-    public function setAudios($audios)
+    public function setAudios($audios): static
     {
         $this->audios = $audios;
 
@@ -87,33 +80,30 @@ class MasterDTO
             }
         }
 
-        usort($videos, fn ($a, $b) => $a['height'] <=> $b['height']);
+        usort($videos, fn ($a, $b): int => $a['height'] <=> $b['height']);
 
         return end($videos);
     }
 
-    public function getAudio()
+    public function getAudio(): mixed
     {
         $audios = $this->getAudios();
 
-        usort($audios, fn ($a, $b) => $a['bitrate'] <=> $b['bitrate']);
+        usort($audios, fn ($a, $b): int => $a['bitrate'] <=> $b['bitrate']);
 
         return end($audios);
     }
 
-    /**
-     * @return UriInterface
-     */
-    public function getMasterURL()
+    public function getMasterURL(): UriInterface
     {
-        return Psr7\Utils::uriFor($this->masterURL);
+        return Utils::uriFor($this->masterURL);
     }
 
     /**
      * @param  string  $masterURL
      * @return $this
      */
-    public function setMasterURL($masterURL)
+    public function setMasterURL($masterURL): static
     {
         $this->masterURL = $masterURL;
 
@@ -130,9 +120,8 @@ class MasterDTO
 
     /**
      * @param  string  $baseURL
-     * @return self
      */
-    public function setBaseURL($baseURL)
+    public function setBaseURL($baseURL): static
     {
         $this->baseURL = $baseURL;
 
@@ -141,14 +130,12 @@ class MasterDTO
 
     /**
      * Make final URL from combination of absolute and relate ones
-     *
-     * @return string
      */
-    public function resolveURL($url)
+    public function resolveURL(string $url): string
     {
-        return (string) Psr7\UriResolver::resolve(
+        return (string) UriResolver::resolve(
             $this->getMasterURL(),
-            Psr7\Utils::uriFor($this->getBaseURL().$url)
+            Utils::uriFor($this->getBaseURL().$url)
         );
     }
 
@@ -162,9 +149,8 @@ class MasterDTO
 
     /**
      * @param  string  $clipId
-     * @return self
      */
-    public function setClipId($clipId)
+    public function setClipId($clipId): static
     {
         $this->clipId = $clipId;
 

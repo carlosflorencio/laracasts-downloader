@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\TypeDeclaration\Rector\ClassMethod\AddMethodCallBasedStrictParamTypeRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -12,6 +13,10 @@ return RectorConfig::configure()
     ->withPreparedSets(
         deadCode: true,  // Enable dead code removal
         codeQuality: true,  // Enable code quality improvements
-        naming: false  // Disable naming convention refactoring
+        naming: false, // Disable naming convention refactoring
+        typeDeclarations: true,
     )
-    ->withTypeCoverageLevel(0);
+    ->withRules([
+        AddMethodCallBasedStrictParamTypeRector::class,
+    ])
+    ->withImportNames();

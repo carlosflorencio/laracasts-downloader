@@ -17,13 +17,12 @@ class Parser
      * Return list of topics data
      *
      * @param  string  $html
-     * @return array
      */
-    public static function getTopicsData($html)
+    public static function getTopicsData($html): array
     {
         $data = self::getData($html);
 
-        return array_map(fn ($topic) => [
+        return array_map(fn ($topic): array => [
             'slug' => str_replace(LARACASTS_BASE_URL.'/topics/', '', $topic['path']),
             'path' => $topic['path'],
             'episode_count' => $topic['episode_count'],
@@ -31,7 +30,7 @@ class Parser
         ], $data['props']['topics']);
     }
 
-    public static function getSerieData($serieHtml)
+    public static function getSerieData($serieHtml): array
     {
         $data = self::getData($serieHtml);
 
@@ -42,9 +41,8 @@ class Parser
      * Return full list of series for given topic HTML page.
      *
      * @param  string  $html
-     * @return array
      */
-    public static function getSeriesDataFromTopic($html)
+    public static function getSeriesDataFromTopic($html): array
     {
         $data = self::getData($html);
 
@@ -52,17 +50,14 @@ class Parser
 
         return array_combine(
             array_column($series, 'slug'),
-            array_map(fn ($serie) => self::extractSerieData($serie), $series)
+            array_map(fn ($serie): array => self::extractSerieData($serie), $series)
         );
     }
 
     /**
      * Only extracts data we need for each serie and returns them
-     *
-     * @param  array  $serie
-     * @return array
      */
-    public static function extractSerieData($serie)
+    public static function extractSerieData(array $serie): array
     {
         return [
             'slug' => $serie['slug'],
@@ -77,9 +72,8 @@ class Parser
      *
      * @param  string  $episodeHtml
      * @param  number[]  $filteredEpisodes
-     * @return array
      */
-    public static function getEpisodesData($episodeHtml, $filteredEpisodes = [])
+    public static function getEpisodesData($episodeHtml, $filteredEpisodes = []): array
     {
         $episodes = [];
 
@@ -117,7 +111,7 @@ class Parser
         return $data['props']['downloadLink'];
     }
 
-    public static function extractLarabitsSeries($html)
+    public static function extractLarabitsSeries($html): array
     {
         $html = str_replace('\/', '/', html_entity_decode((string) $html));
 
@@ -126,14 +120,14 @@ class Parser
         return array_unique($matches[1]);
     }
 
-    public static function getCsrfToken($html)
+    public static function getCsrfToken($html): string
     {
         preg_match('/"csrfToken": \'([^\s]+)\'/', (string) $html, $matches);
 
         return $matches[1];
     }
 
-    public static function getUserData($html)
+    public static function getUserData($html): array
     {
 
         $data = self::getData($html);
@@ -153,7 +147,7 @@ class Parser
      * @param  string  $html
      * @return array
      */
-    private static function getData($html)
+    private static function getData($html): mixed
     {
         $parser = new Crawler($html);
 
