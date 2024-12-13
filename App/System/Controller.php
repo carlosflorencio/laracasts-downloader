@@ -8,6 +8,7 @@ namespace App\System;
 
 use App\Utils\Utils;
 use League\Flysystem\Filesystem;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Class Controller
@@ -29,23 +30,26 @@ class Controller
      */
     public function getSeries(bool $skip = false): array
     {
-        $list = $this->system->listContents(SERIES_FOLDER, true);
+        // we want only files, and we only need their paths
+        $list = $this->system->listContents(SERIES_FOLDER, true)
+            ->filter(fn (StorageAttributes $attributes) => $attributes->isFile())
+            ->sortByPath()
+            ->map(fn (StorageAttributes $attrs) => $attrs->path())
+            ->toArray();
+
         $array = [];
 
-        foreach ($list as $entry) {
-            if ($entry['type'] != 'file') {
+        foreach ($list as $path) {
+            $dirAndFilename = explode('/', substr((string) $path, strlen(SERIES_FOLDER) + 1));
+            $serie = $dirAndFilename[0];
+            // this happens on mac when "series/.DS_Store" is present
+            if (! isset($dirAndFilename[1])) {
                 continue;
             }
+            $episodeName = $dirAndFilename[1];
+            $episodeNo = (int) substr((string) $episodeName, 0, strpos((string) $episodeName, '-'));
 
-            //skip folder, we only want the files
-            if (str_starts_with((string) $entry['filename'], '._')) {
-                continue;
-            }
-
-            $serie = substr((string) $entry['dirname'], strlen(SERIES_FOLDER) + 1);
-            $episode = (int) substr((string) $entry['filename'], 0, strpos((string) $entry['filename'], '-'));
-
-            $array[$serie][] = $episode;
+            $array[$serie][] = $episodeNo;
         }
 
         // TODO: #Issue# returns array with index 0
