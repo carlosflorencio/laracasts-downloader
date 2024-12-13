@@ -43,11 +43,8 @@ class Resolver
 
     /**
      * Tries to authenticate user.
-     *
-     * @param  string  $email
-     * @param  string  $password
      */
-    public function login($email, $password): array
+    public function login(string $email, string $password): array
     {
         $token = $this->getCsrfToken();
 
@@ -96,10 +93,8 @@ class Resolver
 
     /**
      * Download the episode of the serie.
-     *
-     * @return bool
      */
-    public function downloadEpisode(string $serieSlug, array $episode)
+    public function downloadEpisode(string $serieSlug, array $episode): bool
     {
         try {
             $number = sprintf('%02d', $episode['number']);
@@ -131,10 +126,7 @@ class Resolver
         }
     }
 
-    /**
-     * @param  string  $episodeName
-     */
-    private function getFilename(string $serieSlug, string $number, $episodeName): string
+    private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER
             .DIRECTORY_SEPARATOR
@@ -161,10 +153,8 @@ class Resolver
 
     /**
      * Returns html content of specific url
-     *
-     * @param  string  $url
      */
-    public function getHtml($url): string
+    public function getHtml(string $url): string
     {
         return $this->client
             ->get($url, ['cookies' => $this->cookies, 'verify' => false])
@@ -174,11 +164,8 @@ class Resolver
 
     /**
      * Get Laracasts download link for given episode
-     *
-     * @param  int  $episodeNumber
-     * @return string
      */
-    private function getLaracastsLink(string $serieSlug, $episodeNumber)
+    private function getLaracastsLink(string $serieSlug, int $episodeNumber): string
     {
         $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
 
@@ -191,7 +178,7 @@ class Resolver
      *
      * @return string
      */
-    private function getRedirectUrl($url): array
+    private function getRedirectUrl(string|array $url): array
     {
         $response = $this->client->get($url, [
             'cookies' => $this->cookies,
@@ -205,7 +192,7 @@ class Resolver
     /**
      * Helper to download the video.
      */
-    private function downloadVideo($downloadUrl, string $saveTo): bool
+    private function downloadVideo(string $downloadUrl, string $saveTo): bool
     {
         $this->bench->start();
 
@@ -237,10 +224,7 @@ class Resolver
         return true;
     }
 
-    /**
-     * @param  string  $url
-     */
-    private function prepareDownloadLink($url): array
+    private function prepareDownloadLink(string $url): array
     {
         $url = $this->getRedirectUrl($url);
         $url = $this->getRedirectUrl($url);

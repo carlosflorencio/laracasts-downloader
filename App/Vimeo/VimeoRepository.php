@@ -8,10 +8,7 @@ use GuzzleHttp\Client;
 
 class VimeoRepository
 {
-    /**
-     * @param  Client  $client
-     */
-    public function __construct(private $client) {}
+    public function __construct(private readonly Client $client) {}
 
     public function get($vimeoId): VideoDTO
     {
@@ -33,10 +30,7 @@ class VimeoRepository
             ->setStreams(json_decode($streams[1], true));
     }
 
-    /**
-     * @param  VideoDTO  $video
-     */
-    public function getMaster($video): MasterDTO
+    public function getMaster(VideoDTO $video): MasterDTO
     {
         $content = $this->client->get($video->getMasterURL())
             ->getBody()

@@ -8,20 +8,15 @@ use Psr\Http\Message\UriInterface;
 
 class MasterDTO
 {
-    /** @var array */
-    private $videos;
+    private ?array $videos = null;
 
-    /** @var array */
-    private $audios;
+    private ?array $audios = null;
 
-    /** @var string */
-    private $masterURL;
+    private ?string $masterURL = null;
 
-    /** @var string */
-    private $baseURL;
+    private ?string $baseURL = null;
 
-    /** @var string */
-    private $clipId;
+    private ?string $clipId = null;
 
     public function getVideos(): array
     {
@@ -32,10 +27,7 @@ class MasterDTO
         }, $this->videos);
     }
 
-    /**
-     * @param  array  $videos
-     */
-    public function setVideos($videos): static
+    public function setVideos(array $videos): static
     {
         $this->videos = $videos;
 
@@ -51,10 +43,7 @@ class MasterDTO
         }, $this->audios);
     }
 
-    /**
-     * @param  array  $audios
-     */
-    public function setAudios($audios): static
+    public function setAudios(array $audios): static
     {
         $this->audios = $audios;
 
@@ -63,11 +52,8 @@ class MasterDTO
 
     /**
      * Get video by id or the one with the highest quality
-     *
-     * @param  null|string  $id
-     * @return array
      */
-    public function getVideoById($id)
+    public function getVideoById(?string $id): array
     {
         $videos = $this->getVideos();
 
@@ -100,28 +86,21 @@ class MasterDTO
     }
 
     /**
-     * @param  string  $masterURL
      * @return $this
      */
-    public function setMasterURL($masterURL): static
+    public function setMasterURL(string $masterURL): static
     {
         $this->masterURL = $masterURL;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getBaseURL()
+    public function getBaseURL(): ?string
     {
         return $this->baseURL;
     }
 
-    /**
-     * @param  string  $baseURL
-     */
-    public function setBaseURL($baseURL): static
+    public function setBaseURL(string $baseURL): static
     {
         $this->baseURL = $baseURL;
 
@@ -139,18 +118,12 @@ class MasterDTO
         );
     }
 
-    /**
-     * @return string
-     */
-    public function getClipId()
+    public function getClipId(): ?string
     {
         return $this->clipId;
     }
 
-    /**
-     * @param  string  $clipId
-     */
-    public function setClipId($clipId): static
+    public function setClipId(string $clipId): static
     {
         $this->clipId = $clipId;
 

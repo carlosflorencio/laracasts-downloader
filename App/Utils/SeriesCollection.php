@@ -6,11 +6,7 @@ class SeriesCollection
 {
     public function __construct(private array $series) {}
 
-    /**
-     * @param  string  $key
-     * @param  string  $value
-     */
-    public function where($key, $value): \App\Utils\SeriesCollection
+    public function where(string $key, string $value): \App\Utils\SeriesCollection
     {
         $series = [];
 

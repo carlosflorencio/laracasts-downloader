@@ -6,8 +6,6 @@
 
 namespace App\Utils;
 
-use GuzzleHttp\Message\RequestInterface;
-
 /**
  * Class Utils
  */
@@ -109,10 +107,8 @@ class Utils
 
     /**
      * Convert bytes to precision
-     *
-     * @param  int  $precision
      */
-    public static function formatBytes($bytes, $precision = 2): string
+    public static function formatBytes($bytes, int $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
@@ -140,12 +136,7 @@ class Utils
         return round(@($cur / $total * 100));
     }
 
-    /**
-     * @param  RequestInterface  $request
-     * @param  int  $downloadedBytes
-     * @param  int|null  $totalBytes
-     */
-    public static function showProgressBar($downloadedBytes, $totalBytes = null): void
+    public static function showProgressBar(int $downloadedBytes, ?int $totalBytes = null): void
     {
         if (php_sapi_name() == 'cli') {
             printf("> Downloaded %s of %s (%d%%)      \r",

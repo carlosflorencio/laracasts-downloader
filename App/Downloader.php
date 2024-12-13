@@ -118,17 +118,15 @@ class Downloader
     /**
      * Tries to login.
      *
-     * @param  string  $email
-     * @param  string  $password
      * @return bool
      *
      * @throws LoginException
      */
-    public function authenticate($email, $password)
+    public function authenticate(string $email, string $password)
     {
         Utils::box('Authenticating');
 
-        if (empty($email) || empty($password)) {
+        if ($email === '' || $email === '0' || ($password === '' || $password === '0')) {
             throw new LoginException('No EMAIL and PASSWORD is set in .env file');
         }
 

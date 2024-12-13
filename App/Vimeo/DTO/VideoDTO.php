@@ -4,25 +4,16 @@ namespace App\Vimeo\DTO;
 
 class VideoDTO
 {
-    /**
-     * @var string
-     */
-    private $masterURL;
+    private ?string $masterURL = null;
 
     private ?array $streams = null;
 
-    /**
-     * @return string
-     */
-    public function getMasterURL()
+    public function getMasterURL(): ?string
     {
         return $this->masterURL;
     }
 
-    /**
-     * @param  string  $masterURL
-     */
-    public function setMasterURL($masterURL): static
+    public function setMasterURL(string $masterURL): static
     {
         $this->masterURL = $masterURL;
 

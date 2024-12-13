@@ -26,10 +26,8 @@ class Controller
 
     /**
      * Get the series
-     *
-     * @param  bool  $skip
      */
-    public function getSeries($skip = false): array
+    public function getSeries(bool $skip = false): array
     {
         $list = $this->system->listContents(SERIES_FOLDER, true);
         $array = [];
@@ -145,12 +143,11 @@ class Controller
     /**
      * Create cache file
      *
-     * @param  array  $data
      *
      * @throws \League\Flysystem\FileExistsException
      * @throws \League\Flysystem\FileNotFoundException
      */
-    public function setCache($data): void
+    public function setCache(array $data): void
     {
         $file = 'cache.php';
 

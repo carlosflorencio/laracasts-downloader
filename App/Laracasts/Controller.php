@@ -16,11 +16,8 @@ class Controller
 
     /**
      *  Gets all series using scraping
-     *
-     * @param  array  $cachedData
-     * @param  bool  $cacheOnly
      */
-    public function getSeries($cachedData, $cacheOnly = false): array
+    public function getSeries(array $cachedData, bool $cacheOnly = false): array
     {
         $seriesCollection = new SeriesCollection($cachedData);
 
@@ -85,7 +82,7 @@ class Controller
         return $seriesCollection->get();
     }
 
-    public function getFilteredSeries($filters): array
+    public function getFilteredSeries(array $filters): array
     {
         $seriesCollection = new SeriesCollection([]);
 
@@ -106,10 +103,8 @@ class Controller
 
     /**
      *  Determine is specific topic has been changed compared to cached data
-     *
-     * @param  SeriesCollection  $series
      * */
-    public function isTopicUpdated($series, array $topic): bool
+    public function isTopicUpdated(SeriesCollection $series, array $topic): bool
     {
         $series = $series->where('topic', $topic['slug']);
 

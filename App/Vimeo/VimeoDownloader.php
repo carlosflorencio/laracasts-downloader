@@ -19,7 +19,7 @@ class VimeoDownloader
         $this->repository = new VimeoRepository($this->client);
     }
 
-    public function download($vimeoId, $filepath): bool
+    public function download($vimeoId, string $filepath): bool
     {
         $video = $this->repository->get($vimeoId);
 
@@ -74,10 +74,7 @@ class VimeoDownloader
         }
     }
 
-    /**
-     * @param  string  $outputPath
-     */
-    private function mergeSources(string $videoPath, string $audioPath, $outputPath): bool
+    private function mergeSources(string $videoPath, string $audioPath, string $outputPath): bool
     {
         $code = 0;
         $output = [];

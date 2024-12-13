@@ -8,7 +8,6 @@
 - [ ] Refactoring
 - [ ] Hotfix
 - [ ] Security patch
-- [ ] UI/UX improvement
 
 ## Description
 [Provide a detailed explanation of the changes made, including reasons and relevant context]
