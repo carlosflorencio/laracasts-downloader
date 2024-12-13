@@ -227,8 +227,7 @@ class Resolver
     private function prepareDownloadLink(string $url): array
     {
         $url = $this->getRedirectUrl($url);
-        $url = $this->getRedirectUrl($url);
-        $parts = parse_url($url);
+        $parts = parse_url($url[0]);
 
         return [
             'query' => $parts['query'],
