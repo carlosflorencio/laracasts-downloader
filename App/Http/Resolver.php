@@ -29,13 +29,7 @@ class Resolver
      * Receives dependencies
      */
     public function __construct(
-        /**
-         * Guzzle client
-         */
         private readonly Client $client,
-        /**
-         * Ubench lib
-         */
         private readonly Ubench $bench,
     ) {
         $this->cookies = new CookieJar;
@@ -174,11 +168,8 @@ class Resolver
 
     /**
      * Helper to get the Location header.
-     *
-     *
-     * @return string
      */
-    private function getRedirectUrl(string|array $url): array
+    private function getRedirectUrl(string $url): string
     {
         $response = $this->client->get($url, [
             'cookies' => $this->cookies,
@@ -186,7 +177,7 @@ class Resolver
             'verify' => false,
         ]);
 
-        return $response->getHeader('Location');
+        return $response->getHeader('Location')[0] ?? '';
     }
 
     /**
@@ -199,7 +190,6 @@ class Resolver
         $link = $this->prepareDownloadLink($downloadUrl);
 
         try {
-            $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
             $this->client->request('GET', $link['url'], [
                 'query' => $link['query'],
                 'sink' => fopen($saveTo, 'a'),
@@ -226,8 +216,7 @@ class Resolver
 
     private function prepareDownloadLink(string $url): array
     {
-        $url = $this->getRedirectUrl($url);
-        $parts = parse_url($url[0]);
+        $parts = parse_url($this->getRedirectUrl($url));
 
         return [
             'query' => $parts['query'],

@@ -13,8 +13,7 @@ return RectorConfig::configure()
     ->withPreparedSets(
         deadCode: true,  // Enable dead code removal
         codeQuality: true,  // Enable code quality improvements
-        naming: false, // Disable naming convention refactoring
-        typeDeclarations: true,
+        typeDeclarations: true // Disable naming convention refactoring
     )
     ->withRules([
         AddMethodCallBasedStrictParamTypeRector::class,

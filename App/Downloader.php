@@ -21,22 +21,13 @@ use Ubench;
  */
 class Downloader
 {
-    /**
-     * Http resolver object
-     */
     private readonly Resolver $client;
 
-    /**
-     * System object
-     */
     private readonly \App\System\Controller $system;
 
-    /**
-     * Ubench lib
-     */
     private readonly Ubench $bench;
 
-    // [string => number[]]
+    /** @array<string, int[]> */
     private array $filters = [];
 
     private readonly LaracastsController $laracasts;
@@ -44,9 +35,6 @@ class Downloader
     /** @var bool Don't scrap pages and only get from existing cache */
     private bool $cacheOnly = false;
 
-    /**
-     * Receives dependencies
-     */
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -55,9 +43,6 @@ class Downloader
         $this->laracasts = new LaracastsController($this->client);
     }
 
-    /**
-     * All the logic
-     */
     public function start(array $options): void
     {
         $counter = [
@@ -126,7 +111,7 @@ class Downloader
     {
         Utils::box('Authenticating');
 
-        if ($email === '' || $email === '0' || ($password === '' || $password === '0')) {
+        if ($email === '' || $password === '') {
             throw new LoginException('No EMAIL and PASSWORD is set in .env file');
         }
 
@@ -140,10 +125,13 @@ class Downloader
             Utils::write('Logged in as '.$user['data']['email']);
         }
 
+        // Let's allow user with no subscription to download free lessons
+        // https://github.com/carlosflorencio/laracasts-downloader/issues/131
+        /*
         if (! $user['data']['subscribed']) {
             throw new LoginException("You don't have active subscription!");
         }
-
+        */
         return $user['signedIn'];
     }
 

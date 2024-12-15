@@ -25,13 +25,10 @@ $options['email'] = $_ENV['EMAIL'];
 $options['local_path'] = $_ENV['LOCAL_PATH'];
 $options['lessons_folder'] = $_ENV['LESSONS_FOLDER'];
 $options['series_folder'] = $_ENV['SERIES_FOLDER'];
-//Flags
-$options['retry_download'] = boolval($_ENV['RETRY_DOWNLOAD']);
 
 define('BASE_FOLDER', $options['local_path']);
 define('LESSONS_FOLDER', $options['lessons_folder']);
 define('SERIES_FOLDER', $options['series_folder']);
-define('RETRY_DOWNLOAD', $options['retry_download']);
 
 //laracasts
 define('LARACASTS_BASE_URL', 'https://laracasts.com');

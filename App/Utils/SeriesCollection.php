@@ -6,7 +6,7 @@ class SeriesCollection
 {
     public function __construct(private array $series) {}
 
-    public function where(string $key, string $value): \App\Utils\SeriesCollection
+    public function where(string $key, string $value): self
     {
         $series = [];
 

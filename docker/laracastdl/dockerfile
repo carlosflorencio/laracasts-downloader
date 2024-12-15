@@ -1,6 +1,6 @@
 FROM php:8.3-cli
 
-# install dependencies
-RUN apt-get update && apt-get install -y libcurl4-gnutls-dev zlib1g-dev git ffmpeg
+RUN apt-get update && apt-get install -y libcurl4-gnutls-dev zlib1g-dev git ffmpeg libzip-dev
 RUN docker-php-ext-configure curl --with-curl
 RUN docker-php-ext-install -j$(nproc) curl zip
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*

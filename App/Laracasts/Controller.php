@@ -108,7 +108,9 @@ class Controller
     {
         $series = $series->where('topic', $topic['slug']);
 
-        return $series->exists() && $topic['series_count'] == $series->count() && $topic['episode_count'] == $series->sum('episode_count', true);
+        return $series->exists() &&
+            $topic['series_count'] == $series->count() &&
+            $topic['episode_count'] == $series->sum('episode_count', true);
     }
 
     /**

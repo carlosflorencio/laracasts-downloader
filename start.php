@@ -18,7 +18,7 @@ $bench = new Ubench;
 /*
  * App
  */
-$app = new App\Downloader($client, $filesystem, $bench, RETRY_DOWNLOAD);
+$app = new App\Downloader($client, $filesystem, $bench);
 
 try {
     $app->start($options);

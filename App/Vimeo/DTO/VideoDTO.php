@@ -34,14 +34,12 @@ class VideoDTO
 
     public function getVideoIdByQuality(): ?string
     {
-        $id = null;
-
         foreach ($this->getStreams() as $stream) {
             if ($stream['quality'] === $_ENV['VIDEO_QUALITY']) {
-                $id = explode('-', (string) $stream['id'])[0];
+                return $stream['id'];
             }
         }
 
-        return $id;
+        return null;
     }
 }

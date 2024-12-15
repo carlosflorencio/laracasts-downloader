@@ -64,6 +64,14 @@ class MasterDTO
             if ($key !== false) {
                 return $videos[$key];
             }
+
+            // Previously, the Vimeo ID matched the first segment of the UUID.
+            // So we keep it for backward compatibility
+            $key = array_search(explode('-', $id)[0], $ids);
+
+            if ($key !== false) {
+                return $videos[$key];
+            }
         }
 
         usort($videos, fn ($a, $b): int => $a['height'] <=> $b['height']);
