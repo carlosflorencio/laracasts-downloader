@@ -20,7 +20,7 @@ Just call `php makeskips.php` before deleting the lessons.
 
 
 ## Requirements
-- PHP >= 7.2
+- PHP >= 8.3
 - php-cURL
 - php-xml
 - php-json

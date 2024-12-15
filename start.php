@@ -1,18 +1,19 @@
 <?php
+
 /**
  * App start point
  */
 use League\Flysystem\Filesystem;
-use League\Flysystem\Adapter\Local as Adapter;
+use League\Flysystem\Local\LocalFilesystemAdapter as Adapter;
 
 require_once 'bootstrap.php';
 
 /*
  * Dependencies
  */
-$client = new GuzzleHttp\Client(['base_url' => LARACASTS_BASE_URL]);
+$client = new GuzzleHttp\Client(['base_uri' => LARACASTS_BASE_URL]);
 $filesystem = new Filesystem(new Adapter(BASE_FOLDER));
-$bench = new Ubench();
+$bench = new Ubench;
 
 /*
  * App

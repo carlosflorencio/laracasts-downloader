@@ -9,30 +9,29 @@ require 'vendor/autoload.php';
  * Options
  */
 
-$options = array();
+$options = [];
 
-$dotenv = new Dotenv\Dotenv(__DIR__);
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-$timezone = getenv('TIMEZONE');
+$timezone = $_ENV['TIMEZONE'];
 
 date_default_timezone_set($timezone);
 
 //Login
-$options['password'] = getenv('PASSWORD');
-$options['email'] = getenv('EMAIL');
+$options['password'] = $_ENV['PASSWORD'];
+$options['email'] = $_ENV['EMAIL'];
 //Paths
-$options['local_path'] = getenv('LOCAL_PATH');
-$options['lessons_folder'] = getenv('LESSONS_FOLDER');
-$options['series_folder'] = getenv('SERIES_FOLDER');
+$options['local_path'] = $_ENV['LOCAL_PATH'];
+$options['lessons_folder'] = $_ENV['LESSONS_FOLDER'];
+$options['series_folder'] = $_ENV['SERIES_FOLDER'];
 //Flags
-$options['retry_download'] = boolval(getenv('RETRY_DOWNLOAD'));
+$options['retry_download'] = boolval($_ENV['RETRY_DOWNLOAD']);
 
 define('BASE_FOLDER', $options['local_path']);
 define('LESSONS_FOLDER', $options['lessons_folder']);
 define('SERIES_FOLDER', $options['series_folder']);
 define('RETRY_DOWNLOAD', $options['retry_download']);
-
 
 //laracasts
 define('LARACASTS_BASE_URL', 'https://laracasts.com');

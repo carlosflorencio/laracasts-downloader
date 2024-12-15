@@ -2,68 +2,48 @@
 
 namespace App\Vimeo\DTO;
 
-use GuzzleHttp\Psr7;
+use GuzzleHttp\Psr7\UriResolver;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Message\UriInterface;
 
 class MasterDTO
 {
-    /** @var array */
-    private $videos;
+    private ?array $videos = null;
 
-    /** @var array */
-    private $audios;
+    private ?array $audios = null;
 
-    /** @var string */
-    private $masterURL;
+    private ?string $masterURL = null;
 
-    /** @var string */
-    private $baseURL;
+    private ?string $baseURL = null;
 
-    /** @var string */
-    private $clipId;
+    private ?string $clipId = null;
 
-    /**
-     * @return array
-     */
-    public function getVideos()
+    public function getVideos(): array
     {
-        return array_map(function($video) {
+        return array_map(function (array $video) {
             $video['extension'] = '.m4v';
 
             return $video;
         }, $this->videos);
     }
 
-    /**
-     * @param  array  $videos
-     *
-     * @return self
-     */
-    public function setVideos($videos)
+    public function setVideos(array $videos): static
     {
         $this->videos = $videos;
 
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getAudios()
+    public function getAudios(): array
     {
-        return array_map(function($audio) {
+        return array_map(function (array $audio) {
             $audio['extension'] = '.m4a';
 
             return $audio;
         }, $this->audios);
     }
 
-    /**
-     * @param  array  $audios
-     *
-     * @return self
-     */
-    public function setAudios($audios)
+    public function setAudios(array $audios): static
     {
         $this->audios = $audios;
 
@@ -72,12 +52,8 @@ class MasterDTO
 
     /**
      * Get video by id or the one with the highest quality
-     *
-     * @param  null|string  $id
-     *
-     * @return array
      */
-    public function getVideoById($id)
+    public function getVideoById(?string $id): array
     {
         $videos = $this->getVideos();
 
@@ -90,58 +66,41 @@ class MasterDTO
             }
         }
 
-        usort($videos, function($a, $b) {
-            return $a['height'] <=> $b['height'];
-        });
+        usort($videos, fn ($a, $b): int => $a['height'] <=> $b['height']);
 
         return end($videos);
     }
 
-    public function getAudio()
+    public function getAudio(): mixed
     {
         $audios = $this->getAudios();
 
-        usort($audios, function($a, $b) {
-            return $a['bitrate'] <=> $b['bitrate'];
-        });
+        usort($audios, fn ($a, $b): int => $a['bitrate'] <=> $b['bitrate']);
 
         return end($audios);
     }
 
-    /**
-     * @return UriInterface
-     */
-    public function getMasterURL()
+    public function getMasterURL(): UriInterface
     {
-        return Psr7\Utils::uriFor($this->masterURL);
+        return Utils::uriFor($this->masterURL);
     }
 
     /**
-     * @param  string  $masterURL
-     *
      * @return $this
      */
-    public function setMasterURL($masterURL)
+    public function setMasterURL(string $masterURL): static
     {
         $this->masterURL = $masterURL;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getBaseURL()
+    public function getBaseURL(): ?string
     {
         return $this->baseURL;
     }
 
-    /**
-     * @param  string  $baseURL
-     *
-     * @return self
-     */
-    public function setBaseURL($baseURL)
+    public function setBaseURL(string $baseURL): static
     {
         $this->baseURL = $baseURL;
 
@@ -150,34 +109,24 @@ class MasterDTO
 
     /**
      * Make final URL from combination of absolute and relate ones
-     * @return string
      */
-    public function resolveURL($url)
+    public function resolveURL(string $url): string
     {
-        return (string)Psr7\UriResolver::resolve(
+        return (string) UriResolver::resolve(
             $this->getMasterURL(),
-            Psr7\Utils::uriFor($this->getBaseURL().$url)
+            Utils::uriFor($this->getBaseURL().$url)
         );
     }
 
-    /**
-     * @return string
-     */
-    public function getClipId()
+    public function getClipId(): ?string
     {
         return $this->clipId;
     }
 
-    /**
-     * @param  string  $clipId
-     *
-     * @return self
-     */
-    public function setClipId($clipId)
+    public function setClipId(string $clipId): static
     {
         $this->clipId = $clipId;
 
         return $this;
     }
-
 }

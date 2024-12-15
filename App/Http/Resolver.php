@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Http functions
  */
@@ -12,75 +13,45 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Query;
 use Ubench;
 
 /**
  * Class Resolver
- *
- * @package App\Http
  */
 class Resolver
 {
     /**
-     * Guzzle client
-     *
-     * @var Client
-     */
-    private $client;
-
-    /**
      * Guzzle cookie
-     *
-     * @var CookieJar
      */
-    private $cookies;
-
-    /**
-     * Ubench lib
-     *
-     * @var Ubench
-     */
-    private $bench;
-
-    /**
-     * Retry download on connection fail
-     *
-     * @var int
-     */
-    private $retryDownload = false;
+    private readonly CookieJar $cookies;
 
     /**
      * Receives dependencies
-     *
-     * @param  Client  $client
-     * @param  Ubench  $bench
-     * @param  bool  $retryDownload
      */
-    public function __construct(Client $client, Ubench $bench, $retryDownload = false)
-    {
-        $this->client = $client;
-        $this->cookies = new CookieJar();
-        $this->bench = $bench;
-        $this->retryDownload = $retryDownload;
+    public function __construct(
+        /**
+         * Guzzle client
+         */
+        private readonly Client $client,
+        /**
+         * Ubench lib
+         */
+        private readonly Ubench $bench,
+    ) {
+        $this->cookies = new CookieJar;
     }
 
     /**
      * Tries to authenticate user.
-     *
-     * @param  string  $email
-     * @param  string  $password
-     *
-     * @return array
      */
-    public function login($email, $password)
+    public function login(string $email, string $password): array
     {
         $token = $this->getCsrfToken();
 
         $response = $this->client->post(LARACASTS_POST_LOGIN_PATH, [
             'cookies' => $this->cookies,
             'headers' => [
-                "X-XSRF-TOKEN" => $token,
+                'X-XSRF-TOKEN' => $token,
                 'content-type' => 'application/json',
                 'x-requested-with' => 'XMLHttpRequest',
                 'referer' => LARACASTS_BASE_URL,
@@ -100,10 +71,8 @@ class Resolver
 
     /**
      * Returns CSRF token
-     *
-     * @return string
      */
-    public function getCsrfToken()
+    public function getCsrfToken(): string
     {
         $this->client->get(LARACASTS_BASE_URL, [
             'cookies' => $this->cookies,
@@ -116,44 +85,37 @@ class Resolver
         ]);
 
         $token = current(
-            array_filter($this->cookies->toArray(), function($cookie) {
-                return $cookie['Name'] === 'XSRF-TOKEN';
-            })
+            array_filter($this->cookies->toArray(), fn ($cookie): bool => $cookie['Name'] === 'XSRF-TOKEN')
         );
 
-        return urldecode($token['Value']);
+        return urldecode((string) $token['Value']);
     }
 
     /**
      * Download the episode of the serie.
-     *
-     * @param  string  $serieSlug
-     * @param  array  $episode
-     *
-     * @return bool
      */
-    public function downloadEpisode($serieSlug, $episode)
+    public function downloadEpisode(string $serieSlug, array $episode): bool
     {
         try {
-            $number = sprintf("%02d", $episode['number']);
+            $number = sprintf('%02d', $episode['number']);
             $name = $episode['title'];
             $filepath = $this->getFilename($serieSlug, $number, $name);
 
             Utils::writeln(
                 sprintf(
-                    "Download started: %s . . . . Saving on ".SERIES_FOLDER.'/'.$serieSlug,
+                    'Download started: %s . . . . Saving on '.SERIES_FOLDER.'/'.$serieSlug,
                     $number.' - '.$name
                 )
             );
 
-            $source = getenv('DOWNLOAD_SOURCE');
+            $source = $_ENV['DOWNLOAD_SOURCE'];
 
-            if (! $source or $source === 'laracasts') {
+            if (! $source || $source === 'laracasts') {
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
 
                 return $this->downloadVideo($downloadLink, $filepath);
             } else {
-                $vimeoDownloader = new VimeoDownloader();
+                $vimeoDownloader = new VimeoDownloader;
 
                 return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
             }
@@ -164,14 +126,7 @@ class Resolver
         }
     }
 
-    /**
-     * @param  string  $serieSlug
-     * @param  string  $number
-     * @param  string  $episodeName
-     *
-     * @return string
-     */
-    private function getFilename($serieSlug, $number, $episodeName)
+    private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER
             .DIRECTORY_SEPARATOR
@@ -187,10 +142,8 @@ class Resolver
 
     /**
      * Returns topics page html
-     *
-     * @return string
      */
-    public function getTopicsHtml()
+    public function getTopicsHtml(): string
     {
         return $this->client
             ->get(LARACASTS_BASE_URL.'/'.LARACASTS_TOPICS_PATH, ['cookies' => $this->cookies, 'verify' => false])
@@ -200,12 +153,8 @@ class Resolver
 
     /**
      * Returns html content of specific url
-     *
-     * @param  string  $url
-     *
-     * @return string
      */
-    public function getHtml($url)
+    public function getHtml(string $url): string
     {
         return $this->client
             ->get($url, ['cookies' => $this->cookies, 'verify' => false])
@@ -215,13 +164,8 @@ class Resolver
 
     /**
      * Get Laracasts download link for given episode
-     *
-     * @param  string  $serieSlug
-     * @param  int  $episodeNumber
-     *
-     * @return string
      */
-    private function getLaracastsLink($serieSlug, $episodeNumber)
+    private function getLaracastsLink(string $serieSlug, int $episodeNumber): string
     {
         $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
 
@@ -231,11 +175,10 @@ class Resolver
     /**
      * Helper to get the Location header.
      *
-     * @param $url
      *
      * @return string
      */
-    private function getRedirectUrl($url)
+    private function getRedirectUrl(string|array $url): array
     {
         $response = $this->client->get($url, [
             'cookies' => $this->cookies,
@@ -248,13 +191,8 @@ class Resolver
 
     /**
      * Helper to download the video.
-     *
-     * @param $downloadUrl
-     * @param $saveTo
-     *
-     * @return bool
      */
-    private function downloadVideo($downloadUrl, $saveTo)
+    private function downloadVideo(string $downloadUrl, string $saveTo): bool
     {
         $this->bench->start();
 
@@ -262,15 +200,11 @@ class Resolver
 
         try {
             $downloadedBytes = file_exists($saveTo) ? filesize($saveTo) : 0;
-            $req = $this->client->createRequest('GET', $link['url'], [
-                'query' => Query::fromString($link['query'], false),
-                'save_to' => fopen($saveTo, 'a'),
+            $this->client->request('GET', $link['url'], [
+                'query' => $link['query'],
+                'sink' => fopen($saveTo, 'a'),
+                'progress' => fn ($downloadTotal, $downloadedBytes) => Utils::showProgressBar($downloadedBytes, $downloadTotal),
             ]);
-
-            Utils::showProgressBar($req, $downloadedBytes);
-
-            $this->client->send($req);
-
         } catch (Exception $e) {
             echo $e->getMessage().PHP_EOL;
 
@@ -281,7 +215,7 @@ class Resolver
 
         Utils::write(
             sprintf(
-                "Elapsed time: %s, Memory: %s       ",
+                'Elapsed time: %s, Memory: %s       ',
                 $this->bench->getTime(),
                 $this->bench->getMemoryUsage()
             )
@@ -290,18 +224,14 @@ class Resolver
         return true;
     }
 
-    /**
-     * @param string $url
-    */
-    private function prepareDownloadLink($url)
+    private function prepareDownloadLink(string $url): array
     {
         $url = $this->getRedirectUrl($url);
-        $url = $this->getRedirectUrl($url);
-        $parts = parse_url($url);
+        $parts = parse_url($url[0]);
 
         return [
             'query' => $parts['query'],
-            'url' => $parts['scheme'].'://'.$parts['host'].$parts['path']
+            'url' => $parts['scheme'].'://'.$parts['host'].$parts['path'],
         ];
     }
 }

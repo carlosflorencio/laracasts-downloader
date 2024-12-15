@@ -1,46 +1,31 @@
 <?php
 
-
 namespace App\Utils;
-
 
 class SeriesCollection
 {
-    /**
-     * @var array
-     */
-    private $series;
+    public function __construct(private array $series) {}
 
-    public function __construct(array $series)
-    {
-        $this->series = $series;
-    }
-
-    /**
-     * @param string $key
-     * @param string $value
-     * @return $this
-     */
-    public function where($key, $value)
+    public function where(string $key, string $value): \App\Utils\SeriesCollection
     {
         $series = [];
 
         foreach ($this->series as $serie) {
             if ($serie[$key] == $value) {
-                array_push($series, $serie);
+                $series[] = $serie;
             }
         }
 
         return new SeriesCollection($series);
     }
 
-    public function sum($key, $actual)
+    public function sum($key, $actual): int
     {
         $sum = 0;
 
         foreach ($this->series as $serie) {
             if ($actual) {
-                $sum += intval(count($serie[str_replace('_count', '', $key) . 's']));
+                $sum += intval(count($serie[str_replace('_count', '', $key).'s']));
             } else {
                 $sum += intval($serie[$key]);
             }
@@ -49,19 +34,19 @@ class SeriesCollection
         return $sum;
     }
 
-    public function count()
+    public function count(): int
     {
-        return (int) count($this->series);
+        return count($this->series);
     }
 
-    public function get()
+    public function get(): array
     {
         return $this->series;
     }
 
-    public function exists()
+    public function exists(): bool
     {
-        return ! empty($this->series);
+        return $this->series !== [];
     }
 
     public function first()
@@ -69,7 +54,7 @@ class SeriesCollection
         return $this->exists() ? $this->series[0] : null;
     }
 
-    public function add($serie)
+    public function add(array $serie): void
     {
         $this->series[$serie['slug']] = $serie;
     }
