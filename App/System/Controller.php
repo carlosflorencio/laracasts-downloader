@@ -1,186 +1,81 @@
 <?php
+
 /**
  * System Controller
  */
+
 namespace App\System;
 
-use App\Utils\Utils;
 use League\Flysystem\Filesystem;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Class Controller
- * @package App\System
  */
 class Controller
 {
-    /**
-     * Flysystem lib
-     * @var Filesystem
-     */
-    private $system;
+    public function __construct(
+        private readonly Filesystem $system
+    ) {}
 
-    /**
-     * Receives dependencies
-     *
-     * @param Filesystem $system
-     */
-    public function __construct(Filesystem $system)
+    public function getSeries(): array
     {
-        $this->system = $system;
-    }
+        // we want only files, and we only need their paths
+        $paths = $this->system->listContents(SERIES_FOLDER, true)
+            ->filter(fn (StorageAttributes $attributes): bool => $attributes->isFile())
+            ->sortByPath()
+            ->map(fn (StorageAttributes $attrs): string => $attrs->path())
+            ->toArray();
 
-    /**
-     * Get the series
-     *
-     * @param bool $skip
-     *
-     * @return array
-     */
-    public function getSeries($skip = false)
-    {
-        $list  = $this->system->listContents(SERIES_FOLDER, true);
         $array = [];
 
-        foreach ($list as $entry) {
-            if ($entry['type'] != 'file') {
+        foreach ($paths as $path) {
+            $segments = explode('/', substr((string) $path, strlen(SERIES_FOLDER) + 1));
+
+            // this happens on MAC when "series/.DS_Store" is present
+            if (! isset($segments[1])) {
                 continue;
             }
 
-            //skip folder, we only want the files
-            if (substr($entry['filename'], 0, 2) == '._') {
-                continue;
-            }
+            [$serie, $episodeName] = $segments;
 
-            $serie   = substr($entry['dirname'], strlen(SERIES_FOLDER) + 1);
-            $episode = (int)substr($entry['filename'], 0, strpos($entry['filename'], '-'));
+            $episodeNo = (int) substr($episodeName, 0, strpos($episodeName, '-'));
 
-            $array[$serie][] = $episode;
-        }
-
-        // TODO: #Issue# returns array with index 0
-        if($skip) {
-            foreach($this->getSkippedSeries() as $skipSerie => $episodes) {
-                if(!isset($array[$skipSerie])) {
-                    $array[$skipSerie] = $episodes;
-                    continue;
-                }
-
-                $array[$skipSerie] = array_filter(
-                    array_unique(
-                        array_merge($array[$skipSerie], $episodes)
-                    )
-                );
-            }
+            $array[$serie][] = $episodeNo;
         }
 
         return $array;
     }
 
-    /**
-     * run write commands
-     */
-    public function writeSkipFiles()
+    public function createSerieFolderIfNotExists(string $serieSlug): void
     {
-        Utils::box('Creating skip files');
-
-        $this->writeSkipSeries();
-
-        Utils::write('Skip files for series created');
+        $this->createFolderIfNotExists(SERIES_FOLDER.'/'.$serieSlug);
     }
 
-    /**
-     * Create skip file to lessons
-     */
-    private function writeSkipSeries()
-    {
-        $file = SERIES_FOLDER . '/.skip';
-
-        $series = serialize($this->getSeries(true));
-
-        if($this->system->has($file)) {
-            $this->system->delete($file);
-        }
-
-        $this->system->write($file, $series);
-    }
-
-    /**
-     * Get skipped series
-     * @return array
-     */
-    private function getSkippedSeries()
-    {
-        return $this->getSkippedData(SERIES_FOLDER . '/.skip');
-    }
-
-    /**
-     * Read skip file
-     *
-     * @param $pathToSkipFile
-     * @return array|mixed
-     */
-    private function getSkippedData($pathToSkipFile)
-    {
-        if ($this->system->has($pathToSkipFile)) {
-            $content = $this->system->read($pathToSkipFile);
-
-            return unserialize($content);
-        }
-
-        return [];
-    }
-
-    /**
-     * Create series folder if not exists.
-     *
-     * @param $serieSlug
-     */
-    public function createSerieFolderIfNotExists($serieSlug)
-    {
-        $this->createFolderIfNotExists(SERIES_FOLDER . '/' . $serieSlug);
-    }
-
-    /**
-     * Create folder if not exists.
-     *
-     * @param $folder
-     */
-    public function createFolderIfNotExists($folder)
+    public function createFolderIfNotExists($folder): void
     {
         if ($this->system->has($folder) === false) {
-            $this->system->createDir($folder);
+            $this->system->createDirectory($folder);
         }
     }
 
-    /**
-     * Create cache file
-     *
-     * @param array $data
-     * @throws \League\Flysystem\FileExistsException
-     * @throws \League\Flysystem\FileNotFoundException
-     */
-    public function setCache($data)
+    public function setCache(array $data): void
     {
-        $file = 'cache.php';
+        $file = 'cache.json';
 
         if ($this->system->has($file)) {
             $this->system->delete($file);
         }
 
-        $this->system->write($file, '<?php return ' . var_export($data, true) . ';' . PHP_EOL);
+        $this->system->write($file, json_encode($data));
     }
 
-    /**
-     * Get cached items
-     *
-     * @return array
-     */
-    public function getCache()
+    public function getCache(): array
     {
-        $file = 'cache.php';
+        $file = 'cache.json';
 
-        return $this->system->has($file)
-            ? require $this->system->getAdapter()->getPathPrefix() . $file
+        return $this->system->fileExists($file)
+            ? json_decode($this->system->read($file), true)
             : [];
     }
 }
