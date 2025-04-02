@@ -119,12 +119,12 @@ php start.php -s "30-days-to-learn-laravel-11" -e "12,15" -l "en,en-x-autogen"
 
 It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all episodes for "laravel-from-scratch" course.
 
-### Download subtitles
+#### Downloading subtitles
 
 If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be downloaded for each specified language alongside the video file.
  The downloader will skip the download of the subtitle when the requested language is not available for that video.
 
-You can also specify subtitle languages directly via command line using the `-l` or `--sub-langs` parameter however not that specifying them manually will override the setting in the `.env` file:
+You can also specify subtitle languages directly via command line using the `-l` or `--sub-langs` parameter however specifying them this way will override the setting in the `.env` file:
 
 ```sh
 $ php start.php -s "inertia-2-unleashed" -l "en,de"
@@ -135,14 +135,13 @@ Subtitles may not be available for all videos or languages. The downloader will 
 - The video has no subtitles
 
 #### Auto-generated Subtitles
-For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. You need to explicitly specify both if you want both:
-
+Auto-generated subtitle files are created using voice analysis software and automatic translations.
+For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. 
+Because of inconsistent availability for certain languages, it may be a good idea to explicitly specify to try to get both for maximal coverage.
 ```sh
 # In .env file - request both manual and auto-generated versions
 SUB_LANGS=en,en-x-autogen,de,de-x-autogen
 ```
-
- As a fallback and for maximum coverage you may want to set the downloader to try to get **both** manual and auto subs (eg: `SUB_LANGS=en,en-x-autogen` or `SUB_LANGS=de,de-x-autogen`).
 
  Note: Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
 
