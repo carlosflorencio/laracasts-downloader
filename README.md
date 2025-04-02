@@ -35,7 +35,7 @@ $ cp .env.example .env
    By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
 6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
-7. Optionally, set `SUB_LANGS` in `.env` to download subtitles (e.g., `SUB_LANGS=en,de`). Only works with `DOWNLOAD_SOURCE=vimeo`.  See [Downloading Subtitles](#downloading-subtitles) for how to download multiple language subtitles or troubleshooting.
+7. Optionally, set **SUB_LANGS** in `.env` to download subtitles (e.g., `SUB_LANGS=en,de`). Only works with `DOWNLOAD_SOURCE=vimeo`.  See [Downloading Subtitles](#downloading-subtitles) for how to download multiple language subtitles or troubleshooting.
 8. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Details About Vimeo 
@@ -123,6 +123,7 @@ It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all epis
 
 If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be downloaded for each specified language alongside the video file.
  The downloader will skip the download of the subtitle when the requested language is not available for that video.
+ Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
 
  Set the `.env` value to try download English subs
 ```sh
@@ -140,15 +141,13 @@ You can also specify subtitle languages directly via command line using the `-l`
 $ php start.php -s "inertia-2-unleashed" -l "en,de"
 ```
 
-#### Auto-generated Subtitles
+#### Auto-generated subtitles
 Auto-generated subtitle files are created using voice analysis software and automatic translations.
 For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. 
 The availability of a certain type of subtitle can sometimes be inconsistent even in the same series so  it may be a good idea to explicitly specify to try to get both for maximal coverage:
 ```sh
 SUB_LANGS=en,en-x-autogen,de,de-x-autogen
 ```
-
-Note: Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
