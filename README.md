@@ -127,16 +127,11 @@ If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be down
 SUB_LANGS=en
 ```
 
-
-You can also specify subtitle languages directly via command line using the `-l` or `--sub-langs` parameter however specifying them this way will override the setting in the `.env` file:
+You can also specify subtitle languages directly via command line using the `-l` or `--sub-langs` parameter and specifying them this way will override the setting in the `.env` file:
 
 ```sh
 $ php start.php -s "inertia-2-unleashed" -l "en,de"
 ```
-
-Subtitles may not be available for all videos or languages. The downloader will silently skip subtitle downloads when:
-- The requested language isn't available.
-- The video has no subtitles.
 
 #### Auto-generated Subtitles
 Auto-generated subtitle files are created using voice analysis software and automatic translations.
