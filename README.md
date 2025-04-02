@@ -35,7 +35,8 @@ $ cp .env.example .env
    By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
 6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
-7. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
+7. Optionally, set `SUB_LANGS` in `.env` to download subtitles (e.g., `SUB_LANGS=en,de`). Only works with `DOWNLOAD_SOURCE=vimeo`.  See [Downloading Subtitles](#downloading-subtitles) for how to download multiple language subtitles or troubleshooting.
+8. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
 ### Details About Vimeo 
 
@@ -111,13 +112,32 @@ as usual.
 $ php start.php -s "nuxtjs-from-scratch" -e "12,15" -s "laravel-from-scratch" -e "5"
 ```
 
-It will download episode 12 and 15 for "nuxtjs-from-scratch" and episode 5 for "laravel-from-scratch" course.
-
+Download episodes 12,15 from a series with specific subtitles
 ```sh
-$ php start.php -s "nuxtjs-from-scratch" -e "12,15" -s "laravel-from-scratch"
+php start.php -s "30-days-to-learn-laravel-11" -e "12,15" -l "en,en-x-autogen"
 ```
 
 It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all episodes for "laravel-from-scratch" course.
+
+### Download subtitles
+
+If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be downloaded for each specified language alongside the video file.
+ The downloader will skip the download of the subtitle when the requested language is not available for that video.
+
+Subtitles may not be available for all videos or languages. The downloader will silently skip subtitle downloads when:
+- The requested language isn't available
+- The video has no subtitles
+
+#### Auto-generated Subtitles
+For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. You need to explicitly specify both if you want both:
+
+```sh
+# In .env file - request both manual and auto-generated versions
+SUB_LANGS=en,en-x-autogen,de,de-x-autogen
+
+ As a fallback and for maximum coverage you may want to set the downloader to try to get **both** manual and auto subs (eg: `SUB_LANGS=en,en-x-autogen` or `SUB_LANGS=de,de-x-autogen`).
+
+ Note: Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:

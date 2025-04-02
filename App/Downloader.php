@@ -122,7 +122,7 @@ class Downloader
         }
 
         if ($user['signedIn']) {
-            Utils::write('Logged in as '.$user['data']['email']);
+            Utils::write('Logged in as ' . $user['data']['email']);
         }
 
         // Let's allow user with no subscription to download free lessons
@@ -169,11 +169,13 @@ class Downloader
     {
         $shortOptions = 's:';
         $shortOptions .= 'e:';
+        $shortOptions .= 'l:';
 
         $longOptions = [
             'series-name:',
             'series-episodes:',
             'cache-only',
+            'sub-langs:',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -181,6 +183,11 @@ class Downloader
         if (array_key_exists('cache-only', $options)) {
             $this->cacheOnly = true;
             unset($options['cache-only']);
+        }
+
+        if (isset($options['l']) || isset($options['sub-langs'])) {
+            $subLangs = $options['l'] ?? $options['sub-langs'];
+            $_ENV['SUB_LANGS'] = $subLangs;
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
@@ -222,7 +229,7 @@ class Downloader
             $slugify = new Slugify;
             $slugify->addRule("'", '');
 
-            $this->filters['series'] = array_map(fn ($serie): string => $slugify->slugify($serie), $series);
+            $this->filters['series'] = array_map(fn($serie): string => $slugify->slugify($serie), $series);
 
             Utils::write(sprintf('Series names provided: %s', json_encode($this->filters['series'])));
         }

@@ -3,6 +3,7 @@
 namespace App\Vimeo;
 
 use App\Utils\Utils;
+use App\Vimeo\DTO\VideoDTO;
 use GuzzleHttp\Client;
 
 class VimeoDownloader
@@ -32,7 +33,7 @@ class VimeoDownloader
         $filenames = [];
 
         foreach ($sources as $source) {
-            $filename = $master->getClipId().$source['extension'];
+            $filename = $master->getClipId() . $source['extension'];
             $this->downloadSource(
                 $master->resolveURL($source['base_url']),
                 $source,
@@ -41,14 +42,20 @@ class VimeoDownloader
             $filenames[] = $filename;
         }
 
-        return $this->mergeSources($filenames[0], $filenames[1], $filepath);
+        $success = $this->mergeSources($filenames[0], $filenames[1], $filepath);
+
+        if ($success && isset($_ENV['SUB_LANGS'])) {
+            $this->downloadSubtitles($video, $filepath);
+        }
+
+        return $success;
     }
 
     private function downloadSource(string $baseURL, array $sourceData, string $filepath): void
     {
         file_put_contents($filepath, base64_decode((string) $sourceData['init_segment'], true));
 
-        $segmentURLs = array_map(fn ($segment): string => $baseURL.$segment['url'], $sourceData['segments']);
+        $segmentURLs = array_map(fn($segment): string => $baseURL . $segment['url'], $sourceData['segments']);
 
         $sizes = array_column($sourceData['segments'], 'size');
 
@@ -67,7 +74,7 @@ class VimeoDownloader
         foreach ($segmentURLs as $index => $segmentURL) {
             $this->client->request('GET', $segmentURL, [
                 'sink' => fopen($filepath, 'a'),
-                'progress' => fn ($total, $downloaded) => Utils::showProgressBar($downloaded + $downloadedBytes, $totalBytes),
+                'progress' => fn($total, $downloaded) => Utils::showProgressBar($downloaded + $downloadedBytes, $totalBytes),
             ]);
 
             $downloadedBytes += $sizes[$index];
@@ -95,5 +102,33 @@ class VimeoDownloader
         }
 
         return false;
+    }
+
+    private function downloadSubtitles(VideoDTO $video, string $videoPath): void
+    {
+        $subLangs = explode(',', $_ENV['SUB_LANGS']);
+        $subtitles = $video->getSubtitles();
+
+        if (!$subtitles) {
+            return;
+        }
+
+        $baseDir = dirname($videoPath);
+        $baseName = pathinfo($videoPath, PATHINFO_FILENAME);
+
+        foreach ($subtitles as $subtitle) {
+            if (!in_array($subtitle['lang'], $subLangs)) {
+                continue;
+            }
+
+            $subUrl = 'https://player.vimeo.com' . $subtitle['url'];
+            $subPath = $baseDir . '/' . $baseName . '.' . $subtitle['lang'] . '.vtt';
+
+            Utils::write("Downloading subtitle: {$subtitle['lang']}...");
+
+            $this->client->request('GET', $subUrl, [
+                'sink' => $subPath,
+            ]);
+        }
     }
 }
