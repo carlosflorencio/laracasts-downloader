@@ -124,6 +124,12 @@ It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all epis
 If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be downloaded for each specified language alongside the video file.
  The downloader will skip the download of the subtitle when the requested language is not available for that video.
 
+You can also specify subtitle languages directly via command line using the `-l` or `--sub-langs` parameter however not that specifying them manually will override the setting in the `.env` file:
+
+```sh
+$ php start.php -s "inertia-2-unleashed" -l "en,de"
+```
+
 Subtitles may not be available for all videos or languages. The downloader will silently skip subtitle downloads when:
 - The requested language isn't available
 - The video has no subtitles
