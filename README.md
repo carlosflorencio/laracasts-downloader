@@ -119,7 +119,7 @@ php start.php -s "30-days-to-learn-laravel-11" -e "12,15" -l "en,en-x-autogen"
 
 It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all episodes for "laravel-from-scratch" course.
 
-#### Downloading subtitles
+## Downloading subtitles
 
 If `SUB_LANGS` is set in the `.env` file then subtitle files (.vtt) will be downloaded for each specified language alongside the video file.
  The downloader will skip the download of the subtitle when the requested language is not available for that video.
