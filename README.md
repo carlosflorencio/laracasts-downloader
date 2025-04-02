@@ -143,12 +143,12 @@ $ php start.php -s "inertia-2-unleashed" -l "en,de"
 #### Auto-generated Subtitles
 Auto-generated subtitle files are created using voice analysis software and automatic translations.
 For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. 
-Because of inconsistent availability it may be a good idea to explicitly specify to try to get both for maximal coverage:
+The availability of a certain type of subtitle can sometimes be inconsistent even in the same series so  it may be a good idea to explicitly specify to try to get both for maximal coverage:
 ```sh
 SUB_LANGS=en,en-x-autogen,de,de-x-autogen
 ```
 
- Note: Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
+Note: Subtitle downloading is only enabled when `DOWNLOAD_SOURCE=vimeo`.
 
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
