@@ -140,6 +140,7 @@ For each language, there may be both manual and auto-generated versions availabl
 ```sh
 # In .env file - request both manual and auto-generated versions
 SUB_LANGS=en,en-x-autogen,de,de-x-autogen
+```
 
  As a fallback and for maximum coverage you may want to set the downloader to try to get **both** manual and auto subs (eg: `SUB_LANGS=en,en-x-autogen` or `SUB_LANGS=de,de-x-autogen`).
 
