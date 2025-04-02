@@ -143,9 +143,8 @@ $ php start.php -s "inertia-2-unleashed" -l "en,de"
 #### Auto-generated Subtitles
 Auto-generated subtitle files are created using voice analysis software and automatic translations.
 For each language, there may be both manual and auto-generated versions available. Auto-generated subtitles have an `-x-autogen` suffix in their language code. 
-Because of inconsistent availability for certain languages, it may be a good idea to explicitly specify to try to get both for maximal coverage:
+Because of inconsistent availability it may be a good idea to explicitly specify to try to get both for maximal coverage:
 ```sh
-# In .env file - request both manual and auto-generated versions
 SUB_LANGS=en,en-x-autogen,de,de-x-autogen
 ```
 
