@@ -17,5 +17,6 @@ App/.DS_Store
 .phpintel/
 Downloads/cache.php
 Downloads/cache.json
+Downloads/series
 *.m4v
 *.m4a

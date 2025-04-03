@@ -3,6 +3,7 @@
 namespace App\Vimeo;
 
 use App\Utils\Utils;
+use App\Vimeo\DTO\VideoDTO;
 use GuzzleHttp\Client;
 
 class VimeoDownloader
@@ -41,7 +42,13 @@ class VimeoDownloader
             $filenames[] = $filename;
         }
 
-        return $this->mergeSources($filenames[0], $filenames[1], $filepath);
+        $success = $this->mergeSources($filenames[0], $filenames[1], $filepath);
+
+        if ($success && isset($_ENV['SUB_LANGS'])) {
+            $this->downloadSubtitles($video, $filepath);
+        }
+
+        return $success;
     }
 
     private function downloadSource(string $baseURL, array $sourceData, string $filepath): void
@@ -95,5 +102,37 @@ class VimeoDownloader
         }
 
         return false;
+    }
+
+    private function downloadSubtitles(VideoDTO $video, string $videoPath): void
+    {
+        $subLangs = array_map('trim', explode(',', $_ENV['SUB_LANGS']));
+        $subtitles = $video->getSubtitles();
+
+        if (!$subtitles) {
+            return;
+        }
+
+        $baseDir = dirname($videoPath);
+        $baseName = pathinfo($videoPath, PATHINFO_FILENAME);
+
+        foreach ($subLangs as $lang) {
+            $subtitle = array_filter($subtitles, fn($s) => $s['lang'] === $lang);
+
+            if (empty($subtitle)) {
+                Utils::write("Warning: Subtitle language '$lang' is not available for this video.");
+                continue;
+            }
+
+            $subtitle = reset($subtitle);
+            $subUrl = 'https://player.vimeo.com' . $subtitle['url'];
+            $subPath = $baseDir . '/' . $baseName . '.' . $subtitle['lang'] . '.vtt';
+
+            Utils::write("Downloading subtitle: {$subtitle['lang']}...");
+
+            $this->client->request('GET', $subUrl, [
+                'sink' => $subPath,
+            ]);
+        }
     }
 }

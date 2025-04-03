@@ -8,6 +8,8 @@ class VideoDTO
 
     private ?array $streams = null;
 
+    private ?array $subtitles = null;
+
     public function getMasterURL(): ?string
     {
         return $this->masterURL;
@@ -28,6 +30,18 @@ class VideoDTO
     public function setStreams(array $streams): static
     {
         $this->streams = $streams;
+
+        return $this;
+    }
+
+    public function getSubtitles(): ?array
+    {
+        return $this->subtitles;
+    }
+
+    public function setSubtitles(array $subtitles): static
+    {
+        $this->subtitles = $subtitles;
 
         return $this;
     }
