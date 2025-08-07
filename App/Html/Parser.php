@@ -6,54 +6,19 @@
 
 namespace App\Html;
 
+use Exception;
 use Symfony\Component\DomCrawler\Crawler;
 
-/**
- * Class Parser
- */
 class Parser
 {
-    /**
-     * Return list of topics data
-     */
-    public static function getTopicsData(string $html): array
-    {
-        $data = self::getData($html);
-
-        return array_map(fn ($topic): array => [
-            'slug' => str_replace(LARACASTS_BASE_URL.'/topics/', '', $topic['path']),
-            'path' => $topic['path'],
-            'episode_count' => $topic['episode_count'],
-            'series_count' => $topic['series_count'],
-        ], $data['props']['topics']);
-    }
-
     public static function getSerieData(string $serieHtml): array
     {
         $data = self::getData($serieHtml);
 
-        return self::extractSerieData($data['props']['series']);
+        return self::mapSerieData($data['props']['series']);
     }
 
-    /**
-     * Return full list of series for given topic HTML page.
-     */
-    public static function getSeriesDataFromTopic(string $html): array
-    {
-        $data = self::getData($html);
-
-        $series = $data['props']['topic']['series'];
-
-        return array_combine(
-            array_column($series, 'slug'),
-            array_map(fn ($serie): array => self::extractSerieData($serie), $series)
-        );
-    }
-
-    /**
-     * Only extracts data we need for each serie and returns them
-     */
-    public static function extractSerieData(array $serie): array
+    public static function mapSerieData(array $serie): array
     {
         return [
             'slug' => $serie['slug'],
@@ -84,7 +49,7 @@ class Parser
                 }
 
                 // vimeoId is null for upcoming episodes
-                if (! $episode['vimeoId']) {
+                if (! isset($episode['vimeoId'])) {
                     continue;
                 }
 
@@ -106,22 +71,6 @@ class Parser
         return $data['props']['downloadLink'];
     }
 
-    public static function extractLarabitsSeries(string $html): array
-    {
-        $html = str_replace('\/', '/', html_entity_decode($html));
-
-        preg_match_all('"\/series\/([a-z-]+-larabits)"', $html, $matches);
-
-        return array_unique($matches[1]);
-    }
-
-    public static function getCsrfToken(string $html): string
-    {
-        preg_match('/"csrfToken": \'([^\s]+)\'/', $html, $matches);
-
-        return $matches[1];
-    }
-
     public static function getUserData(string $html): array
     {
 
@@ -141,12 +90,66 @@ class Parser
      *
      * @return array
      */
-    private static function getData(string $html): mixed
+    public static function getData(string $html): mixed
     {
         $parser = new Crawler($html);
 
         $data = $parser->filter('#app')->attr('data-page');
 
         return json_decode((string) $data, true);
+    }
+
+    public static function extractJsonAfter(string $html, string $needle): array
+    {
+        $needlePos = strpos($html, $needle);
+
+        if ($needlePos === false) {
+            throw new Exception("$needle not found within $html");
+        }
+
+        $openBracePos = strpos($html, '{', $needlePos);
+
+        if ($openBracePos === false) {
+            throw new Exception("No open curly brace found after $needle");
+        }
+
+        $braceCount = 1;
+        $currentPos = $openBracePos + 1;
+        $contentLength = strlen($html);
+
+        while ($braceCount > 0 && $currentPos < $contentLength) {
+            $nextOpenedBrace = strpos($html, '{', $currentPos);
+            $nextClosedBrace = strpos($html, '}', $currentPos);
+
+            if ($nextOpenedBrace === false && $nextClosedBrace === false) {
+                break;
+            }
+
+            if ($nextOpenedBrace !== false && $nextOpenedBrace < $nextClosedBrace) {
+                $braceCount++;
+                $currentPos = $nextOpenedBrace + 1;
+            } else {
+                $braceCount--;
+                $currentPos = $nextClosedBrace + 1;
+            }
+        }
+
+        if ($braceCount !== 0) {
+            throw new Exception('No valid json found');
+        }
+
+        $json = substr($html, $openBracePos, $currentPos - $openBracePos);
+
+        if (! $json) {
+            throw new Exception("Failed to extract json after $needle");
+        }
+
+        $data = json_decode($json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception(json_last_error_msg());
+        }
+
+        return $data;
     }
 }

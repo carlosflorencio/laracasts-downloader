@@ -135,17 +135,6 @@ class Resolver
     }
 
     /**
-     * Returns topics page html
-     */
-    public function getTopicsHtml(): string
-    {
-        return $this->client
-            ->get(LARACASTS_BASE_URL.'/'.LARACASTS_TOPICS_PATH, ['cookies' => $this->cookies, 'verify' => false])
-            ->getBody()
-            ->getContents();
-    }
-
-    /**
      * Returns html content of specific url
      */
     public function getHtml(string $url): string
@@ -221,6 +210,49 @@ class Resolver
         return [
             'query' => $parts['query'],
             'url' => $parts['scheme'].'://'.$parts['host'].$parts['path'],
+        ];
+    }
+
+    /**
+     * This API can return a JSON response if following headers are provided,
+     * 'X-Inertia' => 'true',
+     * 'x-requested-with' => 'XMLHttpRequest',
+     * 'x-inertia-version' => '68097aab2991864455c8c421d304aa3a'
+     * However, obtaining the correct X-Inertia-Version requires extracting it dynamically (from data-page attribute),
+     * which adds unnecessary complexity for our use case.
+     * Therefore, it's simpler and more reliable to parse the HTML response directly instead.
+     *
+     * @return array{data: array, has_more: bool}
+     */
+    public function getSeries(int $page = 1): array
+    {
+        $url = LARACASTS_BASE_URL."/series?page=$page";
+
+        $response = $this->client->get($url, [
+            'cookies' => $this->cookies,
+            'headers' => [
+                'Accept' => 'text/html, application/xhtml+xml',
+                'Content-Type' => 'application/json',
+                'referer' => LARACASTS_BASE_URL,
+            ],
+            'verify' => false,
+        ]);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('series api response status code is '.$response->getStatusCode());
+        }
+
+        $html = $response->getBody()->getContents();
+
+        $data = Parser::getData($html);
+
+        if (! isset($data['props']['series']['data'])) {
+            throw new Exception('unexpected response structure for series.');
+        }
+
+        return [
+            'data' => array_map(fn ($serie): array => Parser::mapSerieData($serie), $data['props']['series']['data']),
+            'has_more' => $data['props']['series']['meta']['last_page'] > $page,
         ];
     }
 }

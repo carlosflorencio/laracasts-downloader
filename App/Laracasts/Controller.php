@@ -9,13 +9,11 @@ use App\Utils\Utils;
 
 class Controller
 {
-    /**
-     * Controller constructor.
-     */
     public function __construct(private readonly Resolver $client) {}
 
     /**
      *  Gets all series using scraping
+     *  2025-08-07: Larabits are included in the Series API and no need additional processing
      */
     public function getSeries(array $cachedData, bool $cacheOnly = false): array
     {
@@ -25,29 +23,17 @@ class Controller
             return $seriesCollection->get();
         }
 
-        $topics = Parser::getTopicsData($this->client->getTopicsHtml());
+        $page = 1;
 
-        foreach ($topics as $topic) {
+        do {
+            $series = $this->client->getSeries($page);
 
-            // TODO: It's not gonna work fine because each series may have multiple topics
-            if ($this->isTopicUpdated($seriesCollection, $topic)) {
-                continue;
-            }
-
-            Utils::box($topic['slug']);
-
-            $topicHtml = $this->client->getHtml($topic['path']);
-
-            $series = Parser::getSeriesDataFromTopic($topicHtml);
-
-            foreach ($series as $serie) {
+            foreach ($series['data'] as $serie) {
                 if ($this->isSerieUpdated($seriesCollection, $serie)) {
                     continue;
                 }
 
                 Utils::writeln("Getting serie: {$serie['slug']} ...");
-
-                $serie['topic'] = $topic['slug'];
 
                 $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
 
@@ -55,29 +41,9 @@ class Controller
 
                 $seriesCollection->add($serie);
             }
-        }
 
-        Utils::box('Larabits');
-
-        $larabitsHtml = $this->client->getHtml(LARACASTS_BASE_URL.'/bits');
-
-        $bits = Parser::extractLarabitsSeries($larabitsHtml);
-
-        foreach ($bits as $bit) {
-            Utils::writeln("Getting serie: $bit ...");
-
-            $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL.'/series/'.$bit);
-
-            $serie = Parser::getSerieData($seriHtml);
-
-            $serie['topic'] = 'larabits';
-
-            $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
-
-            $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
-
-            $seriesCollection->add($serie);
-        }
+            $page = $series['has_more'] ? $page + 1 : -1;
+        } while ($page > 0);
 
         return $seriesCollection->get();
     }
@@ -99,18 +65,6 @@ class Controller
         }
 
         return $seriesCollection->get();
-    }
-
-    /**
-     *  Determine is specific topic has been changed compared to cached data
-     * */
-    public function isTopicUpdated(SeriesCollection $series, array $topic): bool
-    {
-        $series = $series->where('topic', $topic['slug']);
-
-        return $series->exists() &&
-            $topic['series_count'] == $series->count() &&
-            $topic['episode_count'] == $series->sum('episode_count', true);
     }
 
     /**
