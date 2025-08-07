@@ -99,7 +99,7 @@ class Parser
         return json_decode((string)$data, true);
     }
 
-    static function extractJsonAfter($html, $needle): array
+    static function extractJsonAfter(string $html, string $needle): array
     {
         $needlePos = strpos($html, $needle);
 
@@ -140,7 +140,7 @@ class Parser
 
         $json = substr($html, $openBracePos, $currentPos - $openBracePos);
 
-        if ($json === "" or $json == false) {
+        if (! $json) {
             throw new Exception("Failed to extract json after $needle");
         }
 

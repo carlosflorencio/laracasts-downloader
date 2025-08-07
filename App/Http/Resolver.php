@@ -253,7 +253,7 @@ class Resolver
         }
 
         return [
-            'data' => array_map(fn($serie) => Parser::mapSerieData($serie), $data['props']['series']['data']),
+            'data' => array_map(fn($serie): array => Parser::mapSerieData($serie), $data['props']['series']['data']),
             'has_more' =>  $data['props']['series']['meta']['last_page'] > $page
         ];
     }
