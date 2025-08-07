@@ -2,8 +2,10 @@
 
 namespace App\Vimeo;
 
+use App\Html\Parser;
 use App\Vimeo\DTO\MasterDTO;
 use App\Vimeo\DTO\VideoDTO;
+use Exception;
 use GuzzleHttp\Client;
 
 class VimeoRepository
@@ -24,10 +26,29 @@ class VimeoRepository
 
         preg_match('/"(?:google_skyfire|akfire_interconnect_quic)":({.+?})/', $content, $cdns);
 
-        $vimeo = new VideoDTO;
+        if (empty($cdns[1])) {
+            throw new Exception("could not find cdn for vimeo $vimeoId within: $content");
+        }
 
-        return $vimeo->setMasterURL(json_decode($cdns[1], true)['url'])
-            ->setStreams(json_decode($streams[1], true));
+        $video = (new VideoDTO)->setStreams(json_decode($streams[1], true));
+
+        $decoded = json_decode($cdns[1], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $video->setMasterURL($decoded['url']);
+        } else {
+            $config = Parser::extractJsonAfter($content, 'window.playerConfig');
+
+            $url = $config['request']['files']['dash']['cdns']['akfire_interconnect_quic']['url'] ??
+                $config['request']['files']['dash']['cdns']['google_skyfire']['url'] ?? null;
+
+            if ($url === null) {
+                throw new Exception('could not find proper CDN for master URL.');
+            }
+
+            $video->setMasterURL($url);
+        }
+
+        return $video;
     }
 
     public function getMaster(VideoDTO $video): MasterDTO

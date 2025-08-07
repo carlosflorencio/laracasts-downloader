@@ -33,8 +33,6 @@ define('SERIES_FOLDER', $options['series_folder']);
 //laracasts
 define('LARACASTS_BASE_URL', 'https://laracasts.com');
 define('LARACASTS_POST_LOGIN_PATH', 'sessions');
-define('LARACASTS_SERIES_PATH', 'series');
-define('LARACASTS_TOPICS_PATH', 'browse/all');
 
 /*
  * Vars

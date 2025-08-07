@@ -25,36 +25,20 @@ class Controller
             return $seriesCollection->get();
         }
 
-        $topics = Parser::getTopicsData($this->client->getTopicsHtml());
+        $series = $this->client->getSeries();
 
-        foreach ($topics as $topic) {
-
-            // TODO: It's not gonna work fine because each series may have multiple topics
-            if ($this->isTopicUpdated($seriesCollection, $topic)) {
+        foreach ($series as $serie) {
+            if ($this->isSerieUpdated($seriesCollection, $serie)) {
                 continue;
             }
 
-            Utils::box($topic['slug']);
+            Utils::writeln("Getting serie: {$serie['slug']} ...");
 
-            $topicHtml = $this->client->getHtml($topic['path']);
+            $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
 
-            $series = Parser::getSeriesDataFromTopic($topicHtml);
+            $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
 
-            foreach ($series as $serie) {
-                if ($this->isSerieUpdated($seriesCollection, $serie)) {
-                    continue;
-                }
-
-                Utils::writeln("Getting serie: {$serie['slug']} ...");
-
-                $serie['topic'] = $topic['slug'];
-
-                $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
-
-                $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
-
-                $seriesCollection->add($serie);
-            }
+            $seriesCollection->add($serie);
         }
 
         Utils::box('Larabits');
@@ -69,8 +53,6 @@ class Controller
             $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL.'/series/'.$bit);
 
             $serie = Parser::getSerieData($seriHtml);
-
-            $serie['topic'] = 'larabits';
 
             $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
 
@@ -99,18 +81,6 @@ class Controller
         }
 
         return $seriesCollection->get();
-    }
-
-    /**
-     *  Determine is specific topic has been changed compared to cached data
-     * */
-    public function isTopicUpdated(SeriesCollection $series, array $topic): bool
-    {
-        $series = $series->where('topic', $topic['slug']);
-
-        return $series->exists() &&
-            $topic['series_count'] == $series->count() &&
-            $topic['episode_count'] == $series->sum('episode_count', true);
     }
 
     /**
