@@ -215,7 +215,7 @@ class Resolver
         ];
     }
 
-    /*
+    /**
      * This API can return a JSON response if following headers are provided,
      * 'X-Inertia' => 'true',
      * 'x-requested-with' => 'XMLHttpRequest',
@@ -223,7 +223,9 @@ class Resolver
      * However, obtaining the correct X-Inertia-Version requires extracting it dynamically (from data-page attribute),
      * which adds unnecessary complexity for our use case.
      * Therefore, it's simpler and more reliable to parse the HTML response directly instead.
-     * */
+     *
+     * @return array{data: array, has_more: bool}
+     */
     public function getSeries(int $page = 1): array
     {
         $url = LARACASTS_BASE_URL."/series?page=$page";
@@ -250,6 +252,9 @@ class Resolver
             throw new Exception('unexpected response structure for series.');
         }
 
-        return array_map(fn($serie) => Parser::extractSerieData($serie), $data['props']['series']['data']);
+        return [
+            'data' => array_map(fn($serie) => Parser::mapSerieData($serie), $data['props']['series']['data']),
+            'has_more' =>  $data['props']['series']['meta']['last_page'] > $page
+        ];
     }
 }

@@ -9,13 +9,13 @@ use App\Utils\Utils;
 
 class Controller
 {
-    /**
-     * Controller constructor.
-     */
-    public function __construct(private readonly Resolver $client) {}
+    public function __construct(private readonly Resolver $client)
+    {
+    }
 
     /**
      *  Gets all series using scraping
+     *  2025-08-07: Larabits are included in the Series API and no need additional processing
      */
     public function getSeries(array $cachedData, bool $cacheOnly = false): array
     {
@@ -25,41 +25,27 @@ class Controller
             return $seriesCollection->get();
         }
 
-        $series = $this->client->getSeries();
+        $page = 1;
 
-        foreach ($series as $serie) {
-            if ($this->isSerieUpdated($seriesCollection, $serie)) {
-                continue;
+        do {
+            $series = $this->client->getSeries($page);
+
+            foreach ($series as $serie) {
+                if ($this->isSerieUpdated($seriesCollection, $serie)) {
+                    continue;
+                }
+
+                Utils::writeln("Getting serie: {$serie['slug']} ...");
+
+                $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
+
+                $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
+
+                $seriesCollection->add($serie);
             }
 
-            Utils::writeln("Getting serie: {$serie['slug']} ...");
-
-            $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
-
-            $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
-
-            $seriesCollection->add($serie);
-        }
-
-        Utils::box('Larabits');
-
-        $larabitsHtml = $this->client->getHtml(LARACASTS_BASE_URL.'/bits');
-
-        $bits = Parser::extractLarabitsSeries($larabitsHtml);
-
-        foreach ($bits as $bit) {
-            Utils::writeln("Getting serie: $bit ...");
-
-            $seriHtml = $this->client->getHtml(LARACASTS_BASE_URL.'/series/'.$bit);
-
-            $serie = Parser::getSerieData($seriHtml);
-
-            $episodeHtml = $this->client->getHtml($serie['path'].'/episodes/1');
-
-            $serie['episodes'] = Parser::getEpisodesData($episodeHtml);
-
-            $seriesCollection->add($serie);
-        }
+            $page = $series['has_more'] ? $page + 1 : -1;
+        } while ($page > 0);
 
         return $seriesCollection->get();
     }

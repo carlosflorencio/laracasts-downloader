@@ -10,23 +10,16 @@ use DOMDocument;
 use Exception;
 use Symfony\Component\DomCrawler\Crawler;
 
-/**
- * Class Parser
- */
 class Parser
 {
-
     public static function getSerieData(string $serieHtml): array
     {
         $data = self::getData($serieHtml);
 
-        return self::extractSerieData($data['props']['series']);
+        return self::mapSerieData($data['props']['series']);
     }
 
-    /**
-     * Only extracts data we need for each serie and returns them
-     */
-    public static function extractSerieData(array $serie): array
+    public static function mapSerieData(array $serie): array
     {
         return [
             'slug' => $serie['slug'],
@@ -77,22 +70,6 @@ class Parser
         $data = self::getData($episodeHtml);
 
         return $data['props']['downloadLink'];
-    }
-
-    public static function extractLarabitsSeries(string $html): array
-    {
-        $html = str_replace('\/', '/', html_entity_decode($html));
-
-        preg_match_all('"\/series\/([a-z-]+-larabits)"', $html, $matches);
-
-        return array_unique($matches[1]);
-    }
-
-    public static function getCsrfToken(string $html): string
-    {
-        preg_match('/"csrfToken": \'([^\s]+)\'/', $html, $matches);
-
-        return $matches[1];
     }
 
     public static function getUserData(string $html): array
