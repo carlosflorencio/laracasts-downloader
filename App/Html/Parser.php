@@ -6,7 +6,6 @@
 
 namespace App\Html;
 
-use DOMDocument;
 use Exception;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -88,6 +87,7 @@ class Parser
 
     /**
      * Returns decoded version of data-page attribute in HTML page
+     *
      * @return array
      */
     public static function getData(string $html): mixed
@@ -96,10 +96,10 @@ class Parser
 
         $data = $parser->filter('#app')->attr('data-page');
 
-        return json_decode((string)$data, true);
+        return json_decode((string) $data, true);
     }
 
-    static function extractJsonAfter(string $html, string $needle): array
+    public static function extractJsonAfter(string $html, string $needle): array
     {
         $needlePos = strpos($html, $needle);
 

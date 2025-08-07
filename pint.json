@@ -2,5 +2,8 @@
     "preset": "laravel",
     "exclude": [
         "Downloads"
-    ]
+    ],
+    "rules": {
+        "no_unused_imports": true
+    }
 }

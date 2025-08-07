@@ -9,7 +9,6 @@ namespace App\Http;
 use App\Html\Parser;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
-use DOMDocument;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
@@ -32,8 +31,7 @@ class Resolver
     public function __construct(
         private readonly Client $client,
         private readonly Ubench $bench,
-    )
-    {
+    ) {
         $this->cookies = new CookieJar;
     }
 
@@ -81,10 +79,10 @@ class Resolver
         ]);
 
         $token = current(
-            array_filter($this->cookies->toArray(), fn($cookie): bool => $cookie['Name'] === 'XSRF-TOKEN')
+            array_filter($this->cookies->toArray(), fn ($cookie): bool => $cookie['Name'] === 'XSRF-TOKEN')
         );
 
-        return urldecode((string)$token['Value']);
+        return urldecode((string) $token['Value']);
     }
 
     /**
@@ -184,7 +182,7 @@ class Resolver
             $this->client->request('GET', $link['url'], [
                 'query' => $link['query'],
                 'sink' => fopen($saveTo, 'a'),
-                'progress' => fn($downloadTotal, $downloadedBytes) => Utils::showProgressBar($downloadedBytes, $downloadTotal),
+                'progress' => fn ($downloadTotal, $downloadedBytes) => Utils::showProgressBar($downloadedBytes, $downloadTotal),
             ]);
         } catch (Exception $e) {
             echo $e->getMessage().PHP_EOL;
@@ -241,20 +239,20 @@ class Resolver
         ]);
 
         if ($response->getStatusCode() !== 200) {
-            throw new Exception('series api response status code is ' . $response->getStatusCode());
+            throw new Exception('series api response status code is '.$response->getStatusCode());
         }
 
         $html = $response->getBody()->getContents();
 
         $data = Parser::getData($html);
 
-        if (!isset($data['props']['series']['data'])) {
+        if (! isset($data['props']['series']['data'])) {
             throw new Exception('unexpected response structure for series.');
         }
 
         return [
-            'data' => array_map(fn($serie): array => Parser::mapSerieData($serie), $data['props']['series']['data']),
-            'has_more' =>  $data['props']['series']['meta']['last_page'] > $page
+            'data' => array_map(fn ($serie): array => Parser::mapSerieData($serie), $data['props']['series']['data']),
+            'has_more' => $data['props']['series']['meta']['last_page'] > $page,
         ];
     }
 }

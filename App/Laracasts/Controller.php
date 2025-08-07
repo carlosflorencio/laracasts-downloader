@@ -9,9 +9,7 @@ use App\Utils\Utils;
 
 class Controller
 {
-    public function __construct(private readonly Resolver $client)
-    {
-    }
+    public function __construct(private readonly Resolver $client) {}
 
     /**
      *  Gets all series using scraping
