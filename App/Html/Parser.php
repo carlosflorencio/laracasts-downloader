@@ -89,45 +89,14 @@ class Parser
     /**
      * Returns decoded version of data-page attribute in HTML page
      * @return array
-     * @deprecated
      */
-    private static function getData(string $html): mixed
+    public static function getData(string $html): mixed
     {
         $parser = new Crawler($html);
 
         $data = $parser->filter('#app')->attr('data-page');
 
         return json_decode((string)$data, true);
-    }
-
-    public static function getDataAttr(string $html): array
-    {
-        $dom = new DOMDocument();
-
-        // Suppress warnings due to malformed HTML
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($html);
-        libxml_clear_errors();
-
-        $element = $dom->getElementById('app');
-
-        if (! $element) {
-            throw new Exception('could not find data-page attribute');
-        }
-
-        // Decode HTML entities (convert &quot; to ")
-        $data = html_entity_decode(
-            $element->getAttribute('data-page'),
-            ENT_QUOTES | ENT_HTML5
-        );
-
-        $json = json_decode($data, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('could not decode content of data-page attribute '.json_last_error_msg());
-        }
-
-        return $json;
     }
 
     static function extractJsonAfter($html, $needle): array

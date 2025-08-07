@@ -30,7 +30,7 @@ class Controller
         do {
             $series = $this->client->getSeries($page);
 
-            foreach ($series as $serie) {
+            foreach ($series['data'] as $serie) {
                 if ($this->isSerieUpdated($seriesCollection, $serie)) {
                     continue;
                 }

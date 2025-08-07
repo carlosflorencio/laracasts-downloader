@@ -246,7 +246,7 @@ class Resolver
 
         $html = $response->getBody()->getContents();
 
-        $data = Parser::getDataAttr($html);
+        $data = Parser::getData($html);
 
         if (!isset($data['props']['series']['data'])) {
             throw new Exception('unexpected response structure for series.');
