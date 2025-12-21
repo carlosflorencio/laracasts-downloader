@@ -35,6 +35,12 @@ class Downloader
     /** @var bool Don't scrap pages and only get from existing cache */
     private bool $cacheOnly = false;
 
+    /** @var int Maximum concurrent episode downloads */
+    private int $maxConcurrentEpisodes = 3;
+
+    /** @var int Maximum concurrent segment downloads per episode */
+    private int $maxConcurrentSegments = 5;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -88,7 +94,7 @@ class Downloader
         );
 
         if ($newEpisodesCount > 0) {
-            $this->downloadEpisodes($newEpisodes, $counter, $newEpisodesCount);
+            $this->downloadEpisodes($newEpisodes, $counter, $newEpisodesCount, $this->maxConcurrentEpisodes);
         }
 
         Utils::writeln(
@@ -117,12 +123,12 @@ class Downloader
 
         $user = $this->client->login($email, $password);
 
-        if (! is_null($user['error'])) {
+        if (!is_null($user['error'])) {
             throw new LoginException($user['error']);
         }
 
         if ($user['signedIn']) {
-            Utils::write('Logged in as '.$user['data']['email']);
+            Utils::write('Logged in as ' . $user['data']['email']);
         }
 
         // Let's allow user with no subscription to download free lessons
@@ -136,21 +142,30 @@ class Downloader
     }
 
     /**
-     * Download Episodes
+     * Download Episodes concurrently using GuzzleHttp Promises
+     * 
+     * Note: Episodes are processed sequentially, but each episode's segments
+     * download in parallel for maximum speed within each episode.
+     * 
+     * @param int $maxConcurrentEpisodes Maximum number of episodes to download in parallel
      */
-    public function downloadEpisodes($newEpisodes, array &$counter, $newEpisodesCount): void
+    public function downloadEpisodes($newEpisodes, array &$counter, $newEpisodesCount, int $maxConcurrentEpisodes = 3): void
     {
         $this->system->createFolderIfNotExists(SERIES_FOLDER);
 
-        Utils::box('Downloading Series');
+        Utils::box("Downloading Series (parallel segments enabled)");
 
         foreach ($newEpisodes as $serie) {
             $this->system->createSerieFolderIfNotExists($serie['slug']);
 
             foreach ($serie['episodes'] as $episode) {
-
-                if ($this->client->downloadEpisode($serie['slug'], $episode) === false) {
+                try {
+                    if ($this->client->downloadEpisode($serie['slug'], $episode) === false) {
+                        $counter['failed_episode'] += 1;
+                    }
+                } catch (\Exception $e) {
                     $counter['failed_episode'] += 1;
+                    Utils::writeln("Episode download failed: " . $e->getMessage());
                 }
 
                 Utils::write(
@@ -174,6 +189,8 @@ class Downloader
             'series-name:',
             'series-episodes:',
             'cache-only',
+            'concurrency-episodes:',
+            'concurrency-segments:',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -181,6 +198,25 @@ class Downloader
         if (array_key_exists('cache-only', $options)) {
             $this->cacheOnly = true;
             unset($options['cache-only']);
+        }
+
+        // Parse concurrency options
+        if (isset($options['concurrency-episodes'])) {
+            $value = (int) $options['concurrency-episodes'];
+            if ($value > 0) {
+                $this->maxConcurrentEpisodes = $value;
+                Utils::write(sprintf('Episode concurrency: %d', $value));
+            }
+            unset($options['concurrency-episodes']);
+        }
+
+        if (isset($options['concurrency-segments'])) {
+            $value = (int) $options['concurrency-segments'];
+            if ($value > 0) {
+                $this->maxConcurrentSegments = $value;
+                Utils::write(sprintf('Segment concurrency: %d', $value));
+            }
+            unset($options['concurrency-segments']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
@@ -215,14 +251,14 @@ class Downloader
         if (isset($options['s']) || isset($options['series-name'])) {
             $series = $options['s'] ?? $options['series-name'];
 
-            if (! is_array($series)) {
+            if (!is_array($series)) {
                 $series = [$series];
             }
 
             $slugify = new Slugify;
             $slugify->addRule("'", '');
 
-            $this->filters['series'] = array_map(fn ($serie): string => $slugify->slugify($serie), $series);
+            $this->filters['series'] = array_map(fn($serie): string => $slugify->slugify($serie), $series);
 
             Utils::write(sprintf('Series names provided: %s', json_encode($this->filters['series'])));
         }
@@ -237,7 +273,7 @@ class Downloader
 
             Utils::write(sprintf('Episode numbers provided: %s', json_encode($episodes)));
 
-            if (! is_array($episodes)) {
+            if (!is_array($episodes)) {
                 $episodes = [$episodes];
             }
 

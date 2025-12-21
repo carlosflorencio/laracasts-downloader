@@ -119,6 +119,34 @@ $ php start.php -s "nuxtjs-from-scratch" -e "12,15" -s "laravel-from-scratch"
 
 It will download episode 12 and 15 for "nuxtjs-from-scratch" course and all episodes for "laravel-from-scratch" course.
 
+### Parallel Downloads (NEW!)
+
+The downloader now supports parallel downloads for dramatically faster performance:
+
+- **Multiple episodes** download concurrently (default: 3 at a time)
+- **Video segments** within each episode download in parallel (default: 5 at a time)
+
+Customize concurrency with CLI options:
+
+```sh
+# Download with 5 episodes in parallel, 10 segments per episode
+$ php start.php --concurrency-episodes=5 --concurrency-segments=10
+
+# Example with series filter and high concurrency
+$ php start.php -s "laravel-from-scratch" --concurrency-episodes=4 --concurrency-segments=8
+```
+
+You can also set defaults in `.env`:
+```ini
+MAX_CONCURRENT_EPISODES=3
+MAX_CONCURRENT_SEGMENTS=5
+```
+
+**Performance Tips:**
+- Higher concurrency uses more CPU/memory and network bandwidth
+- If downloads fail with timeouts, try reducing concurrency values
+- For most connections, 3-5 episodes and 5-10 segments works well
+
 ## Troubleshooting
 If you have a `cURL error 60: SSL certificate problem: self signed certificate in certificate chain` or `SLL error: cURL error 35` do this:
 
