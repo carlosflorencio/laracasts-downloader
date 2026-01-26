@@ -48,6 +48,10 @@ class VimeoRepository
             $video->setMasterURL($url);
         }
 
+        // Extract text tracks (subtitles/captions)
+        $textTracks = $this->extractTextTracks($content);
+        $video->setTextTracks($textTracks);
+
         return $video;
     }
 
@@ -67,5 +71,27 @@ class VimeoRepository
             ->setClipId($data['clip_id'])
             ->setAudios($data['audio'])
             ->setVideos($data['video']);
+    }
+
+    /**
+     * Extract text tracks (subtitles/captions) from Vimeo player page
+     */
+    private function extractTextTracks(string $content): array
+    {
+        // Try to match text_tracks from the player config
+        if (preg_match('/"text_tracks":(\[.*?\])(?=,"|,\s*"|\})/s', $content, $matches)) {
+            $decoded = json_decode($matches[1], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        // Fallback: try extracting from window.playerConfig
+        $config = Parser::extractJsonAfter($content, 'window.playerConfig');
+        if (isset($config['request']['text_tracks']) && is_array($config['request']['text_tracks'])) {
+            return $config['request']['text_tracks'];
+        }
+
+        return [];
     }
 }

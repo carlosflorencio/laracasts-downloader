@@ -8,6 +8,8 @@ class VideoDTO
 
     private ?array $streams = null;
 
+    private array $textTracks = [];
+
     public function getMasterURL(): ?string
     {
         return $this->masterURL;
@@ -41,5 +43,17 @@ class VideoDTO
         }
 
         return null;
+    }
+
+    public function getTextTracks(): array
+    {
+        return $this->textTracks;
+    }
+
+    public function setTextTracks(array $textTracks): static
+    {
+        $this->textTracks = $textTracks;
+
+        return $this;
     }
 }
