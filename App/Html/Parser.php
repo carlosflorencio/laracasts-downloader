@@ -48,14 +48,17 @@ class Parser
                     continue;
                 }
 
+                //Structure no longer has vimeoId
                 // vimeoId is null for upcoming episodes
-                if (! isset($episode['vimeoId'])) {
-                    continue;
-                }
+                // if (! isset($episode['vimeoId'])) {
+                //     continue;
+                // }
 
                 $episodes[] = [
                     'title' => $episode['title'],
                     'vimeo_id' => $episode['vimeoId'],
+                    'mux_playback_id' => $episode['muxPlaybackId'],
+                    'mux_token' => $episode['muxTokens']['playback'],
                     'number' => $episode['position'],
                 ];
             }
@@ -94,9 +97,29 @@ class Parser
     {
         $parser = new Crawler($html);
 
-        $data = $parser->filter('#app')->attr('data-page');
+        $script = $parser
+            ->filter('script[data-page]')
+            ->reduce(function (Crawler $node): bool {
+                return stripos((string) $node->attr('data-page'), 'app') !== false;
+            });
 
-        return json_decode((string) $data, true);
+        if ($script->count() === 0) {
+            throw new Exception('No script tag with a data-page attribute containing "app" was found.');
+        }
+
+        $json = (string) $script->first()->getNode(0)?->textContent;
+
+        if ($json === '') {
+            throw new Exception('The matched script tag is empty.');
+        }
+
+        $data = json_decode($json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception(json_last_error_msg());
+        }
+
+        return $data;
     }
 
     public static function extractJsonAfter(string $html, string $needle): array

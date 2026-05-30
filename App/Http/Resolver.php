@@ -7,6 +7,7 @@
 namespace App\Http;
 
 use App\Html\Parser;
+use App\Mux\MuxDownloader;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
 use Exception;
@@ -108,10 +109,14 @@ class Resolver
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
 
                 return $this->downloadVideo($downloadLink, $filepath);
-            } else {
+            } else if ($source === 'vimeo') {
                 $vimeoDownloader = new VimeoDownloader;
 
                 return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
+            } else if ($source === 'mux') {
+                $muxDownloader = new MuxDownloader;
+
+                return $muxDownloader->download($episode['mux_playback_id'], $episode['mux_token'], $filepath);
             }
         } catch (RequestException $e) {
             Utils::write($e->getMessage());
