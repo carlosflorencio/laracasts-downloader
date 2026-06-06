@@ -21,7 +21,6 @@
     "guzzlehttp/psr7": "^2.7"
   },
   "require-dev": {
-    "digitalnature/php-ref": "^1.3",
     "rector/rector": "^1.2.10",
     "laravel/pint": "^1.18"
   },
