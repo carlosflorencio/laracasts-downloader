@@ -31,8 +31,9 @@ OR
 $ cp .env.example .env
 ```
 3. Update your Laracasts account credentials (`EMAIL`, `PASSWORD`) in .env
-4. Decide whether you want to use **mux** (default) or **laracasts** as `DOWNLOAD_SOURCE`.
+4. Decide whether you want to use **mux** (default), **external** or **laracasts** as `DOWNLOAD_SOURCE`.
    By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
+   With **external** the signed Mux stream url is handed to an external tool such as [yt-dlp](https://github.com/yt-dlp/yt-dlp) (see the `EXTERNAL_TOOL*` settings in `.env.example`).
    (**vimeo** is kept for legacy reasons but no longer works — Laracasts moved its videos to Mux.)
 6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
