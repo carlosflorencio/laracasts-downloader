@@ -18,7 +18,7 @@ If your local folder is empty, all lessons and series will be downloaded!
 - php-xml
 - php-json
 - Composer
-- [FFmpeg](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwio6vX03pT7AhU0X_EDHSx9BMkQFnoECAkQAQ&url=https%3A%2F%2Fffmpeg.org%2F&usg=AOvVaw19lCX0sMAnAOlyM2Pvp5-v) (required if ``DOWNLOAD_SOURCE=vimeo``)
+- [FFmpeg](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwio6vX03pT7AhU0X_EDHSx9BMkQFnoECAkQAQ&url=https%3A%2F%2Fffmpeg.org%2F&usg=AOvVaw19lCX0sMAnAOlyM2Pvp5-v) (required if ``DOWNLOAD_SOURCE=mux``, the default)
 
 OR
 
@@ -31,17 +31,19 @@ OR
 $ cp .env.example .env
 ```
 3. Update your Laracasts account credentials (`EMAIL`, `PASSWORD`) in .env
-4. Decide whether you want to use **vimeo** or **laracasts** as `DOWNLOAD_SOURCE`.
+4. Decide whether you want to use **mux** (default) or **laracasts** as `DOWNLOAD_SOURCE`.
    By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
+   (**vimeo** is kept for legacy reasons but no longer works — Laracasts moved its videos to Mux.)
 6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
 7. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
-### Details About Vimeo 
+### Details About Mux
 
-If you using vimeo source, will download 2 files for each episode, a video file and an audio file. 
+If you are using the mux source, FFmpeg downloads the video and audio HLS streams and merges
+them straight into a single mp4 in your series folder (stream copy, no re-encoding).
 
-After all download will be done, the project will merge files and will moving to your respective folder. 
+Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
 
 ### Using your local machine
 1. Install project dependencies:
