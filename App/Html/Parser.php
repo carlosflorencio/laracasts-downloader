@@ -90,6 +90,49 @@ class Parser
         return [$lesson['muxPlaybackId'], $lesson['muxTokens']['playback']];
     }
 
+    /**
+     * Build chapter markers from the lesson transcript topic headers.
+     * Returns an empty array for episodes without topic headers.
+     *
+     * @return array<int, array{title: string, start: int, end: int}> start/end in seconds
+     */
+    public static function getEpisodeChapters(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $segments = $data['props']['lesson']['transcriptSegments'] ?? [];
+
+        $chapters = [];
+
+        foreach ($segments as $segment) {
+            $title = trim((string) ($segment['topicHeader'] ?? ''));
+
+            $startsNewChapter = $title !== ''
+                && ($chapters === [] || $chapters[count($chapters) - 1]['title'] !== $title);
+
+            if ($startsNewChapter) {
+                if ($chapters !== []) {
+                    $chapters[count($chapters) - 1]['end'] = (int) $segment['startTime'];
+                }
+
+                $chapters[] = [
+                    'title' => $title,
+                    'start' => (int) $segment['startTime'],
+                    'end' => (int) $segment['endTime'],
+                ];
+
+                continue;
+            }
+
+            // header-less (or same-topic) segments extend the current chapter
+            if ($chapters !== []) {
+                $chapters[count($chapters) - 1]['end'] = (int) $segment['endTime'];
+            }
+        }
+
+        return $chapters;
+    }
+
     public static function getUserData(string $html): array
     {
 

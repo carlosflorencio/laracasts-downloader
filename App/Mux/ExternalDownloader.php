@@ -10,7 +10,7 @@ use App\Utils\Utils;
  */
 class ExternalDownloader
 {
-    public function download(string $playbackId, string $token, string $filepath): bool
+    public function download(string $playbackId, string $token, string $filepath, array $chapters = []): bool
     {
         $tool = $_ENV['EXTERNAL_TOOL'] ?? 'yt-dlp';
 
@@ -23,6 +23,10 @@ class ExternalDownloader
         passthru($command, $code);
 
         if ($code === 0) {
+            if ($chapters !== []) {
+                $this->embedChapters($filepath, $chapters);
+            }
+
             return true;
         }
 
@@ -33,10 +37,46 @@ class ExternalDownloader
         if ($this->shouldFallback()) {
             Utils::writeln('Falling back to the built-in mux downloader...');
 
-            return (new MuxDownloader)->download($playbackId, $token, $filepath);
+            return (new MuxDownloader)->download($playbackId, $token, $filepath, $chapters);
         }
 
         return false;
+    }
+
+    /**
+     * Remux in place with ffmpeg to attach chapter markers
+     * (yt-dlp cannot inject custom chapters itself).
+     */
+    private function embedChapters(string $filepath, array $chapters): void
+    {
+        $metadataFile = ChapterMetadata::writeTempFile($chapters);
+        $tempOutput = $filepath.'.chapters.mp4';
+
+        $command = sprintf(
+            'ffmpeg -y -hide_banner -loglevel error -i %s -f ffmetadata -i %s -map_chapters 1 -c copy %s 2>&1',
+            escapeshellarg($filepath),
+            escapeshellarg($metadataFile),
+            escapeshellarg($tempOutput)
+        );
+
+        $output = [];
+        $code = 0;
+
+        exec($command, $output, $code);
+
+        @unlink($metadataFile);
+
+        if ($code === 0 && @unlink($filepath)) {
+            rename($tempOutput, $filepath);
+
+            Utils::writeln(sprintf('Embedded %d chapters', count($chapters)));
+
+            return;
+        }
+
+        @unlink($tempOutput);
+
+        Utils::writeln('Failed to embed chapters (is ffmpeg on PATH?)');
     }
 
     /**

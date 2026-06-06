@@ -128,11 +128,15 @@ class Resolver
                 // Mux playback tokens are short-lived (~2h), so fetch a fresh one
                 // from the episode page at download time instead of using values
                 // captured during the catalogue scrape
-                [$playbackId, $token] = $this->getMuxPlayback($serieSlug, $episode['number']);
+                $episodeHtml = $this->getHtml("series/$serieSlug/episodes/{$episode['number']}");
+
+                [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
+
+                $chapters = $this->shouldDownloadChapters() ? Parser::getEpisodeChapters($episodeHtml) : [];
 
                 $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
 
-                return $downloader->download($playbackId, $token, $filepath);
+                return $downloader->download($playbackId, $token, $filepath, $chapters);
             }
 
             throw new Exception("Unsupported DOWNLOAD_SOURCE: $source");
@@ -179,15 +183,11 @@ class Resolver
     }
 
     /**
-     * Get a fresh Mux playback id and signed token for given episode
-     *
-     * @return array{0: string, 1: string}
+     * Check if chapter markers should be embedded into downloads
      */
-    private function getMuxPlayback(string $serieSlug, int $episodeNumber): array
+    private function shouldDownloadChapters(): bool
     {
-        $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
-
-        return Parser::getEpisodeMuxPlayback($episodeHtml);
+        return filter_var($_ENV['DOWNLOAD_CHAPTERS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
