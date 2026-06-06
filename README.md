@@ -46,8 +46,22 @@ them straight into a single mp4 in your series folder (stream copy, no re-encodi
 
 Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
 
-Set `DOWNLOAD_CHAPTERS=true` to embed chapter markers (built from the episode's transcript topics)
+Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
+Use `DOWNLOAD_CHAPTERS=file` to instead save a `NN-title.chapters.txt` ffmetadata sidecar
+next to each episode (or `both`), which you can merge into a video yourself:
+
+```sh
+ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
+```
+
+For episodes you downloaded **before** this feature existed, backfill the sidecars without
+re-downloading any videos:
+
+```sh
+php commands/BackfillChapters.php              # whole library
+php commands/BackfillChapters.php -s "series-slug" -e "1,5"
+```
 
 ### Using your local machine
 1. Install project dependencies:
