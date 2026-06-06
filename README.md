@@ -46,6 +46,9 @@ them straight into a single mp4 in your series folder (stream copy, no re-encodi
 
 Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
 
+Set `DOWNLOAD_CHAPTERS=true` to embed chapter markers (built from the episode's transcript topics)
+into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
+
 ### Using your local machine
 1. Install project dependencies:
 ```sh
