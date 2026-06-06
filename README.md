@@ -55,6 +55,17 @@ next to each episode (or `both`), which you can merge into a video yourself:
 ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
 ```
 
+On Windows, `commands/merge-chapters.ps1` batch-merges every sidecar in a folder into its
+video in place (skips videos that already have chapters, so it is safe to re-run):
+
+```powershell
+cd "path\to\series\some-series"
+& "path\to\laracasts-downloader\commands\merge-chapters.ps1"
+
+# or the whole library at once
+& .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse
+```
+
 To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes
 (no videos, regardless of what is downloaded locally; the flags can be combined):
 
