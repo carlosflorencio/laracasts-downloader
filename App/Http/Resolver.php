@@ -7,6 +7,7 @@
 namespace App\Http;
 
 use App\Html\Parser;
+use App\Mux\MuxDownloader;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
 use Exception;
@@ -102,17 +103,38 @@ class Resolver
                 )
             );
 
-            $source = $_ENV['DOWNLOAD_SOURCE'];
+            $source = $_ENV['DOWNLOAD_SOURCE'] ?? null;
 
             if (! $source || $source === 'laracasts') {
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
 
                 return $this->downloadVideo($downloadLink, $filepath);
-            } else {
+            }
+
+            if ($source === 'vimeo') {
+                if (empty($episode['vimeo_id'])) {
+                    Utils::write('Laracasts no longer streams from Vimeo. Set DOWNLOAD_SOURCE=mux in your .env');
+
+                    return false;
+                }
+
                 $vimeoDownloader = new VimeoDownloader;
 
                 return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
             }
+
+            if ($source === 'mux') {
+                // Mux playback tokens are short-lived (~2h), so fetch a fresh one
+                // from the episode page at download time instead of using values
+                // captured during the catalogue scrape
+                [$playbackId, $token] = $this->getMuxPlayback($serieSlug, $episode['number']);
+
+                $muxDownloader = new MuxDownloader;
+
+                return $muxDownloader->download($playbackId, $token, $filepath);
+            }
+
+            throw new Exception("Unsupported DOWNLOAD_SOURCE: $source");
         } catch (RequestException $e) {
             Utils::write($e->getMessage());
 
@@ -153,6 +175,18 @@ class Resolver
         $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
 
         return Parser::getEpisodeDownloadLink($episodeHtml);
+    }
+
+    /**
+     * Get a fresh Mux playback id and signed token for given episode
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function getMuxPlayback(string $serieSlug, int $episodeNumber): array
+    {
+        $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
+
+        return Parser::getEpisodeMuxPlayback($episodeHtml);
     }
 
     /**

@@ -48,14 +48,14 @@ class Parser
                     continue;
                 }
 
-                // vimeoId is null for upcoming episodes
-                if (! isset($episode['vimeoId'])) {
+                // muxPlaybackId (vimeoId on legacy pages) is null for upcoming episodes
+                if (empty($episode['muxPlaybackId']) && empty($episode['vimeoId'])) {
                     continue;
                 }
 
                 $episodes[] = [
                     'title' => $episode['title'],
-                    'vimeo_id' => $episode['vimeoId'],
+                    'vimeo_id' => $episode['vimeoId'] ?? null,
                     'number' => $episode['position'],
                 ];
             }
@@ -69,6 +69,25 @@ class Parser
         $data = self::getData($episodeHtml);
 
         return $data['props']['downloadLink'];
+    }
+
+    /**
+     * Returns the Mux playback id and short-lived signed playback token
+     * for the current episode page.
+     *
+     * @return array{0: string, 1: string}
+     */
+    public static function getEpisodeMuxPlayback(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $lesson = $data['props']['lesson'] ?? [];
+
+        if (empty($lesson['muxPlaybackId']) || empty($lesson['muxTokens']['playback'])) {
+            throw new Exception('No Mux playback data found on the episode page.');
+        }
+
+        return [$lesson['muxPlaybackId'], $lesson['muxTokens']['playback']];
     }
 
     public static function getUserData(string $html): array
@@ -86,17 +105,34 @@ class Parser
     }
 
     /**
-     * Returns decoded version of data-page attribute in HTML page
-     *
-     * @return array
+     * Returns decoded version of the Inertia page data in HTML page
      */
-    public static function getData(string $html): mixed
+    public static function getData(string $html): array
     {
         $parser = new Crawler($html);
 
-        $data = $parser->filter('#app')->attr('data-page');
+        // Inertia page data lives in a JSON script tag
+        // (previously in the #app element's data-page attribute)
+        $script = $parser->filter('script[data-page]');
 
-        return json_decode((string) $data, true);
+        if ($script->count() > 0) {
+            $json = $script->first()->text(null, false);
+        } else {
+            $app = $parser->filter('#app');
+            $json = $app->count() > 0 ? $app->attr('data-page') : null;
+        }
+
+        if ($json === null || $json === '') {
+            throw new Exception('Unable to find Inertia page data within the HTML.');
+        }
+
+        $data = json_decode($json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Unable to decode Inertia page data: '.json_last_error_msg());
+        }
+
+        return $data;
     }
 
     public static function extractJsonAfter(string $html, string $needle): array
@@ -140,7 +176,7 @@ class Parser
 
         $json = substr($html, $openBracePos, $currentPos - $openBracePos);
 
-        if (! $json) {
+        if ($json === '' || $json === '0') {
             throw new Exception("Failed to extract json after $needle");
         }
 
