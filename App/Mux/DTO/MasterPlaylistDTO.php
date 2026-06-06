@@ -64,15 +64,35 @@ class MasterPlaylistDTO
     /**
      * Returns the audio rendition for the given group id
      * (audio is served as a separate rendition, not muxed into the variant).
+     *
+     * Dubbed series carry several renditions per group (es, pt, de, ja);
+     * AUDIO_LANGUAGE picks a dub, otherwise the DEFAULT=YES rendition
+     * (the original audio track) wins.
      */
     public function getAudioByGroupId(?string $groupId): ?array
     {
-        foreach ($this->audios as $audio) {
-            if ($audio['group_id'] === $groupId) {
+        $audios = array_values(array_filter($this->audios, fn (array $audio): bool => $audio['group_id'] === $groupId));
+
+        if ($audios === []) {
+            $audios = $this->audios;
+        }
+
+        $language = $_ENV['AUDIO_LANGUAGE'] ?? '';
+
+        if ($language !== '') {
+            foreach ($audios as $audio) {
+                if ($audio['language'] === $language) {
+                    return $audio;
+                }
+            }
+        }
+
+        foreach ($audios as $audio) {
+            if ($audio['default']) {
                 return $audio;
             }
         }
 
-        return $this->audios[0] ?? null;
+        return $audios[0] ?? null;
     }
 }

@@ -46,6 +46,8 @@ class MuxRepository
                 if (($attributes['TYPE'] ?? null) === 'AUDIO') {
                     $audios[] = [
                         'group_id' => $attributes['GROUP-ID'] ?? null,
+                        'language' => $attributes['LANGUAGE'] ?? null,
+                        'default' => ($attributes['DEFAULT'] ?? 'NO') === 'YES',
                         'url' => $attributes['URI'] ?? null,
                     ];
                 } elseif (($attributes['TYPE'] ?? null) === 'SUBTITLES') {

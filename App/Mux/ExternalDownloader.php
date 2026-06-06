@@ -54,6 +54,7 @@ class ExternalDownloader
                 $args[] = '-S '.escapeshellarg("res:$height");
             }
 
+            $args[] = $this->formatSelector();
             $args[] = '--merge-output-format mp4';
 
             if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
@@ -68,6 +69,29 @@ class ExternalDownloader
             escapeshellarg($filepath),
             escapeshellarg($url)
         );
+    }
+
+    /**
+     * yt-dlp format selection. Dubbed series carry several audio renditions
+     * (es, pt, de, ja) and without an explicit selector yt-dlp picks the
+     * alphabetically last dub (e.g. Spanish) as "best" audio; the "Default"
+     * rendition is the original audio track. AUDIO_LANGUAGE opts into a dub.
+     */
+    private function formatSelector(): string
+    {
+        $selectors = [];
+
+        $language = $_ENV['AUDIO_LANGUAGE'] ?? '';
+
+        if ($language !== '') {
+            $selectors[] = "bv*+ba[language=$language]";
+        }
+
+        $selectors[] = 'bv*+ba[format_id*=Default]';
+        $selectors[] = 'bv*+ba';
+        $selectors[] = 'b';
+
+        return '-f '.escapeshellarg(implode('/', $selectors));
     }
 
     private function shouldFallback(): bool
