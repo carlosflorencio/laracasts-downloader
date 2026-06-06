@@ -148,6 +148,52 @@ class Resolver
         }
     }
 
+    /**
+     * Fetch and save only the chapter sidecar of an episode (no video),
+     * regardless of whether the episode itself is downloaded.
+     */
+    public function downloadEpisodeChapters(string $serieSlug, array $episode): bool
+    {
+        try {
+            $number = sprintf('%02d', $episode['number']);
+            $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
+            $sidecar = ChapterMetadata::sidecarPath($filepath);
+
+            if (file_exists($sidecar)) {
+                Utils::writeln('Chapters already present: '.basename($sidecar));
+
+                return true;
+            }
+
+            Utils::writeln(
+                sprintf(
+                    'Fetching chapters: %s . . . . Saving on '.SERIES_FOLDER.'/'.$serieSlug,
+                    $number.' - '.$episode['title']
+                )
+            );
+
+            $episodeHtml = $this->getHtml("series/$serieSlug/episodes/{$episode['number']}");
+
+            $chapters = Parser::getEpisodeChapters($episodeHtml);
+
+            if ($chapters === []) {
+                Utils::writeln('No chapter data for this episode.');
+
+                return true;
+            }
+
+            ChapterMetadata::saveNextTo($filepath, $chapters);
+
+            Utils::writeln(sprintf('Saved %d chapters', count($chapters)));
+
+            return true;
+        } catch (RequestException $e) {
+            Utils::write($e->getMessage());
+
+            return false;
+        }
+    }
+
     private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER

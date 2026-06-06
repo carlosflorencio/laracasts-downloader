@@ -37,12 +37,20 @@ class ChapterMetadata
     }
 
     /**
-     * Write the ffmetadata sidecar next to the episode file
+     * Sidecar path for an episode file
      * (e.g. 01-foo.mp4 -> 01-foo.chapters.txt).
+     */
+    public static function sidecarPath(string $filepath): string
+    {
+        return preg_replace('/\.[^.]+$/', '', $filepath).'.chapters.txt';
+    }
+
+    /**
+     * Write the ffmetadata sidecar next to the episode file
      */
     public static function saveNextTo(string $filepath, array $chapters): string
     {
-        $path = preg_replace('/\.[^.]+$/', '', $filepath).'.chapters.txt';
+        $path = self::sidecarPath($filepath);
 
         file_put_contents($path, self::build($chapters));
 

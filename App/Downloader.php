@@ -12,6 +12,7 @@ use App\Laracasts\Controller as LaracastsController;
 use App\System\Controller as SystemController;
 use App\Utils\Utils;
 use Cocur\Slugify\Slugify;
+use Exception;
 use GuzzleHttp\Client as HttpClient;
 use League\Flysystem\Filesystem;
 use Ubench;
@@ -35,6 +36,9 @@ class Downloader
     /** @var bool Don't scrap pages and only get from existing cache */
     private bool $cacheOnly = false;
 
+    /** @var bool Only fetch chapter sidecars, no videos */
+    private bool $chaptersOnly = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -56,9 +60,14 @@ class Downloader
 
         $this->setFilters();
 
+        if ($this->chaptersOnly && $this->filters === []) {
+            throw new Exception('--chapters-only requires a series filter, e.g. -s "series-slug" (use commands/BackfillChapters.php for the whole local library)');
+        }
+
         $this->bench->start();
 
-        $localSeries = $this->system->getSeries();
+        // chapters are fetched regardless of which episodes exist locally
+        $localSeries = $this->chaptersOnly ? [] : $this->system->getSeries();
 
         if ($this->filters === []) {
             $cachedData = $this->system->getCache();
@@ -149,7 +158,11 @@ class Downloader
 
             foreach ($serie['episodes'] as $episode) {
 
-                if ($this->client->downloadEpisode($serie['slug'], $episode) === false) {
+                $result = $this->chaptersOnly
+                    ? $this->client->downloadEpisodeChapters($serie['slug'], $episode)
+                    : $this->client->downloadEpisode($serie['slug'], $episode);
+
+                if ($result === false) {
                     $counter['failed_episode'] += 1;
                 }
 
@@ -174,6 +187,7 @@ class Downloader
             'series-name:',
             'series-episodes:',
             'cache-only',
+            'chapters-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -181,6 +195,11 @@ class Downloader
         if (array_key_exists('cache-only', $options)) {
             $this->cacheOnly = true;
             unset($options['cache-only']);
+        }
+
+        if (array_key_exists('chapters-only', $options)) {
+            $this->chaptersOnly = true;
+            unset($options['chapters-only']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
