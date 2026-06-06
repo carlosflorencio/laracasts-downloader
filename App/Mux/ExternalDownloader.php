@@ -23,8 +23,14 @@ class ExternalDownloader
         passthru($command, $code);
 
         if ($code === 0) {
-            if ($chapters !== []) {
+            if ($chapters !== [] && ChapterMetadata::shouldEmbed()) {
                 $this->embedChapters($filepath, $chapters);
+            }
+
+            if ($chapters !== [] && ChapterMetadata::shouldSaveFile()) {
+                ChapterMetadata::saveNextTo($filepath, $chapters);
+
+                Utils::writeln('Saved chapters file');
             }
 
             return true;

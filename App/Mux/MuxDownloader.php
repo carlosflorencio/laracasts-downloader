@@ -23,10 +23,23 @@ class MuxDownloader
 
         Utils::writeln(sprintf('Downloading %dp video and audio with ffmpeg...', $video['height']));
 
-        $result = $this->downloadAndMerge($video['url'], $audio['url'] ?? null, $filepath, $chapters);
+        $result = $this->downloadAndMerge(
+            $video['url'],
+            $audio['url'] ?? null,
+            $filepath,
+            ChapterMetadata::shouldEmbed() ? $chapters : []
+        );
 
         if ($result && $chapters !== []) {
-            Utils::writeln(sprintf('Embedded %d chapters', count($chapters)));
+            if (ChapterMetadata::shouldEmbed()) {
+                Utils::writeln(sprintf('Embedded %d chapters', count($chapters)));
+            }
+
+            if (ChapterMetadata::shouldSaveFile()) {
+                ChapterMetadata::saveNextTo($filepath, $chapters);
+
+                Utils::writeln('Saved chapters file');
+            }
         }
 
         if ($result && $this->shouldDownloadSubtitles()) {

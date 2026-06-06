@@ -7,6 +7,7 @@
 namespace App\Http;
 
 use App\Html\Parser;
+use App\Mux\ChapterMetadata;
 use App\Mux\ExternalDownloader;
 use App\Mux\MuxDownloader;
 use App\Utils\Utils;
@@ -132,7 +133,7 @@ class Resolver
 
                 [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
 
-                $chapters = $this->shouldDownloadChapters() ? Parser::getEpisodeChapters($episodeHtml) : [];
+                $chapters = ChapterMetadata::enabled() ? Parser::getEpisodeChapters($episodeHtml) : [];
 
                 $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
 
@@ -180,14 +181,6 @@ class Resolver
         $episodeHtml = $this->getHtml("series/$serieSlug/episodes/$episodeNumber");
 
         return Parser::getEpisodeDownloadLink($episodeHtml);
-    }
-
-    /**
-     * Check if chapter markers should be embedded into downloads
-     */
-    private function shouldDownloadChapters(): bool
-    {
-        return filter_var($_ENV['DOWNLOAD_CHAPTERS'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

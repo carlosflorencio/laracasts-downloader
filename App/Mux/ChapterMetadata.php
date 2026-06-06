@@ -36,6 +36,51 @@ class ChapterMetadata
         return $path;
     }
 
+    /**
+     * Write the ffmetadata sidecar next to the episode file
+     * (e.g. 01-foo.mp4 -> 01-foo.chapters.txt).
+     */
+    public static function saveNextTo(string $filepath, array $chapters): string
+    {
+        $path = preg_replace('/\.[^.]+$/', '', $filepath).'.chapters.txt';
+
+        file_put_contents($path, self::build($chapters));
+
+        return $path;
+    }
+
+    public static function enabled(): bool
+    {
+        return self::mode() !== 'off';
+    }
+
+    public static function shouldEmbed(): bool
+    {
+        return in_array(self::mode(), ['embed', 'both'], true);
+    }
+
+    public static function shouldSaveFile(): bool
+    {
+        return in_array(self::mode(), ['file', 'both'], true);
+    }
+
+    /**
+     * DOWNLOAD_CHAPTERS env: 'embed' (or a plain boolean true) bakes the
+     * markers into the mp4, 'file' saves an ffmetadata sidecar next to
+     * the episode for manual ffmpeg merging, 'both' does both.
+     */
+    private static function mode(): string
+    {
+        $value = strtolower(trim((string) ($_ENV['DOWNLOAD_CHAPTERS'] ?? '')));
+
+        return match ($value) {
+            'embed', 'true', '1', 'yes', 'on' => 'embed',
+            'file' => 'file',
+            'both' => 'both',
+            default => 'off',
+        };
+    }
+
     private static function escape(string $value): string
     {
         return addcslashes($value, "=;#\\\n");
