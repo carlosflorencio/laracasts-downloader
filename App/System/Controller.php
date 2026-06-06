@@ -20,9 +20,11 @@ class Controller
 
     public function getSeries(): array
     {
-        // we want only files, and we only need their paths
+        // we want only episode videos, and we only need their paths
+        // (.vtt subtitles, .part leftovers or .DS_Store must not count as downloaded episodes)
         $paths = $this->system->listContents(SERIES_FOLDER, true)
             ->filter(fn (StorageAttributes $attributes): bool => $attributes->isFile())
+            ->filter(fn (StorageAttributes $attributes): bool => str_ends_with($attributes->path(), '.mp4'))
             ->sortByPath()
             ->map(fn (StorageAttributes $attrs): string => $attrs->path())
             ->toArray();
