@@ -55,12 +55,13 @@ next to each episode (or `both`), which you can merge into a video yourself:
 ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
 ```
 
-To fetch **only** the chapter sidecars of a series or single episodes (no videos,
-regardless of what is downloaded locally):
+To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes
+(no videos, regardless of what is downloaded locally; the flags can be combined):
 
 ```sh
 php start.php -s "series-slug" --chapters-only
 php start.php -s "series-slug" -e "12,15" --chapters-only
+php start.php -s "series-slug" --subtitles-only
 ```
 
 For episodes you downloaded **before** this feature existed, backfill the sidecars for the
