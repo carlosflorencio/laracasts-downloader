@@ -50,6 +50,24 @@ class MuxDownloader
     }
 
     /**
+     * Fetch and save only the subtitle tracks of an episode (no video)
+     */
+    public function downloadSubtitlesOnly(string $playbackId, string $token, string $filepath): bool
+    {
+        $subtitles = $this->repository->getMaster($playbackId, $token)->getSubtitles();
+
+        if ($subtitles === []) {
+            Utils::writeln('No subtitles for this episode.');
+
+            return true;
+        }
+
+        $this->downloadSubtitles($subtitles, $filepath);
+
+        return true;
+    }
+
+    /**
      * Check if subtitles should be downloaded
      */
     private function shouldDownloadSubtitles(): bool

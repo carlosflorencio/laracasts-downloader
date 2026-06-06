@@ -194,6 +194,46 @@ class Resolver
         }
     }
 
+    /**
+     * Fetch and save only the subtitles of an episode (no video),
+     * regardless of whether the episode itself is downloaded.
+     */
+    public function downloadEpisodeSubtitles(string $serieSlug, array $episode): bool
+    {
+        try {
+            $number = sprintf('%02d', $episode['number']);
+            $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
+
+            // any existing .vtt next to the episode counts as present
+            $existing = glob(preg_replace('/\.[^.]+$/', '', $filepath).'.*.vtt');
+
+            if ($existing !== false && $existing !== []) {
+                Utils::writeln('Subtitles already present: '.basename($existing[0]));
+
+                return true;
+            }
+
+            Utils::writeln(
+                sprintf(
+                    'Fetching subtitles: %s . . . . Saving on '.SERIES_FOLDER.'/'.$serieSlug,
+                    $number.' - '.$episode['title']
+                )
+            );
+
+            $episodeHtml = $this->getHtml("series/$serieSlug/episodes/{$episode['number']}");
+
+            [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
+
+            $muxDownloader = new MuxDownloader;
+
+            return $muxDownloader->downloadSubtitlesOnly($playbackId, $token, $filepath);
+        } catch (RequestException $e) {
+            Utils::write($e->getMessage());
+
+            return false;
+        }
+    }
+
     private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER

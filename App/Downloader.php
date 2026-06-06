@@ -39,6 +39,9 @@ class Downloader
     /** @var bool Only fetch chapter sidecars, no videos */
     private bool $chaptersOnly = false;
 
+    /** @var bool Only fetch subtitles, no videos */
+    private bool $subtitlesOnly = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -60,14 +63,14 @@ class Downloader
 
         $this->setFilters();
 
-        if ($this->chaptersOnly && $this->filters === []) {
-            throw new Exception('--chapters-only requires a series filter, e.g. -s "series-slug" (use commands/BackfillChapters.php for the whole local library)');
+        if (($this->chaptersOnly || $this->subtitlesOnly) && $this->filters === []) {
+            throw new Exception('--chapters-only/--subtitles-only requires a series filter, e.g. -s "series-slug"');
         }
 
         $this->bench->start();
 
-        // chapters are fetched regardless of which episodes exist locally
-        $localSeries = $this->chaptersOnly ? [] : $this->system->getSeries();
+        // chapters/subtitles are fetched regardless of which episodes exist locally
+        $localSeries = $this->chaptersOnly || $this->subtitlesOnly ? [] : $this->system->getSeries();
 
         if ($this->filters === []) {
             $cachedData = $this->system->getCache();
@@ -158,11 +161,7 @@ class Downloader
 
             foreach ($serie['episodes'] as $episode) {
 
-                $result = $this->chaptersOnly
-                    ? $this->client->downloadEpisodeChapters($serie['slug'], $episode)
-                    : $this->client->downloadEpisode($serie['slug'], $episode);
-
-                if ($result === false) {
+                if ($this->downloadEpisodeAssets($serie['slug'], $episode) === false) {
                     $counter['failed_episode'] += 1;
                 }
 
@@ -178,6 +177,29 @@ class Downloader
         }
     }
 
+    /**
+     * Download the episode video, or only its chapter/subtitle
+     * side files when the matching --*-only flags are set.
+     */
+    private function downloadEpisodeAssets(string $serieSlug, array $episode): bool
+    {
+        if (! $this->chaptersOnly && ! $this->subtitlesOnly) {
+            return $this->client->downloadEpisode($serieSlug, $episode);
+        }
+
+        $result = true;
+
+        if ($this->chaptersOnly) {
+            $result = $this->client->downloadEpisodeChapters($serieSlug, $episode);
+        }
+
+        if ($this->subtitlesOnly) {
+            $result = $this->client->downloadEpisodeSubtitles($serieSlug, $episode) && $result;
+        }
+
+        return $result;
+    }
+
     protected function setFilters(): bool
     {
         $shortOptions = 's:';
@@ -188,6 +210,7 @@ class Downloader
             'series-episodes:',
             'cache-only',
             'chapters-only',
+            'subtitles-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -200,6 +223,11 @@ class Downloader
         if (array_key_exists('chapters-only', $options)) {
             $this->chaptersOnly = true;
             unset($options['chapters-only']);
+        }
+
+        if (array_key_exists('subtitles-only', $options)) {
+            $this->subtitlesOnly = true;
+            unset($options['subtitles-only']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
