@@ -9,7 +9,6 @@ namespace App;
 use App\Exceptions\LoginException;
 use App\Http\Resolver;
 use App\Laracasts\Controller as LaracastsController;
-use App\System\Controller;
 use App\System\Controller as SystemController;
 use App\Utils\Utils;
 use Cocur\Slugify\Slugify;
@@ -25,7 +24,7 @@ class Downloader
 {
     private readonly Resolver $client;
 
-    private readonly Controller $system;
+    private readonly SystemController $system;
 
     private readonly Ubench $bench;
 
