@@ -7,6 +7,7 @@
 namespace App\Http;
 
 use App\Html\Parser;
+use App\Mux\ExternalDownloader;
 use App\Mux\MuxDownloader;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
@@ -123,15 +124,15 @@ class Resolver
                 return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
             }
 
-            if ($source === 'mux') {
+            if ($source === 'mux' || $source === 'external') {
                 // Mux playback tokens are short-lived (~2h), so fetch a fresh one
                 // from the episode page at download time instead of using values
                 // captured during the catalogue scrape
                 [$playbackId, $token] = $this->getMuxPlayback($serieSlug, $episode['number']);
 
-                $muxDownloader = new MuxDownloader;
+                $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
 
-                return $muxDownloader->download($playbackId, $token, $filepath);
+                return $downloader->download($playbackId, $token, $filepath);
             }
 
             throw new Exception("Unsupported DOWNLOAD_SOURCE: $source");

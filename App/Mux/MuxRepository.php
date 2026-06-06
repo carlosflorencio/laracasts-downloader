@@ -11,9 +11,17 @@ class MuxRepository
 
     public function __construct(private readonly Client $client) {}
 
+    /**
+     * Signed HLS master playlist URL for a playback id
+     */
+    public static function masterURL(string $playbackId, string $token): string
+    {
+        return self::STREAM_URL."/$playbackId.m3u8?token=$token";
+    }
+
     public function getMaster(string $playbackId, string $token): MasterPlaylistDTO
     {
-        $content = $this->client->get(self::STREAM_URL."/$playbackId.m3u8?token=$token")
+        $content = $this->client->get(self::masterURL($playbackId, $token))
             ->getBody()
             ->getContents();
 
