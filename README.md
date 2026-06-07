@@ -64,6 +64,10 @@ cd "path\to\series\some-series"
 
 # or the whole library at once
 & .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse
+
+# -MoveSidecars additionally moves each embedded sidecar into a "#merged"
+# subfolder next to its video (also when the chapters were already embedded)
+& .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse -MoveSidecars
 ```
 
 To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes
