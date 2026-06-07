@@ -57,6 +57,7 @@ class Parser
                     'title' => $episode['title'],
                     'vimeo_id' => $episode['vimeoId'] ?? null,
                     'number' => $episode['position'],
+                    'published' => $episode['dateSegments']['published'] ?? null,
                 ];
             }
         }

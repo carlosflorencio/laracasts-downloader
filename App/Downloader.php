@@ -42,6 +42,9 @@ class Downloader
     /** @var bool Only fetch subtitles, no videos */
     private bool $subtitlesOnly = false;
 
+    /** @var bool Only fix episode file timestamps, no videos */
+    private bool $timestampsOnly = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -63,14 +66,16 @@ class Downloader
 
         $this->setFilters();
 
-        if (($this->chaptersOnly || $this->subtitlesOnly) && $this->filters === []) {
-            throw new Exception('--chapters-only/--subtitles-only requires a series filter, e.g. -s "series-slug"');
+        $onlyMode = $this->chaptersOnly || $this->subtitlesOnly || $this->timestampsOnly;
+
+        if ($onlyMode && $this->filters === []) {
+            throw new Exception('--chapters-only/--subtitles-only/--timestamps-only requires a series filter, e.g. -s "series-slug"');
         }
 
         $this->bench->start();
 
-        // chapters/subtitles are fetched regardless of which episodes exist locally
-        $localSeries = $this->chaptersOnly || $this->subtitlesOnly ? [] : $this->system->getSeries();
+        // the *-only modes process every filtered episode regardless of which exist locally
+        $localSeries = $onlyMode ? [] : $this->system->getSeries();
 
         if ($this->filters === []) {
             $cachedData = $this->system->getCache();
@@ -178,12 +183,12 @@ class Downloader
     }
 
     /**
-     * Download the episode video, or only its chapter/subtitle
-     * side files when the matching --*-only flags are set.
+     * Download the episode video, or only its chapter/subtitle side
+     * files / timestamp fix when the matching --*-only flags are set.
      */
     private function downloadEpisodeAssets(string $serieSlug, array $episode): bool
     {
-        if (! $this->chaptersOnly && ! $this->subtitlesOnly) {
+        if (! $this->chaptersOnly && ! $this->subtitlesOnly && ! $this->timestampsOnly) {
             return $this->client->downloadEpisode($serieSlug, $episode);
         }
 
@@ -195,6 +200,10 @@ class Downloader
 
         if ($this->subtitlesOnly) {
             $result = $this->client->downloadEpisodeSubtitles($serieSlug, $episode) && $result;
+        }
+
+        if ($this->timestampsOnly) {
+            $result = $this->client->setEpisodeTimestamp($serieSlug, $episode) && $result;
         }
 
         return $result;
@@ -211,6 +220,7 @@ class Downloader
             'cache-only',
             'chapters-only',
             'subtitles-only',
+            'timestamps-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -228,6 +238,11 @@ class Downloader
         if (array_key_exists('subtitles-only', $options)) {
             $this->subtitlesOnly = true;
             unset($options['subtitles-only']);
+        }
+
+        if (array_key_exists('timestamps-only', $options)) {
+            $this->timestampsOnly = true;
+            unset($options['timestamps-only']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));

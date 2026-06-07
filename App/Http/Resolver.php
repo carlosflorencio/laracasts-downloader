@@ -234,6 +234,42 @@ class Resolver
         }
     }
 
+    /**
+     * Set an already-downloaded episode's last-modified time to its
+     * original publish date (day precision, normalised to 12:00) —
+     * no downloads.
+     */
+    public function setEpisodeTimestamp(string $serieSlug, array $episode): bool
+    {
+        $number = sprintf('%02d', $episode['number']);
+        $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
+        $filename = basename($filepath);
+
+        if (! file_exists($filepath)) {
+            Utils::writeln("Not downloaded, skipping: $filename");
+
+            return true;
+        }
+
+        $timestamp = empty($episode['published']) ? false : strtotime($episode['published'].' 12:00:00');
+
+        if ($timestamp === false) {
+            Utils::writeln("No publish date for: $filename");
+
+            return true;
+        }
+
+        if (date('Y-m-d', filemtime($filepath)) === date('Y-m-d', $timestamp)) {
+            Utils::writeln("Timestamp already correct: $filename");
+
+            return true;
+        }
+
+        Utils::writeln(sprintf('Setting timestamp %s on %s', date('Y-m-d', $timestamp), $filename));
+
+        return touch($filepath, $timestamp);
+    }
+
     private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER

@@ -20,9 +20,11 @@ php start.php --cache-only
 # Specific series (slug preferred) / episodes; -s/-e pairs can repeat
 php start.php -s "series-slug" -e "12,15"
 
-# Only fetch .chapters.txt sidecars and/or .vtt subtitles (no videos); require -s, combinable
+# Only fetch .chapters.txt sidecars and/or .vtt subtitles, or fix mtimes to the
+# lesson publish dates (no videos); require -s, combinable
 php start.php -s "series-slug" -e "12,15" --chapters-only
 php start.php -s "series-slug" --subtitles-only
+php start.php -s "series-slug" --timestamps-only
 
 # Lint (Laravel Pint, preset "laravel")
 composer lint        # check only (pint --test)

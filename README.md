@@ -70,13 +70,15 @@ cd "path\to\series\some-series"
 & .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse -MoveSidecars
 ```
 
-To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes
+To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes,
+or fix the downloaded files' last-modified time to the lesson's original publish date
 (no videos, regardless of what is downloaded locally; the flags can be combined):
 
 ```sh
 php start.php -s "series-slug" --chapters-only
 php start.php -s "series-slug" -e "12,15" --chapters-only
 php start.php -s "series-slug" --subtitles-only
+php start.php -s "series-slug" --timestamps-only
 ```
 
 For episodes you downloaded **before** this feature existed, backfill the sidecars for the
@@ -85,6 +87,16 @@ whole local library without re-downloading any videos:
 ```sh
 php commands/BackfillChapters.php              # whole library
 php commands/BackfillChapters.php -s "series-slug" -e "1,5"
+```
+
+Likewise, set every downloaded episode's last-modified time to its original publish date
+on laracasts.com — useful after re-downloads, which reset all timestamps to the download
+time (one request per series, day precision normalised to 12:00):
+
+```sh
+php commands/BackfillTimestamps.php              # whole library
+php commands/BackfillTimestamps.php --dry-run    # preview only
+php commands/BackfillTimestamps.php -s "series-slug" -e "1,5"
 ```
 
 ### Using your local machine
