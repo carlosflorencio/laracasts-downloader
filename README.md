@@ -89,9 +89,9 @@ php commands/BackfillChapters.php              # whole library
 php commands/BackfillChapters.php -s "series-slug" -e "1,5"
 ```
 
-Likewise, set every downloaded episode's last-modified time to its original publish date
-on laracasts.com — useful after re-downloads, which reset all timestamps to the download
-time (one request per series, day precision normalised to 12:00):
+Downloads automatically get their last-modified time set to the lesson's original publish
+date on laracasts.com (day precision, normalised to 12:00). For files downloaded before
+this feature existed, backfill the whole library (one request per series):
 
 ```sh
 php commands/BackfillTimestamps.php              # whole library

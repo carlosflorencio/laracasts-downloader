@@ -135,6 +135,17 @@ class Parser
     }
 
     /**
+     * Returns the current episode's original publish date from its page
+     * (e.g. 'March 4, 2015'), or null for scheduled episodes.
+     */
+    public static function getEpisodePublishDate(string $episodeHtml): ?string
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['lesson']['dateSegments']['published'] ?? null;
+    }
+
+    /**
      * Returns each episode's original publish date keyed by episode
      * number, read from the series episode list of an episode page
      * (e.g. [1 => 'March 4, 2015', ...]). Episodes without a date

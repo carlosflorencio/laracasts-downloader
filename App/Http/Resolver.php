@@ -110,7 +110,13 @@ class Resolver
             if (! $source || $source === 'laracasts') {
                 $downloadLink = $this->getLaracastsLink($serieSlug, $episode['number']);
 
-                return $this->downloadVideo($downloadLink, $filepath);
+                $downloaded = $this->downloadVideo($downloadLink, $filepath);
+
+                if ($downloaded) {
+                    $this->applyPublishDate($filepath, $episode['published'] ?? null);
+                }
+
+                return $downloaded;
             }
 
             if ($source === 'vimeo') {
@@ -122,7 +128,13 @@ class Resolver
 
                 $vimeoDownloader = new VimeoDownloader;
 
-                return $vimeoDownloader->download($episode['vimeo_id'], $filepath);
+                $downloaded = $vimeoDownloader->download($episode['vimeo_id'], $filepath);
+
+                if ($downloaded) {
+                    $this->applyPublishDate($filepath, $episode['published'] ?? null);
+                }
+
+                return $downloaded;
             }
 
             if ($source === 'mux' || $source === 'external') {
@@ -137,7 +149,13 @@ class Resolver
 
                 $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
 
-                return $downloader->download($playbackId, $token, $filepath, $chapters);
+                $downloaded = $downloader->download($playbackId, $token, $filepath, $chapters);
+
+                if ($downloaded) {
+                    $this->applyPublishDate($filepath, Parser::getEpisodePublishDate($episodeHtml) ?? $episode['published'] ?? null);
+                }
+
+                return $downloaded;
             }
 
             throw new Exception("Unsupported DOWNLOAD_SOURCE: $source");
@@ -231,6 +249,20 @@ class Resolver
             Utils::write($e->getMessage());
 
             return false;
+        }
+    }
+
+    /**
+     * Stamp a freshly-downloaded episode with its original publish date
+     * (day precision, normalised to 12:00). Best-effort: quietly does
+     * nothing when the date is unknown.
+     */
+    private function applyPublishDate(string $filepath, ?string $published): void
+    {
+        $timestamp = $published === null || $published === '' ? false : strtotime($published.' 12:00:00');
+
+        if ($timestamp !== false && file_exists($filepath)) {
+            touch($filepath, $timestamp);
         }
     }
 
