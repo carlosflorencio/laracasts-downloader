@@ -89,11 +89,15 @@ class Utils
     }
 
     /**
-     * Remove specials chars that windows does not support for filenames.
+     * Remove only the chars that windows does not support for filenames,
+     * keeping the episode name as close to the lesson title as possible.
      */
     public static function parseEpisodeName(string $name): ?string
     {
-        return preg_replace('/[^A-Za-z0-9\- _]/', '', $name);
+        $name = preg_replace('/[\x00-\x1F\\\\\/:*?"<>|]/', '', $name);
+
+        // windows also rejects trailing dots and spaces
+        return $name === null ? null : rtrim($name, ' .');
     }
 
     /**
