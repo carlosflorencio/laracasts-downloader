@@ -38,6 +38,13 @@ function Move-SidecarToMerged([string]$Sidecar, [string]$Directory) {
     Move-Item -LiteralPath $Sidecar -Destination $mergedDir -Force
 }
 
+function Write-SeriesHeader([string]$Directory) {
+    if ($script:announcedDir -eq $Directory) { return }
+    if ($null -ne $script:announcedDir) { Write-Host "" }
+    $script:announcedDir = $Directory
+    Write-Host "$(Split-Path -Leaf $Directory):" -ForegroundColor Cyan
+}
+
 $videos = Get-ChildItem -LiteralPath $Path -Filter *.mp4 -File -Recurse:$Recurse
 
 $merged = 0
@@ -45,6 +52,7 @@ $skipped = 0
 $noSidecar = 0
 $failed = 0
 $moved = 0
+$announcedDir = $null
 
 foreach ($video in $videos) {
     $sidecar = $video.FullName -replace '\.mp4$', '.chapters.txt'
@@ -53,6 +61,8 @@ foreach ($video in $videos) {
         $noSidecar++
         continue
     }
+
+    Write-SeriesHeader $video.DirectoryName
 
     $existing = & ffprobe -v error -show_chapters -of csv $video.FullName 2>$null
 
