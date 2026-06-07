@@ -46,11 +46,38 @@ class ChapterMetadata
     }
 
     /**
+     * Sidecar path inside the '#merged' subfolder next to the episode file
+     * (the merge-chapters.ps1 -MoveSidecars convention for sidecars whose
+     * chapters are already embedded in the video).
+     */
+    public static function mergedSidecarPath(string $filepath): string
+    {
+        return dirname($filepath).DIRECTORY_SEPARATOR.'#merged'.DIRECTORY_SEPARATOR.basename(self::sidecarPath($filepath));
+    }
+
+    /**
      * Write the ffmetadata sidecar next to the episode file
      */
     public static function saveNextTo(string $filepath, array $chapters): string
     {
         $path = self::sidecarPath($filepath);
+
+        file_put_contents($path, self::build($chapters));
+
+        return $path;
+    }
+
+    /**
+     * Write the ffmetadata sidecar into the '#merged' subfolder next to the
+     * episode file, for episodes that already carry the chapters embedded
+     */
+    public static function saveToMerged(string $filepath, array $chapters): string
+    {
+        $path = self::mergedSidecarPath($filepath);
+
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
 
         file_put_contents($path, self::build($chapters));
 

@@ -23,14 +23,24 @@ class ExternalDownloader
         passthru($command, $code);
 
         if ($code === 0) {
+            $embedded = false;
+
             if ($chapters !== [] && ChapterMetadata::shouldEmbed()) {
-                $this->embedChapters($filepath, $chapters);
+                $embedded = $this->embedChapters($filepath, $chapters);
             }
 
             if ($chapters !== [] && ChapterMetadata::shouldSaveFile()) {
-                ChapterMetadata::saveNextTo($filepath, $chapters);
+                // an embedded sidecar belongs in #merged/; keep it next to
+                // the video while the chapters are not baked in yet
+                if ($embedded) {
+                    ChapterMetadata::saveToMerged($filepath, $chapters);
 
-                Utils::writeln('Saved chapters file');
+                    Utils::writeln('Saved chapters file to #merged');
+                } else {
+                    ChapterMetadata::saveNextTo($filepath, $chapters);
+
+                    Utils::writeln('Saved chapters file');
+                }
             }
 
             return true;
@@ -53,7 +63,7 @@ class ExternalDownloader
      * Remux in place with ffmpeg to attach chapter markers
      * (yt-dlp cannot inject custom chapters itself).
      */
-    private function embedChapters(string $filepath, array $chapters): void
+    private function embedChapters(string $filepath, array $chapters): bool
     {
         $metadataFile = ChapterMetadata::writeTempFile($chapters);
         $tempOutput = $filepath.'.chapters.mp4';
@@ -77,12 +87,14 @@ class ExternalDownloader
 
             Utils::writeln(sprintf('Embedded %d chapters', count($chapters)));
 
-            return;
+            return true;
         }
 
         @unlink($tempOutput);
 
         Utils::writeln('Failed to embed chapters (is ffmpeg on PATH?)');
+
+        return false;
     }
 
     /**

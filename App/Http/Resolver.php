@@ -177,7 +177,7 @@ class Resolver
             $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
             $sidecar = ChapterMetadata::sidecarPath($filepath);
 
-            if (file_exists($sidecar)) {
+            if (file_exists($sidecar) || file_exists(ChapterMetadata::mergedSidecarPath($filepath))) {
                 Utils::writeln('Chapters already present: '.basename($sidecar));
 
                 return true;

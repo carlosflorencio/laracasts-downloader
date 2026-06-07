@@ -49,7 +49,8 @@ Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to
 Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
 Use `DOWNLOAD_CHAPTERS=file` to instead save a `NN-title.chapters.txt` ffmetadata sidecar
-next to each episode (or `both`), which you can merge into a video yourself:
+next to each episode, which you can merge into a video yourself (`both` embeds **and** keeps
+the sidecar, placing it in a `#merged` subfolder since its chapters are already embedded):
 
 ```sh
 ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"

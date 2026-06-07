@@ -36,9 +36,16 @@ class MuxDownloader
             }
 
             if (ChapterMetadata::shouldSaveFile()) {
-                ChapterMetadata::saveNextTo($filepath, $chapters);
+                // already embedded above -> sidecar belongs in #merged/
+                if (ChapterMetadata::shouldEmbed()) {
+                    ChapterMetadata::saveToMerged($filepath, $chapters);
 
-                Utils::writeln('Saved chapters file');
+                    Utils::writeln('Saved chapters file to #merged');
+                } else {
+                    ChapterMetadata::saveNextTo($filepath, $chapters);
+
+                    Utils::writeln('Saved chapters file');
+                }
             }
         }
 
