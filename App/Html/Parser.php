@@ -133,6 +133,33 @@ class Parser
         return $chapters;
     }
 
+    /**
+     * Returns each episode's original publish date keyed by episode
+     * number, read from the series episode list of an episode page
+     * (e.g. [1 => 'March 4, 2015', ...]). Episodes without a date
+     * (scheduled ones) are omitted.
+     *
+     * @return array<int, string>
+     */
+    public static function getEpisodePublishDates(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $dates = [];
+
+        foreach ($data['props']['series']['chapters'] ?? [] as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                $published = $episode['dateSegments']['published'] ?? null;
+
+                if (! empty($published)) {
+                    $dates[(int) $episode['position']] = $published;
+                }
+            }
+        }
+
+        return $dates;
+    }
+
     public static function getUserData(string $html): array
     {
 
