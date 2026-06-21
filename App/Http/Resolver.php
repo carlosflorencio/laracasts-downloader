@@ -15,7 +15,7 @@ use App\Vimeo\VimeoDownloader;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\Exception\RequestException;
+use Throwable;
 use Ubench;
 
 /**
@@ -159,7 +159,7 @@ class Resolver
             }
 
             throw new Exception("Unsupported DOWNLOAD_SOURCE: $source");
-        } catch (RequestException $e) {
+        } catch (Throwable $e) {
             Utils::write($e->getMessage());
 
             return false;
@@ -205,7 +205,7 @@ class Resolver
             Utils::writeln(sprintf('Saved %d chapters', count($chapters)));
 
             return true;
-        } catch (RequestException $e) {
+        } catch (Throwable $e) {
             Utils::write($e->getMessage());
 
             return false;
@@ -245,7 +245,7 @@ class Resolver
             $muxDownloader = new MuxDownloader;
 
             return $muxDownloader->downloadSubtitlesOnly($playbackId, $token, $filepath);
-        } catch (RequestException $e) {
+        } catch (Throwable $e) {
             Utils::write($e->getMessage());
 
             return false;
