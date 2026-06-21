@@ -6,6 +6,7 @@
 
 namespace App\Http;
 
+use App\Cloudflare\CloudflareDownloader;
 use App\Html\Parser;
 use App\Mux\ChapterMetadata;
 use App\Mux\ExternalDownloader;
@@ -15,6 +16,7 @@ use App\Vimeo\VimeoDownloader;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\SetCookie;
 use Throwable;
 use Ubench;
 
@@ -138,18 +140,29 @@ class Resolver
             }
 
             if ($source === 'mux' || $source === 'external') {
-                // Mux playback tokens are short-lived (~2h), so fetch a fresh one
-                // from the episode page at download time instead of using values
-                // captured during the catalogue scrape
+                // Playback data is fetched fresh from the episode page at
+                // download time: Mux tokens are short-lived (~2h), and a lesson
+                // may have been migrated to the Cloudflare CDN since the
+                // catalogue scrape, so detect the host per-episode.
                 $episodeHtml = $this->getHtml("series/$serieSlug/episodes/{$episode['number']}");
-
-                [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
 
                 $chapters = ChapterMetadata::enabled() ? Parser::getEpisodeChapters($episodeHtml) : [];
 
-                $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
+                $cloudflare = Parser::getEpisodeCloudflarePlayback($episodeHtml);
 
-                $downloaded = $downloader->download($playbackId, $token, $filepath, $chapters);
+                if ($cloudflare !== null) {
+                    $cookieHeader = $this->cookieHeaderFor($cloudflare['src']);
+
+                    $downloaded = $source === 'external'
+                        ? (new ExternalDownloader)->downloadFromUrl($cloudflare, $cookieHeader, $filepath, $chapters)
+                        : (new CloudflareDownloader)->download($cloudflare, $cookieHeader, $filepath, $chapters);
+                } else {
+                    [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
+
+                    $downloader = $source === 'external' ? new ExternalDownloader : new MuxDownloader;
+
+                    $downloaded = $downloader->download($playbackId, $token, $filepath, $chapters);
+                }
 
                 if ($downloaded) {
                     $this->applyPublishDate($filepath, Parser::getEpisodePublishDate($episodeHtml) ?? $episode['published'] ?? null);
@@ -240,11 +253,19 @@ class Resolver
 
             $episodeHtml = $this->getHtml("series/$serieSlug/episodes/{$episode['number']}");
 
+            $cloudflare = Parser::getEpisodeCloudflarePlayback($episodeHtml);
+
+            if ($cloudflare !== null) {
+                return (new CloudflareDownloader)->downloadSubtitlesOnly(
+                    $cloudflare,
+                    $this->cookieHeaderFor($cloudflare['src']),
+                    $filepath
+                );
+            }
+
             [$playbackId, $token] = Parser::getEpisodeMuxPlayback($episodeHtml);
 
-            $muxDownloader = new MuxDownloader;
-
-            return $muxDownloader->downloadSubtitlesOnly($playbackId, $token, $filepath);
+            return (new MuxDownloader)->downloadSubtitlesOnly($playbackId, $token, $filepath);
         } catch (Throwable $e) {
             Utils::write($e->getMessage());
 
@@ -325,6 +346,33 @@ class Resolver
             ->get($url, ['cookies' => $this->cookies, 'verify' => false])
             ->getBody()
             ->getContents();
+    }
+
+    /**
+     * Build the Cookie request header that authorizes the Cloudflare media
+     * CDN, selected from the shared login jar by domain/path match (the CDN
+     * carries no token in the url and rejects unauthenticated requests).
+     */
+    public function cookieHeaderFor(string $url): string
+    {
+        $parts = parse_url($url);
+        $host = $parts['host'] ?? '';
+        $path = $parts['path'] ?? '/';
+
+        $pairs = [];
+
+        /** @var SetCookie $cookie */
+        foreach ($this->cookies as $cookie) {
+            if ($cookie->isExpired()) {
+                continue;
+            }
+
+            if ($cookie->matchesDomain($host) && $cookie->matchesPath($path)) {
+                $pairs[] = $cookie->getName().'='.$cookie->getValue();
+            }
+        }
+
+        return implode('; ', $pairs);
     }
 
     /**

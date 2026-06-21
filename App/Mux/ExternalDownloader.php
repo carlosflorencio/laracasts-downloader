@@ -2,11 +2,13 @@
 
 namespace App\Mux;
 
+use App\Cloudflare\CloudflareDownloader;
 use App\Utils\Utils;
 
 /**
- * Hands the signed Mux HLS master url to an external downloader
- * (yt-dlp recommended; the tool must accept `-o <file> <url>`).
+ * Hands a signed HLS master url to an external downloader (yt-dlp
+ * recommended; the tool must accept `-o <file> <url>`). Works for both
+ * Mux (signed url) and Cloudflare (url + forwarded Cookie header) lessons.
  */
 class ExternalDownloader
 {
@@ -23,25 +25,7 @@ class ExternalDownloader
         passthru($command, $code);
 
         if ($code === 0) {
-            $embedded = false;
-
-            if ($chapters !== [] && ChapterMetadata::shouldEmbed()) {
-                $embedded = $this->embedChapters($filepath, $chapters);
-            }
-
-            if ($chapters !== [] && ChapterMetadata::shouldSaveFile()) {
-                // an embedded sidecar belongs in #merged/; keep it next to
-                // the video while the chapters are not baked in yet
-                if ($embedded) {
-                    ChapterMetadata::saveToMerged($filepath, $chapters);
-
-                    Utils::writeln('Saved chapters file to #merged');
-                } else {
-                    ChapterMetadata::saveNextTo($filepath, $chapters);
-
-                    Utils::writeln('Saved chapters file');
-                }
-            }
+            $this->persistChapters($filepath, $chapters);
 
             return true;
         }
@@ -57,6 +41,75 @@ class ExternalDownloader
         }
 
         return false;
+    }
+
+    /**
+     * Hand a ready (Cloudflare) HLS master url to the external tool with the
+     * login cookie forwarded as a request header. Falls back to the built-in
+     * Cloudflare downloader on failure when EXTERNAL_TOOL_FALLBACK is set.
+     */
+    public function downloadFromUrl(array $playback, string $cookieHeader, string $filepath, array $chapters = []): bool
+    {
+        $tool = $_ENV['EXTERNAL_TOOL'] ?? 'yt-dlp';
+
+        $command = $this->buildCommand($tool, $playback['src'], $filepath, $cookieHeader);
+
+        Utils::writeln("Downloading with $tool...");
+
+        $code = 0;
+
+        passthru($command, $code);
+
+        if ($code === 0) {
+            $this->persistChapters($filepath, $chapters);
+
+            // Cloudflare captions live in the lesson props, not the HLS
+            // manifest, so the external tool cannot see them: fetch directly.
+            if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
+                (new CloudflareDownloader)->downloadSubtitlesOnly($playback, $cookieHeader, $filepath);
+            }
+
+            return true;
+        }
+
+        Utils::write("$tool exited with code $code");
+
+        $this->cleanupPartials($filepath);
+
+        if ($this->shouldFallback()) {
+            Utils::writeln('Falling back to the built-in cloudflare downloader...');
+
+            return (new CloudflareDownloader)->download($playback, $cookieHeader, $filepath, $chapters);
+        }
+
+        return false;
+    }
+
+    /**
+     * Embed chapter markers and/or save the ffmetadata sidecar after a
+     * successful external download (an embedded sidecar goes into #merged/).
+     */
+    private function persistChapters(string $filepath, array $chapters): void
+    {
+        if ($chapters === []) {
+            return;
+        }
+
+        $embedded = ChapterMetadata::shouldEmbed() && $this->embedChapters($filepath, $chapters);
+
+        if (! ChapterMetadata::shouldSaveFile()) {
+            return;
+        }
+
+        if ($embedded) {
+            ChapterMetadata::saveToMerged($filepath, $chapters);
+
+            Utils::writeln('Saved chapters file to #merged');
+        } else {
+            ChapterMetadata::saveNextTo($filepath, $chapters);
+
+            Utils::writeln('Saved chapters file');
+        }
     }
 
     /**
@@ -101,7 +154,7 @@ class ExternalDownloader
      * EXTERNAL_TOOL_ARGS is appended verbatim; yt-dlp additionally gets
      * quality/subtitle flags derived from VIDEO_QUALITY and DOWNLOAD_SUBTITLES.
      */
-    private function buildCommand(string $tool, string $url, string $filepath): string
+    private function buildCommand(string $tool, string $url, string $filepath, string $cookieHeader = ''): string
     {
         $args = [trim($_ENV['EXTERNAL_TOOL_ARGS'] ?? '')];
 
@@ -114,6 +167,11 @@ class ExternalDownloader
 
             $args[] = $this->formatSelector();
             $args[] = '--merge-output-format mp4';
+
+            // Cloudflare lessons are cookie-gated; forward the login cookie
+            if ($cookieHeader !== '') {
+                $args[] = '--add-header '.escapeshellarg("Cookie:$cookieHeader");
+            }
 
             if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
                 $args[] = '--write-subs --sub-langs all';

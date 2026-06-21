@@ -48,8 +48,11 @@ class Parser
                     continue;
                 }
 
-                // muxPlaybackId (vimeoId on legacy pages) is null for upcoming episodes
-                if (empty($episode['muxPlaybackId']) && empty($episode['vimeoId'])) {
+                // no playback data on any host (mux/vimeo/cloudflare) means the
+                // episode is upcoming and not yet downloadable
+                if (empty($episode['muxPlaybackId'])
+                    && empty($episode['vimeoId'])
+                    && empty($episode['cloudflarePlayback']['src'])) {
                     continue;
                 }
 
@@ -89,6 +92,18 @@ class Parser
         }
 
         return [$lesson['muxPlaybackId'], $lesson['muxTokens']['playback']];
+    }
+
+    /**
+     * Returns the Cloudflare HLS playback descriptor for the current
+     * episode (the `src` master url plus a `captions` list), or null for
+     * lessons still hosted on Mux.
+     */
+    public static function getEpisodeCloudflarePlayback(string $episodeHtml): ?array
+    {
+        $playback = self::getData($episodeHtml)['props']['lesson']['cloudflarePlayback'] ?? null;
+
+        return empty($playback['src']) ? null : $playback;
     }
 
     /**
