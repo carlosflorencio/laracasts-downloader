@@ -33,16 +33,20 @@ $ cp .env.example .env
 3. Update your Laracasts account credentials (`EMAIL`, `PASSWORD`) in .env
 4. Decide whether you want to use **mux** (default), **external** or **laracasts** as `DOWNLOAD_SOURCE`.
    By using Laracasts link you are limited to 30 downloads per day and can't customize video quality.
-   With **external** the signed Mux stream url is handed to an external tool such as [yt-dlp](https://github.com/yt-dlp/yt-dlp) (see the `EXTERNAL_TOOL*` settings in `.env.example`).
-   (**vimeo** is kept for legacy reasons but no longer works — Laracasts moved its videos to Mux.)
+   With **external** the signed stream url is handed to an external tool such as [yt-dlp](https://github.com/yt-dlp/yt-dlp) (see the `EXTERNAL_TOOL*` settings in `.env.example`).
+   Laracasts is migrating its videos from Mux to its own **Cloudflare** CDN, lesson by lesson; both **mux** and **external** detect this automatically per lesson and download whichever applies, so no setting change is needed.
+   (**vimeo** is kept for legacy reasons but no longer works — Laracasts moved its videos off Vimeo.)
 6. Choose your preferred quality (240p, 360p, 540p, 720p, 1080p, 1440p, 2160p) by changing **VIDEO_QUALITY** in ``.env``.
    (will be ignored if `DOWNLOAD_SOURCE=laracasts`)
 7. The next steps, choose if you want a [local installation](#using-your-local-machine) or [a Docker based installation](#using-docker) and follow along.
 
-### Details About Mux
+### Details About Mux / Cloudflare
 
 If you are using the mux source, FFmpeg downloads the video and audio HLS streams and merges
 them straight into a single mp4 in your series folder (stream copy, no re-encoding).
+Lessons already migrated to Laracasts' Cloudflare CDN are handled the same way (one FFmpeg
+stream copy; the login cookie is forwarded automatically) — `DOWNLOAD_SUBTITLES` and
+`DOWNLOAD_CHAPTERS` work identically on both.
 
 Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
 
