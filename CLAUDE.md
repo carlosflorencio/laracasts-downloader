@@ -31,6 +31,10 @@ php start.php -s "series-slug" --timestamps-only
 # local library (narrow with -s/-e).
 php start.php --metadata-only
 
+# (Re)generate the "#<slug>.m3u8" series playlists for the local library.
+# Also does NOT require -s (narrow with -s; -e is ignored).
+php start.php --playlist-only
+
 # Lint (Laravel Pint, preset "laravel")
 composer lint        # check only (pint --test)
 composer lint:fix    # auto-fix
@@ -61,6 +65,7 @@ Entry flow: `start.php` → `bootstrap.php` (composer autoload, phpdotenv, defin
 ## Key Behaviors & Gotchas
 
 - **The filesystem is the download state.** Episodes are saved as `series/<slug>/NN-<sanitized title>.mp4` (`%02d` number; `Utils::parseEpisodeName` keeps the lesson title verbatim except for Windows-illegal chars `\/:*?"<>|` and trailing dots/spaces). The diff in `Utils::compareLocalAndOnlineSeries` compares episode-number prefixes against the online list, and skips a series entirely when local file count equals `episode_count`. Only `.mp4` files count (`.vtt` subtitles and `.part` leftovers are ignored by the scan). Renaming or deleting files triggers re-download. `commands/ReconcileNames.php` (`--dry-run`, `-s slug`) renames an existing library (mp4s, sidecars, `#<slug>.m3u8` playlist entries) to the current cache.json titles after sanitizer changes.
+- **Series playlists.** `App\Utils\Playlist::generate()` writes each series' `#<slug>.m3u8` — the episode mp4s in order, one bare basename per line (the simple format `ReconcileNames` keeps in sync; CRLF, no `#EXTM3U` header). `WRITE_PLAYLIST=true` regenerates it after a series downloads (the hook in `Downloader::downloadEpisodes` is source-agnostic — mux/external/cloudflare), and `--playlist-only` rebuilds it across the local library (`Downloader::generatePlaylists`, no `-s` required; `-e` ignored). Generation scans `BASE_FOLDER/series/<slug>/*.mp4` directly (top-level only, skipping `#merged`).
 - **`Downloads/cache.json`** caches the scraped catalogue between runs (`commands/ConvertCacheToJson.php` is a one-off migration from the legacy `cache.php`). The README's mention of `cache.php` is outdated.
 - Config is read from `$_ENV` directly at point of use (e.g. `VIDEO_QUALITY` inside `VideoDTO`, `DOWNLOAD_SOURCE` inside `Resolver`), not centralized — grep for `$_ENV` when adding settings.
 - All Laracasts requests use `'verify' => false` and rely on the shared cookie jar from login; new endpoints in `Resolver` must pass `cookies`.

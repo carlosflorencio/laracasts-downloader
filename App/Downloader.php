@@ -10,6 +10,7 @@ use App\Exceptions\LoginException;
 use App\Http\Resolver;
 use App\Laracasts\Controller as LaracastsController;
 use App\System\Controller as SystemController;
+use App\Utils\Playlist;
 use App\Utils\Utils;
 use Cocur\Slugify\Slugify;
 use Exception;
@@ -48,6 +49,9 @@ class Downloader
     /** @var bool Only (re)write metadata of downloaded videos, no videos */
     private bool $metadataOnly = false;
 
+    /** @var bool Only (re)generate the series .m3u8 playlists, no videos */
+    private bool $playlistOnly = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -73,6 +77,14 @@ class Downloader
         // walks the whole local library, optionally narrowed by -s/-e
         if ($this->metadataOnly) {
             $this->updateMetadata();
+
+            return;
+        }
+
+        // playlist-only (re)generates the #<slug>.m3u8 playlists across the
+        // local library, optionally narrowed by -s
+        if ($this->playlistOnly) {
+            $this->generatePlaylists();
 
             return;
         }
@@ -180,6 +192,42 @@ class Downloader
     }
 
     /**
+     * (Re)generate the #<slug>.m3u8 playlist for every local series
+     * (optionally narrowed by -s), each listing the series' episode mp4s in
+     * order. -e is ignored — a playlist always covers the whole series.
+     */
+    private function generatePlaylists(): void
+    {
+        Utils::box('Generating playlists');
+
+        $localSeries = $this->system->getSeries();
+
+        $slugs = $this->filters === [] ? array_keys($localSeries) : array_keys($this->filters);
+
+        $written = 0;
+        $skipped = 0;
+
+        foreach ($slugs as $slug) {
+            if (! isset($localSeries[$slug])) {
+                Utils::writeln("Not downloaded, skipping series: $slug");
+                $skipped++;
+
+                continue;
+            }
+
+            if (Playlist::generate($slug)) {
+                Utils::writeln('Wrote playlist: '.Playlist::filename($slug));
+                $written++;
+            } else {
+                Utils::writeln("No episodes, skipping series: $slug");
+                $skipped++;
+            }
+        }
+
+        Utils::writeln(sprintf('Finished! Playlists written for %d series. Skipped: %d', $written, $skipped));
+    }
+
+    /**
      * Tries to login.
      *
      * @return bool
@@ -241,7 +289,22 @@ class Downloader
                     )
                 );
             }
+
+            // refresh the series playlist once its new videos are written
+            // (the sidecar-only passes add no videos, so they are skipped)
+            if ($this->downloadsVideos() && Playlist::enabled() && Playlist::generate($serie['slug'])) {
+                Utils::writeln('Updated playlist: '.Playlist::filename($serie['slug']));
+            }
         }
+    }
+
+    /**
+     * Whether the current run downloads videos (as opposed to a
+     * chapters/subtitles/timestamps sidecar-only pass).
+     */
+    private function downloadsVideos(): bool
+    {
+        return ! $this->chaptersOnly && ! $this->subtitlesOnly && ! $this->timestampsOnly;
     }
 
     /**
@@ -284,6 +347,7 @@ class Downloader
             'subtitles-only',
             'timestamps-only',
             'metadata-only',
+            'playlist-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -311,6 +375,11 @@ class Downloader
         if (array_key_exists('metadata-only', $options)) {
             $this->metadataOnly = true;
             unset($options['metadata-only']);
+        }
+
+        if (array_key_exists('playlist-only', $options)) {
+            $this->playlistOnly = true;
+            unset($options['playlist-only']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));

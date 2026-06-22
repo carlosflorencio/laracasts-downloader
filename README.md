@@ -65,6 +65,10 @@ ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.
 Set `WRITE_METADATA=true` to tag each finished mp4 with the lesson number (`track`),
 the series title (`album`) and the lesson title (`title`) via a final ffmpeg stream-copy pass.
 
+Set `WRITE_PLAYLIST=true` to (re)generate a `#<slug>.m3u8` playlist in each series folder
+after downloading — a plain list of the episode mp4s in order, so you can play the whole
+series in VLC/mpv/PotPlayer. The `#` keeps it at the top of the folder.
+
 On Windows, `commands/merge-chapters.ps1` batch-merges every sidecar in a folder into its
 video in place (skips videos that already have chapters, so it is safe to re-run):
 
@@ -99,6 +103,15 @@ filter it walks the **whole** local library; narrow it with `-s`/`-e` if you pre
 php start.php --metadata-only                       # every downloaded video
 php start.php --metadata-only -s "series-slug"      # one series
 php start.php --metadata-only -s "series-slug" -e "12,15"
+```
+
+Likewise, to (re)build the `#<slug>.m3u8` playlists for an already-downloaded library
+without downloading anything, use `--playlist-only`. It also does **not** require `-s`
+(narrow it with `-s` if you prefer; `-e` is ignored, a playlist always covers the whole series):
+
+```sh
+php start.php --playlist-only                        # every downloaded series
+php start.php --playlist-only -s "series-slug"       # one series
 ```
 
 For episodes you downloaded **before** this feature existed, backfill the sidecars for the
