@@ -2,6 +2,7 @@
 
 namespace App\Mux;
 
+use App\Utils\SubtitleLanguages;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 
@@ -136,7 +137,7 @@ class MuxDownloader
     {
         $basePath = preg_replace('/\.[^.]+$/', '', $filepath);
 
-        foreach ($subtitles as $subtitle) {
+        foreach (SubtitleLanguages::filter($subtitles) as $subtitle) {
             if (empty($subtitle['url'])) {
                 continue;
             }

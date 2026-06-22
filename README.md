@@ -49,6 +49,8 @@ stream copy; the login cookie is forwarded automatically) — `DOWNLOAD_SUBTITLE
 `DOWNLOAD_CHAPTERS` work identically on both.
 
 Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
+By default only the default/original track (normally English) is saved; set `SUBTITLE_LANGUAGE=en,es`
+to pick specific languages, or `SUBTITLE_LANGUAGE=all` for every available track.
 
 Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.

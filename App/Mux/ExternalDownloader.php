@@ -174,7 +174,11 @@ class ExternalDownloader
             }
 
             if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-                $args[] = '--write-subs --sub-langs all';
+                // yt-dlp only sees manifest subs (Mux); an empty SUBTITLE_LANGUAGE
+                // means the original (English) track. Cloudflare captions are not
+                // in the manifest and are fetched directly elsewhere.
+                $langs = strtolower(trim((string) ($_ENV['SUBTITLE_LANGUAGE'] ?? ''))) ?: 'en';
+                $args[] = '--write-subs --sub-langs '.escapeshellarg($langs);
             }
         }
 

@@ -3,6 +3,7 @@
 namespace App\Cloudflare;
 
 use App\Mux\ChapterMetadata;
+use App\Utils\SubtitleLanguages;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 use Throwable;
@@ -141,6 +142,15 @@ class CloudflareDownloader
      */
     private function downloadCaptions(array $captions, string $cookieHeader, string $filepath): void
     {
+        // the original (non AI-translated) caption is the default track
+        $captions = array_map(function (array $caption): array {
+            $caption['default'] = ($caption['source'] ?? '') !== 'ai_translation';
+
+            return $caption;
+        }, $captions);
+
+        $captions = SubtitleLanguages::filter($captions);
+
         $basePath = preg_replace('/\.[^.]+$/', '', $filepath);
         $client = new Client;
 

@@ -38,6 +38,7 @@ class MasterPlaylistParser
                     $subtitles[] = [
                         'language' => $attributes['LANGUAGE'] ?? 'en',
                         'name' => $attributes['NAME'] ?? null,
+                        'default' => ($attributes['DEFAULT'] ?? 'NO') === 'YES',
                         'url' => self::resolve($baseUrl, $attributes['URI'] ?? null),
                     ];
                 }
