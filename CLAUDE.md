@@ -35,6 +35,11 @@ php start.php --metadata-only
 # Also does NOT require -s (narrow with -s; -e is ignored).
 php start.php --playlist-only
 
+# Rebuild cache.json from a fresh full-catalogue scrape (re-fetches EVERY
+# series, bypassing the incremental skip, so the schema is brought current).
+# Downloads nothing.
+php start.php --refresh-cache
+
 # Lint (Laravel Pint, preset "laravel")
 composer lint        # check only (pint --test)
 composer lint:fix    # auto-fix
@@ -66,7 +71,7 @@ Entry flow: `start.php` → `bootstrap.php` (composer autoload, phpdotenv, defin
 
 - **The filesystem is the download state.** Episodes are saved as `series/<slug>/NN-<sanitized title>.mp4` (`%02d` number; `Utils::parseEpisodeName` keeps the lesson title verbatim except for Windows-illegal chars `\/:*?"<>|` and trailing dots/spaces). The diff in `Utils::compareLocalAndOnlineSeries` compares episode-number prefixes against the online list, and skips a series entirely when local file count equals `episode_count`. Only `.mp4` files count (`.vtt` subtitles and `.part` leftovers are ignored by the scan). Renaming or deleting files triggers re-download. `commands/ReconcileNames.php` (`--dry-run`, `-s slug`) renames an existing library (mp4s, sidecars, `#<slug>.m3u8` playlist entries) to the current cache.json titles after sanitizer changes.
 - **Series playlists.** `App\Utils\Playlist::generate()` writes each series' `#<slug>.m3u8` — the episode mp4s in order, one bare basename per line (the simple format `ReconcileNames` keeps in sync; CRLF, no `#EXTM3U` header). `WRITE_PLAYLIST=true` regenerates it after a series downloads (the hook in `Downloader::downloadEpisodes` is source-agnostic — mux/external/cloudflare), and `--playlist-only` rebuilds it across the local library (`Downloader::generatePlaylists`, no `-s` required; `-e` ignored). Generation scans `BASE_FOLDER/series/<slug>/*.mp4` directly (top-level only, skipping `#merged`).
-- **`Downloads/cache.json`** caches the scraped catalogue between runs (`commands/ConvertCacheToJson.php` is a one-off migration from the legacy `cache.php`). The README's mention of `cache.php` is outdated.
+- **`cache.json`** (at `BASE_FOLDER/cache.json`) caches the scraped catalogue between runs (`commands/ConvertCacheToJson.php` is a one-off migration from the legacy `cache.php`). Schema per series: `slug`, `title`, `path`, `episode_count`, `is_complete`, `episodes[]`; per episode: `title`, `number`, `instructor`, `published` (all written by `Parser::mapSerieData` / `getEpisodesData`). **The incremental scrape (`isSerieUpdated`) keeps a cached series as-is whenever its episode count is unchanged, so schema changes do not propagate to existing entries** — `php start.php --refresh-cache` forces a fresh full re-scrape (`Downloader::refreshCatalogue`, passing an empty cache so every series is re-fetched) to bring the whole file to the current schema.
 - Config is read from `$_ENV` directly at point of use (e.g. `VIDEO_QUALITY` inside `VideoDTO`, `DOWNLOAD_SOURCE` inside `Resolver`), not centralized — grep for `$_ENV` when adding settings.
 - All Laracasts requests use `'verify' => false` and rely on the shared cookie jar from login; new endpoints in `Resolver` must pass `cookies`.
 - Output is `echo`-based via `Utils::write/writeln/box`; it supports both CLI and browser SAPIs.

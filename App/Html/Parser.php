@@ -59,7 +59,6 @@ class Parser
 
                 $episodes[] = [
                     'title' => $episode['title'],
-                    'vimeo_id' => $episode['vimeoId'] ?? null,
                     'number' => $episode['position'],
                     'instructor' => $episode['author']['profile']['full_name'] ?? null,
                     'published' => $episode['dateSegments']['published'] ?? null,

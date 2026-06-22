@@ -52,6 +52,9 @@ class Downloader
     /** @var bool Only (re)generate the series .m3u8 playlists, no videos */
     private bool $playlistOnly = false;
 
+    /** @var bool Only re-scrape the full catalogue into a fresh cache.json */
+    private bool $refreshCache = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -72,6 +75,14 @@ class Downloader
         Utils::box('Starting Collecting the data');
 
         $this->setFilters();
+
+        // refresh-cache rebuilds cache.json from a fresh full catalogue
+        // scrape (current schema, no legacy fields), downloading nothing
+        if ($this->refreshCache) {
+            $this->refreshCatalogue();
+
+            return;
+        }
 
         // metadata-only backfills already-downloaded videos; with no -s it
         // walks the whole local library, optionally narrowed by -s/-e
@@ -138,6 +149,38 @@ class Downloader
                 $counter['failed_episode']
             )
         );
+    }
+
+    /**
+     * Re-scrape the entire catalogue into a fresh cache.json. Passing an
+     * empty cache forces every series to be re-fetched (bypassing the
+     * incremental skip in isSerieUpdated), so the file is rebuilt with the
+     * current schema — dropping legacy fields (e.g. vimeo_id) and filling
+     * in newer ones (series title, per-episode instructor). No downloads.
+     */
+    private function refreshCatalogue(): void
+    {
+        Utils::box('Refreshing cache');
+
+        $this->bench->start();
+
+        $online = $this->laracasts->getSeries([], false);
+
+        $this->system->setCache($online);
+
+        $this->bench->end();
+
+        $episodes = array_sum(array_map(
+            fn (array $serie): int => count($serie['episodes'] ?? []),
+            $online
+        ));
+
+        Utils::writeln(sprintf(
+            'Finished! Cache refreshed: %d series, %d episodes. %s elapsed.',
+            count($online),
+            $episodes,
+            $this->bench->getTime()
+        ));
     }
 
     /**
@@ -361,6 +404,7 @@ class Downloader
             'timestamps-only',
             'metadata-only',
             'playlist-only',
+            'refresh-cache',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -393,6 +437,11 @@ class Downloader
         if (array_key_exists('playlist-only', $options)) {
             $this->playlistOnly = true;
             unset($options['playlist-only']);
+        }
+
+        if (array_key_exists('refresh-cache', $options)) {
+            $this->refreshCache = true;
+            unset($options['refresh-cache']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));

@@ -166,11 +166,20 @@ Also works in the browser, but is better from the cli because of the instant fee
 ### Disable Scrapping
 
 The script scraps each Laracasts pages and caches them to memories its latest state
-and stores them in ``Downloads/cache.php``. If you already make sure this file is updated
-and do not want to experience impatience of scrapping; you can use ``--cache-only`` option.
+and stores them in ``cache.json`` (next to your downloads). If you already make sure this
+file is updated and do not want to experience impatience of scrapping; you can use
+``--cache-only`` option.
 
 ```sh
 php start.php --cache-only
+```
+
+Conversely, to rebuild ``cache.json`` from scratch — a fresh full-catalogue scrape that
+re-fetches **every** series (not just changed ones), so the file picks up the current
+schema and drops stale fields — use ``--refresh-cache``. It downloads no videos.
+
+```sh
+php start.php --refresh-cache
 ```
 
 ### Download specific series
