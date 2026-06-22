@@ -3,7 +3,11 @@
 namespace App\Mux;
 
 use App\Cloudflare\CloudflareDownloader;
+use App\Utils\SubtitleLanguages;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
+use GuzzleHttp\Client;
+use Throwable;
 
 /**
  * Hands a signed HLS master url to an external downloader (yt-dlp
@@ -26,6 +30,10 @@ class ExternalDownloader
 
         if ($code === 0) {
             $this->persistChapters($filepath, $chapters);
+
+            if (Subtitles::enabled()) {
+                $this->handleMuxSubtitles($playbackId, $token, $filepath);
+            }
 
             return true;
         }
@@ -64,9 +72,11 @@ class ExternalDownloader
             $this->persistChapters($filepath, $chapters);
 
             // Cloudflare captions live in the lesson props, not the HLS
-            // manifest, so the external tool cannot see them: fetch directly.
-            if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-                (new CloudflareDownloader)->downloadSubtitlesOnly($playback, $cookieHeader, $filepath);
+            // manifest, so the external tool cannot see them: fetch + deliver
+            // them ourselves (honoring embed/sidecar/both).
+            if (Subtitles::enabled()) {
+                $captions = CloudflareDownloader::selectCaptions($playback['captions'] ?? []);
+                Subtitles::deliver($filepath, Subtitles::materializeDirect($captions, $cookieHeader));
             }
 
             return true;
@@ -151,8 +161,33 @@ class ExternalDownloader
     }
 
     /**
+     * Fetch the Mux subtitle renditions from the master playlist and embed /
+     * save them per DOWNLOAD_SUBTITLES (yt-dlp is not asked for subs so the
+     * embed/sidecar behavior is identical to the Cloudflare path).
+     */
+    private function handleMuxSubtitles(string $playbackId, string $token, string $filepath): void
+    {
+        try {
+            $subtitles = (new MuxRepository(new Client))->getMaster($playbackId, $token)->getSubtitles();
+        } catch (Throwable $e) {
+            Utils::writeln('Failed to fetch subtitles: '.$e->getMessage());
+
+            return;
+        }
+
+        $selected = SubtitleLanguages::filter($subtitles);
+
+        if ($selected === []) {
+            return;
+        }
+
+        Subtitles::deliver($filepath, Subtitles::materializeHls($selected));
+    }
+
+    /**
      * EXTERNAL_TOOL_ARGS is appended verbatim; yt-dlp additionally gets
-     * quality/subtitle flags derived from VIDEO_QUALITY and DOWNLOAD_SUBTITLES.
+     * quality flags derived from VIDEO_QUALITY (subtitles are fetched and
+     * embedded/saved separately, uniformly across sources).
      */
     private function buildCommand(string $tool, string $url, string $filepath, string $cookieHeader = ''): string
     {
@@ -171,14 +206,6 @@ class ExternalDownloader
             // Cloudflare lessons are cookie-gated; forward the login cookie
             if ($cookieHeader !== '') {
                 $args[] = '--add-header '.escapeshellarg("Cookie:$cookieHeader");
-            }
-
-            if (filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-                // yt-dlp only sees manifest subs (Mux); an empty SUBTITLE_LANGUAGE
-                // means the original (English) track. Cloudflare captions are not
-                // in the manifest and are fetched directly elsewhere.
-                $langs = strtolower(trim((string) ($_ENV['SUBTITLE_LANGUAGE'] ?? ''))) ?: 'en';
-                $args[] = '--write-subs --sub-langs '.escapeshellarg($langs);
             }
         }
 

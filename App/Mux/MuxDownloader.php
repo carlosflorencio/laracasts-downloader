@@ -3,6 +3,7 @@
 namespace App\Mux;
 
 use App\Utils\SubtitleLanguages;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 
@@ -50,15 +51,16 @@ class MuxDownloader
             }
         }
 
-        if ($result && $this->shouldDownloadSubtitles()) {
-            $this->downloadSubtitles($master->getSubtitles(), $filepath);
+        if ($result && Subtitles::enabled()) {
+            Subtitles::deliver($filepath, Subtitles::materializeHls(SubtitleLanguages::filter($master->getSubtitles())));
         }
 
         return $result;
     }
 
     /**
-     * Fetch and save only the subtitle tracks of an episode (no video)
+     * Fetch and save only the subtitle tracks of an episode (no video).
+     * Always writes sidecar .vtt files into subs/ (the subtitles-only flag).
      */
     public function downloadSubtitlesOnly(string $playbackId, string $token, string $filepath): bool
     {
@@ -70,19 +72,19 @@ class MuxDownloader
             return true;
         }
 
-        $this->downloadSubtitles($subtitles, $filepath);
+        $tracks = Subtitles::materializeHls(SubtitleLanguages::filter($subtitles));
+
+        if ($tracks !== []) {
+            Subtitles::saveSidecars($filepath, $tracks);
+
+            Utils::writeln('Saved subtitles to subs/');
+
+            foreach ($tracks as $track) {
+                @unlink($track['path']);
+            }
+        }
 
         return true;
-    }
-
-    /**
-     * Check if subtitles should be downloaded
-     */
-    private function shouldDownloadSubtitles(): bool
-    {
-        $setting = $_ENV['DOWNLOAD_SUBTITLES'] ?? 'false';
-
-        return filter_var($setting, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -128,40 +130,5 @@ class MuxDownloader
         Utils::write('ffmpeg failed: '.implode(PHP_EOL, array_slice($output, -5)));
 
         return false;
-    }
-
-    /**
-     * Download subtitle renditions as .vtt files next to the episode
-     */
-    private function downloadSubtitles(array $subtitles, string $filepath): void
-    {
-        $basePath = preg_replace('/\.[^.]+$/', '', $filepath);
-
-        foreach (SubtitleLanguages::filter($subtitles) as $subtitle) {
-            if (empty($subtitle['url'])) {
-                continue;
-            }
-
-            $lang = $subtitle['language'];
-
-            // allowed_extensions ALL: the HLS demuxer rejects Mux's
-            // signed .vtt segment URLs (query string) by default
-            $command = sprintf(
-                'ffmpeg -y -hide_banner -loglevel error -allowed_extensions ALL -i %s %s 2>&1',
-                escapeshellarg((string) $subtitle['url']),
-                escapeshellarg("$basePath.$lang.vtt")
-            );
-
-            $output = [];
-            $code = 0;
-
-            exec($command, $output, $code);
-
-            if ($code === 0) {
-                Utils::writeln("Downloaded subtitles ($lang)");
-            } else {
-                Utils::writeln("Failed to download subtitles ($lang)");
-            }
-        }
     }
 }

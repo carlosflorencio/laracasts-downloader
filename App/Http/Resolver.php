@@ -12,6 +12,7 @@ use App\Mux\ChapterMetadata;
 use App\Mux\ExternalDownloader;
 use App\Mux\MuxDownloader;
 use App\Utils\Metadata;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
 use Exception;
@@ -239,8 +240,9 @@ class Resolver
             $number = sprintf('%02d', $episode['number']);
             $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
 
-            // any existing .vtt next to the episode counts as present
-            $existing = glob(preg_replace('/\.[^.]+$/', '', $filepath).'.*.vtt');
+            // any existing .vtt in the subs/ folder counts as present
+            $base = pathinfo($filepath, PATHINFO_FILENAME);
+            $existing = glob(Subtitles::subsDir($filepath).DIRECTORY_SEPARATOR.$base.'.*.vtt');
 
             if ($existing !== false && $existing !== []) {
                 Utils::writeln('Subtitles already present: '.basename($existing[0]));

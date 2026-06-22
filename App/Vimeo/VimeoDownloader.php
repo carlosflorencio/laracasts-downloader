@@ -2,6 +2,8 @@
 
 namespace App\Vimeo;
 
+use App\Utils\SubtitleLanguages;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 
@@ -43,22 +45,11 @@ class VimeoDownloader
 
         $result = $this->mergeSources($filenames[0], $filenames[1], $filepath);
 
-        // Download subtitles if enabled (default: true)
-        if ($result && $this->shouldDownloadSubtitles()) {
-            $this->downloadSubtitles($video->getTextTracks(), $filepath);
+        if ($result && Subtitles::enabled()) {
+            $this->handleSubtitles($video->getTextTracks(), $filepath);
         }
 
         return $result;
-    }
-
-    /**
-     * Check if subtitles should be downloaded
-     */
-    private function shouldDownloadSubtitles(): bool
-    {
-        $setting = $_ENV['DOWNLOAD_SUBTITLES'] ?? 'false';
-
-        return filter_var($setting, FILTER_VALIDATE_BOOLEAN);
     }
 
     private function downloadSource(string $baseURL, array $sourceData, string $filepath): void
@@ -115,36 +106,29 @@ class VimeoDownloader
     }
 
     /**
-     * Download subtitles for the video
+     * Materialise the Vimeo text tracks to temp .vtt files and embed/save
+     * them per DOWNLOAD_SUBTITLES.
      */
-    public function downloadSubtitles(array $textTracks, string $filepath): void
+    private function handleSubtitles(array $textTracks, string $filepath): void
     {
-        if (empty($textTracks)) {
-            return;
-        }
-
-        // Get base path without extension
-        $basePath = preg_replace('/\.[^.]+$/', '', $filepath);
+        $tracks = [];
 
         foreach ($textTracks as $track) {
             if (empty($track['url'])) {
                 continue;
             }
 
-            $lang = $track['lang'] ?? 'en';
-
-            try {
-                $vttContent = $this->client->get($track['url'])
-                    ->getBody()
-                    ->getContents();
-
-                $vttPath = "{$basePath}.{$lang}.vtt";
-                file_put_contents($vttPath, $vttContent);
-
-                Utils::writeln("Downloaded subtitles ({$lang})");
-            } catch (\Exception $e) {
-                Utils::writeln("Failed to download subtitles ({$lang}): " . $e->getMessage());
-            }
+            $tracks[] = [
+                'src' => $track['url'],
+                'language' => $track['lang'] ?? 'en',
+                'default' => ! empty($track['default']),
+            ];
         }
+
+        if ($tracks === []) {
+            return;
+        }
+
+        Subtitles::deliver($filepath, Subtitles::materializeDirect(SubtitleLanguages::filter($tracks)));
     }
 }

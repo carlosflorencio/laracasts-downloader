@@ -4,9 +4,9 @@ namespace App\Cloudflare;
 
 use App\Mux\ChapterMetadata;
 use App\Utils\SubtitleLanguages;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
-use Throwable;
 
 /**
  * Downloads lessons hosted on Laracasts' Cloudflare CDN. The variant
@@ -40,8 +40,8 @@ class CloudflareDownloader
             $this->handleChapters($filepath, $chapters);
         }
 
-        if ($result && $this->shouldDownloadSubtitles()) {
-            $this->downloadCaptions($playback['captions'] ?? [], $cookieHeader, $filepath);
+        if ($result && Subtitles::enabled()) {
+            $this->handleSubtitles($playback['captions'] ?? [], $cookieHeader, $filepath);
         }
 
         return $result;
@@ -52,7 +52,7 @@ class CloudflareDownloader
      */
     public function downloadSubtitlesOnly(array $playback, string $cookieHeader, string $filepath): bool
     {
-        $captions = $playback['captions'] ?? [];
+        $captions = self::selectCaptions($playback['captions'] ?? []);
 
         if ($captions === []) {
             Utils::writeln('No subtitles for this episode.');
@@ -60,7 +60,18 @@ class CloudflareDownloader
             return true;
         }
 
-        $this->downloadCaptions($captions, $cookieHeader, $filepath);
+        // the subtitles-only flag always writes sidecar files (into subs/)
+        $tracks = Subtitles::materializeDirect($captions, $cookieHeader);
+
+        if ($tracks !== []) {
+            Subtitles::saveSidecars($filepath, $tracks);
+
+            Utils::writeln('Saved subtitles to subs/');
+
+            foreach ($tracks as $track) {
+                @unlink($track['path']);
+            }
+        }
 
         return true;
     }
@@ -137,46 +148,34 @@ class CloudflareDownloader
     }
 
     /**
-     * Save every offered caption track as <base>.<lang>.vtt with a direct
-     * authenticated GET (the captions are plain .vtt files, not HLS tracks).
+     * Materialise the selected captions to temp .vtt files (direct
+     * authenticated GETs — captions are plain .vtt, not HLS tracks) and
+     * embed/save them per DOWNLOAD_SUBTITLES.
      */
-    private function downloadCaptions(array $captions, string $cookieHeader, string $filepath): void
+    private function handleSubtitles(array $captions, string $cookieHeader, string $filepath): void
     {
-        // the original (non AI-translated) caption is the default track
+        $captions = self::selectCaptions($captions);
+
+        if ($captions === []) {
+            return;
+        }
+
+        Subtitles::deliver($filepath, Subtitles::materializeDirect($captions, $cookieHeader));
+    }
+
+    /**
+     * Mark the original (non AI-translated) caption as the default track,
+     * then narrow to the SUBTITLE_LANGUAGE selection. Shared with the
+     * external/yt-dlp path, which fetches Cloudflare captions the same way.
+     */
+    public static function selectCaptions(array $captions): array
+    {
         $captions = array_map(function (array $caption): array {
             $caption['default'] = ($caption['source'] ?? '') !== 'ai_translation';
 
             return $caption;
         }, $captions);
 
-        $captions = SubtitleLanguages::filter($captions);
-
-        $basePath = preg_replace('/\.[^.]+$/', '', $filepath);
-        $client = new Client;
-
-        foreach ($captions as $caption) {
-            if (empty($caption['src'])) {
-                continue;
-            }
-
-            $lang = $caption['language'] ?? 'en';
-
-            try {
-                $client->get($caption['src'], [
-                    'headers' => ['Cookie' => $cookieHeader],
-                    'sink' => "$basePath.$lang.vtt",
-                    'verify' => false,
-                ]);
-
-                Utils::writeln("Downloaded subtitles ($lang)");
-            } catch (Throwable) {
-                Utils::writeln("Failed to download subtitles ($lang)");
-            }
-        }
-    }
-
-    private function shouldDownloadSubtitles(): bool
-    {
-        return filter_var($_ENV['DOWNLOAD_SUBTITLES'] ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        return SubtitleLanguages::filter($captions);
     }
 }

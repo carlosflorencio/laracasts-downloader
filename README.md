@@ -48,9 +48,12 @@ Lessons already migrated to Laracasts' Cloudflare CDN are handled the same way (
 stream copy; the login cookie is forwarded automatically) — `DOWNLOAD_SUBTITLES` and
 `DOWNLOAD_CHAPTERS` work identically on both.
 
-Set `DOWNLOAD_SUBTITLES=true` in `.env` to also save the closed captions next to each episode (`.vtt`).
-By default only the default/original track (normally English) is saved; set `SUBTITLE_LANGUAGE=en,es`
-to pick specific languages, or `SUBTITLE_LANGUAGE=all` for every available track.
+`DOWNLOAD_SUBTITLES` controls the closed captions, mirroring `DOWNLOAD_CHAPTERS`:
+`embed` muxes the `.vtt` tracks into the mp4 as `mov_text` subtitle streams (players like
+VLC/mpv show them in the subtitle menu), `sidecar` saves them as `.vtt` in a `subs` subfolder,
+and `both` does both (a plain `true` is treated as `embed`). By default only the default/original
+track (normally English) is kept; set `SUBTITLE_LANGUAGE=en,es` to pick specific languages, or
+`SUBTITLE_LANGUAGE=all` for every available track.
 
 Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
