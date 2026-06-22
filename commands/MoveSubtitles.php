@@ -48,7 +48,7 @@ foreach (scandir($seriesPath) as $slug) {
         continue;
     }
 
-    // only .vtt directly in the series folder (subs/ and #merged/ are skipped
+    // only .vtt directly in the series folder (subs/ and chapters/ are skipped
     // since glob does not recurse)
     $vtts = glob($dir.DIRECTORY_SEPARATOR.'*.vtt');
 

@@ -67,11 +67,11 @@ php commands/MoveSubtitles.php              # apply
 Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
 Use `DOWNLOAD_CHAPTERS=file` to instead save a `NN-title.chapters.txt` ffmetadata sidecar
-next to each episode, which you can merge into a video yourself (`both` embeds **and** keeps
-the sidecar, placing it in a `#merged` subfolder since its chapters are already embedded):
+in a `chapters` subfolder (the mirror of `subs`), which you can merge into a video yourself
+(`both` embeds **and** keeps the sidecar):
 
 ```sh
-ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
+ffmpeg -i "01-foo.mp4" -i "chapters/01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
 ```
 
 Set `WRITE_METADATA=true` to tag each finished mp4 with the lesson number (`track`),
@@ -82,7 +82,7 @@ Set `WRITE_PLAYLIST=true` to (re)generate a `#<slug>.m3u8` playlist in each seri
 after downloading — a plain list of the episode mp4s in order, so you can play the whole
 series in VLC/mpv/PotPlayer. The `#` keeps it at the top of the folder.
 
-On Windows, `commands/merge-chapters.ps1` batch-merges every sidecar in a folder into its
+On Windows, `commands/merge-chapters.ps1` batch-merges every `chapters/` sidecar into its
 video in place (skips videos that already have chapters, so it is safe to re-run):
 
 ```powershell
@@ -91,10 +91,14 @@ cd "path\to\series\some-series"
 
 # or the whole library at once
 & .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse
+```
 
-# -MoveSidecars additionally moves each embedded sidecar into a "#merged"
-# subfolder next to its video (also when the chapters were already embedded)
-& .\commands\merge-chapters.ps1 -Path "path\to\series" -Recurse -MoveSidecars
+If you have an older library whose chapter sidecars sit next to the videos or in a
+`#merged` subfolder, consolidate them into `chapters/` in one pass (preview with `--dry-run`):
+
+```sh
+php commands/MoveChapters.php --dry-run    # preview
+php commands/MoveChapters.php              # apply
 ```
 
 To fetch **only** the chapter sidecars and/or subtitles of a series or single episodes,

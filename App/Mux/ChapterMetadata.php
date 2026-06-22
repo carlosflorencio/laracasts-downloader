@@ -37,43 +37,31 @@ class ChapterMetadata
     }
 
     /**
-     * Sidecar path for an episode file
-     * (e.g. 01-foo.mp4 -> 01-foo.chapters.txt).
+     * The 'chapters' subfolder next to an episode file.
      */
-    public static function sidecarPath(string $filepath): string
+    public static function chaptersDir(string $filepath): string
     {
-        return preg_replace('/\.[^.]+$/', '', $filepath).'.chapters.txt';
+        return dirname($filepath).DIRECTORY_SEPARATOR.'chapters';
     }
 
     /**
-     * Sidecar path inside the '#merged' subfolder next to the episode file
-     * (the merge-chapters.ps1 -MoveSidecars convention for sidecars whose
-     * chapters are already embedded in the video).
+     * Sidecar path inside the 'chapters' subfolder
+     * (e.g. series/<slug>/01-foo.mp4 -> series/<slug>/chapters/01-foo.chapters.txt).
      */
-    public static function mergedSidecarPath(string $filepath): string
+    public static function chaptersSidecarPath(string $filepath): string
     {
-        return dirname($filepath).DIRECTORY_SEPARATOR.'#merged'.DIRECTORY_SEPARATOR.basename(self::sidecarPath($filepath));
+        $name = preg_replace('/\.[^.]+$/', '', basename($filepath)).'.chapters.txt';
+
+        return self::chaptersDir($filepath).DIRECTORY_SEPARATOR.$name;
     }
 
     /**
-     * Write the ffmetadata sidecar next to the episode file
+     * Write the ffmetadata sidecar into the 'chapters' subfolder next to the
+     * episode file (used by both the 'file' and 'both' chapter modes).
      */
-    public static function saveNextTo(string $filepath, array $chapters): string
+    public static function saveToChapters(string $filepath, array $chapters): string
     {
-        $path = self::sidecarPath($filepath);
-
-        file_put_contents($path, self::build($chapters));
-
-        return $path;
-    }
-
-    /**
-     * Write the ffmetadata sidecar into the '#merged' subfolder next to the
-     * episode file, for episodes that already carry the chapters embedded
-     */
-    public static function saveToMerged(string $filepath, array $chapters): string
-    {
-        $path = self::mergedSidecarPath($filepath);
+        $path = self::chaptersSidecarPath($filepath);
 
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0777, true);

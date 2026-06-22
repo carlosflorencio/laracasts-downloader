@@ -96,8 +96,8 @@ class ExternalDownloader
     }
 
     /**
-     * Embed chapter markers and/or save the ffmetadata sidecar after a
-     * successful external download (an embedded sidecar goes into #merged/).
+     * Embed chapter markers and/or save the ffmetadata sidecar into the
+     * chapters/ subfolder after a successful external download.
      */
     private function persistChapters(string $filepath, array $chapters): void
     {
@@ -105,20 +105,14 @@ class ExternalDownloader
             return;
         }
 
-        $embedded = ChapterMetadata::shouldEmbed() && $this->embedChapters($filepath, $chapters);
-
-        if (! ChapterMetadata::shouldSaveFile()) {
-            return;
+        if (ChapterMetadata::shouldEmbed()) {
+            $this->embedChapters($filepath, $chapters);
         }
 
-        if ($embedded) {
-            ChapterMetadata::saveToMerged($filepath, $chapters);
+        if (ChapterMetadata::shouldSaveFile()) {
+            ChapterMetadata::saveToChapters($filepath, $chapters);
 
-            Utils::writeln('Saved chapters file to #merged');
-        } else {
-            ChapterMetadata::saveNextTo($filepath, $chapters);
-
-            Utils::writeln('Saved chapters file');
+            Utils::writeln('Saved chapters file to chapters/');
         }
     }
 

@@ -5,7 +5,7 @@
  * episodes, built from each episode's transcript topics — no video
  * re-download. Merge one into its video with ffmpeg, e.g.:
  *
- *   ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
+ *   ffmpeg -i "01-foo.mp4" -i "chapters/01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
  *
  * Usage (from the project root):
  *   php commands/BackfillChapters.php              # whole library
@@ -52,9 +52,7 @@ foreach (glob($seriesPath.'/*/*.mp4') as $videoPath) {
         continue;
     }
 
-    $sidecar = preg_replace('/\.[^.]+$/', '', $videoPath).'.chapters.txt';
-
-    if (file_exists($sidecar)) {
+    if (file_exists(ChapterMetadata::chaptersSidecarPath($videoPath))) {
         $skipped++;
 
         continue;
@@ -77,7 +75,7 @@ foreach (glob($seriesPath.'/*/*.mp4') as $videoPath) {
         continue;
     }
 
-    ChapterMetadata::saveNextTo($videoPath, $chapters);
+    ChapterMetadata::saveToChapters($videoPath, $chapters);
     Utils::writeln("$slug/$filename: ".count($chapters).' chapters');
     $written++;
 }

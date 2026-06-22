@@ -37,7 +37,7 @@ class Playlist
             return false;
         }
 
-        // top-level episode mp4s only (the #merged subfolder is not scanned)
+        // top-level episode mp4s only (the chapters/ and subs/ subfolders are not scanned)
         $files = glob($dir.DIRECTORY_SEPARATOR.'*.mp4');
 
         if ($files === false) {

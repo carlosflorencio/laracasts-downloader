@@ -193,9 +193,9 @@ class Resolver
         try {
             $number = sprintf('%02d', $episode['number']);
             $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
-            $sidecar = ChapterMetadata::sidecarPath($filepath);
+            $sidecar = ChapterMetadata::chaptersSidecarPath($filepath);
 
-            if (file_exists($sidecar) || file_exists(ChapterMetadata::mergedSidecarPath($filepath))) {
+            if (file_exists($sidecar)) {
                 Utils::writeln('Chapters already present: '.basename($sidecar));
 
                 return true;
@@ -218,7 +218,7 @@ class Resolver
                 return true;
             }
 
-            ChapterMetadata::saveNextTo($filepath, $chapters);
+            ChapterMetadata::saveToChapters($filepath, $chapters);
 
             Utils::writeln(sprintf('Saved %d chapters', count($chapters)));
 

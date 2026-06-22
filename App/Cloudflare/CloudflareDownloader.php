@@ -123,8 +123,8 @@ class CloudflareDownloader
     }
 
     /**
-     * Report embedded chapters and/or save the ffmetadata sidecar, mirroring
-     * the Mux downloader: an already-embedded sidecar goes into #merged/.
+     * Report embedded chapters and/or save the ffmetadata sidecar into the
+     * chapters/ subfolder, mirroring the Mux downloader.
      */
     private function handleChapters(string $filepath, array $chapters): void
     {
@@ -132,18 +132,10 @@ class CloudflareDownloader
             Utils::writeln(sprintf('Embedded %d chapters', count($chapters)));
         }
 
-        if (! ChapterMetadata::shouldSaveFile()) {
-            return;
-        }
+        if (ChapterMetadata::shouldSaveFile()) {
+            ChapterMetadata::saveToChapters($filepath, $chapters);
 
-        if (ChapterMetadata::shouldEmbed()) {
-            ChapterMetadata::saveToMerged($filepath, $chapters);
-
-            Utils::writeln('Saved chapters file to #merged');
-        } else {
-            ChapterMetadata::saveNextTo($filepath, $chapters);
-
-            Utils::writeln('Saved chapters file');
+            Utils::writeln('Saved chapters file to chapters/');
         }
     }
 
