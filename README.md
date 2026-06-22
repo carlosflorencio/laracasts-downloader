@@ -55,6 +55,15 @@ and `both` does both (a plain `true` is treated as `embed`). By default only the
 track (normally English) is kept; set `SUBTITLE_LANGUAGE=en,es` to pick specific languages, or
 `SUBTITLE_LANGUAGE=all` for every available track.
 
+Sidecar `.vtt` go into a `subs` subfolder of each series. If you have an older library
+whose `.vtt` sit next to the videos, move them in one pass (preview with `--dry-run`,
+narrow with `-s slug`):
+
+```sh
+php commands/MoveSubtitles.php --dry-run    # preview
+php commands/MoveSubtitles.php              # apply
+```
+
 Set `DOWNLOAD_CHAPTERS=embed` to embed chapter markers (built from the episode's transcript topics)
 into each mp4 — players like VLC, mpv and PotPlayer show them as a native chapter menu.
 Use `DOWNLOAD_CHAPTERS=file` to instead save a `NN-title.chapters.txt` ffmetadata sidecar
