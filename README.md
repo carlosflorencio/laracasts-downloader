@@ -63,7 +63,8 @@ ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.
 ```
 
 Set `WRITE_METADATA=true` to tag each finished mp4 with the lesson number (`track`),
-the series title (`album`) and the lesson title (`title`) via a final ffmpeg stream-copy pass.
+the series title (`album`), the lesson title (`title`) and the instructor (`artist`)
+via a final ffmpeg stream-copy pass.
 
 Set `WRITE_PLAYLIST=true` to (re)generate a `#<slug>.m3u8` playlist in each series folder
 after downloading — a plain list of the episode mp4s in order, so you can play the whole
@@ -95,9 +96,9 @@ php start.php -s "series-slug" --subtitles-only
 php start.php -s "series-slug" --timestamps-only
 ```
 
-To (re)write the metadata tags (lesson number, series title, lesson title) into already-downloaded
-videos, use `--metadata-only`. Unlike the flags above it does **not** require `-s`: with no series
-filter it walks the **whole** local library; narrow it with `-s`/`-e` if you prefer.
+To (re)write the metadata tags (lesson number, series title, lesson title, instructor) into
+already-downloaded videos, use `--metadata-only`. Unlike the flags above it does **not** require `-s`:
+with no series filter it walks the **whole** local library; narrow it with `-s`/`-e` if you prefer.
 
 ```sh
 php start.php --metadata-only                       # every downloaded video

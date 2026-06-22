@@ -143,8 +143,9 @@ class Downloader
     /**
      * Backfill metadata into already-downloaded videos. Walks the local
      * library (optionally narrowed by -s/-e), pulling the series title from
-     * cache (falling back to a one-off page fetch) and lesson titles from
-     * cache (falling back to the on-disk filename).
+     * cache (falling back to a one-off page fetch), lesson titles from cache
+     * (falling back to the on-disk filename) and the per-episode instructor
+     * from cache (falling back to a one-off series episode-list fetch).
      */
     private function updateMetadata(): void
     {
@@ -168,9 +169,21 @@ class Downloader
             $seriesTitle = $cache[$slug]['title'] ?? $this->client->fetchSeriesTitle($slug);
 
             $lessonTitles = [];
+            $instructors = [];
 
             foreach ($cache[$slug]['episodes'] ?? [] as $episode) {
-                $lessonTitles[(int) $episode['number']] = $episode['title'];
+                $number = (int) $episode['number'];
+                $lessonTitles[$number] = $episode['title'];
+
+                if (! empty($episode['instructor'])) {
+                    $instructors[$number] = $episode['instructor'];
+                }
+            }
+
+            // older caches predate instructor capture — fetch the per-episode
+            // instructor map once for the whole series in that case
+            if ($instructors === []) {
+                $instructors = $this->client->fetchSeriesInstructors($slug);
             }
 
             $episodeFilter = $this->filters[$slug] ?? [];
@@ -180,7 +193,7 @@ class Downloader
                     continue;
                 }
 
-                if ($this->client->updateEpisodeMetadata($slug, $number, $lessonTitles[$number] ?? null, $seriesTitle)) {
+                if ($this->client->updateEpisodeMetadata($slug, $number, $lessonTitles[$number] ?? null, $seriesTitle, $instructors[$number] ?? null)) {
                     $updated++;
                 } else {
                     $failed++;

@@ -168,7 +168,7 @@ class Resolver
                 }
 
                 if ($downloaded) {
-                    $this->applyMetadata($filepath, $serieSlug, $episode, Parser::getSeriesTitle($episodeHtml));
+                    $this->applyMetadata($filepath, $serieSlug, $episode, Parser::getSeriesTitle($episodeHtml), Parser::getEpisodeInstructor($episodeHtml));
                     $this->applyPublishDate($filepath, Parser::getEpisodePublishDate($episodeHtml) ?? $episode['published'] ?? null);
                 }
 
@@ -292,11 +292,12 @@ class Resolver
     }
 
     /**
-     * Tag the freshly-downloaded mp4 with the lesson number and series
-     * title (plus the lesson title) when WRITE_METADATA is enabled. Runs
-     * before applyPublishDate since the remux resets the file mtime.
+     * Tag the freshly-downloaded mp4 with the lesson number, series title,
+     * lesson title and instructor (artist) when WRITE_METADATA is enabled.
+     * Runs before applyPublishDate since the remux resets the file mtime.
+     * The instructor defaults to the catalogue value carried on $episode.
      */
-    private function applyMetadata(string $filepath, string $serieSlug, array $episode, ?string $seriesTitle = null): void
+    private function applyMetadata(string $filepath, string $serieSlug, array $episode, ?string $seriesTitle = null, ?string $instructor = null): void
     {
         if (! Metadata::enabled()) {
             return;
@@ -304,6 +305,7 @@ class Resolver
 
         Metadata::write($filepath, [
             'title' => $episode['title'] ?? '',
+            'artist' => (string) ($instructor ?? $episode['instructor'] ?? ''),
             'album' => $seriesTitle ?: Utils::humanizeSlug($serieSlug),
             'track' => (string) $episode['number'],
         ]);
@@ -359,11 +361,29 @@ class Resolver
     }
 
     /**
-     * Backfill metadata (lesson number, series title, lesson title) into an
-     * already-downloaded episode mp4 — no video download. The episode is
-     * located by its NN- number prefix, so the exact title is not required.
+     * Per-episode instructor map (number => full name) for a series, fetched
+     * once from its episode list page; empty array when unavailable. Lets the
+     * metadata backfill tag the artist when the cache predates instructor
+     * capture (older cache.json entries carry no instructor).
+     *
+     * @return array<int, string>
      */
-    public function updateEpisodeMetadata(string $serieSlug, int $number, ?string $lessonTitle, ?string $seriesTitle): bool
+    public function fetchSeriesInstructors(string $serieSlug): array
+    {
+        try {
+            return Parser::getEpisodeInstructors($this->getHtml("series/$serieSlug/episodes/1"));
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Backfill metadata (lesson number, series title, lesson title and
+     * instructor) into an already-downloaded episode mp4 — no video download.
+     * The episode is located by its NN- number prefix, so the exact title is
+     * not required.
+     */
+    public function updateEpisodeMetadata(string $serieSlug, int $number, ?string $lessonTitle, ?string $seriesTitle, ?string $instructor = null): bool
     {
         $dir = BASE_FOLDER.DIRECTORY_SEPARATOR.SERIES_FOLDER.DIRECTORY_SEPARATOR.$serieSlug;
 
@@ -386,6 +406,7 @@ class Resolver
 
         return Metadata::write($filepath, [
             'title' => (string) $lessonTitle,
+            'artist' => (string) $instructor,
             'album' => $seriesTitle ?: Utils::humanizeSlug($serieSlug),
             'track' => (string) $number,
         ]);

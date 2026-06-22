@@ -61,6 +61,7 @@ class Parser
                     'title' => $episode['title'],
                     'vimeo_id' => $episode['vimeoId'] ?? null,
                     'number' => $episode['position'],
+                    'instructor' => $episode['author']['profile']['full_name'] ?? null,
                     'published' => $episode['dateSegments']['published'] ?? null,
                 ];
             }
@@ -118,6 +119,43 @@ class Parser
         return $data['props']['series']['title']
             ?? $data['props']['lesson']['series']['title']
             ?? null;
+    }
+
+    /**
+     * Returns the current episode's instructor (full name, e.g.
+     * 'Jeffrey Way'), falling back to the username, or null when unavailable.
+     */
+    public static function getEpisodeInstructor(string $episodeHtml): ?string
+    {
+        $author = self::getData($episodeHtml)['props']['lesson']['author'] ?? [];
+
+        return $author['profile']['full_name'] ?? $author['username'] ?? null;
+    }
+
+    /**
+     * Returns each episode's instructor (full name) keyed by episode number,
+     * read from the series episode list of an episode page
+     * (e.g. [1 => 'Jeffrey Way', ...]). Episodes without an author are omitted.
+     *
+     * @return array<int, string>
+     */
+    public static function getEpisodeInstructors(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $instructors = [];
+
+        foreach ($data['props']['series']['chapters'] ?? [] as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                $name = $episode['author']['profile']['full_name'] ?? null;
+
+                if (! empty($name)) {
+                    $instructors[(int) $episode['position']] = $name;
+                }
+            }
+        }
+
+        return $instructors;
     }
 
     /**
