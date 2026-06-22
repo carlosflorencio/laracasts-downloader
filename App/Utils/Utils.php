@@ -101,6 +101,15 @@ class Utils
     }
 
     /**
+     * Readable series-title fallback derived from a slug
+     * (e.g. 'advanced-eloquent' -> 'Advanced Eloquent').
+     */
+    public static function humanizeSlug(string $slug): string
+    {
+        return ucwords(str_replace('-', ' ', $slug));
+    }
+
+    /**
      * Echo's a message in a new line.
      */
     public static function writeln(string $text): void

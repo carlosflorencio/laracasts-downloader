@@ -11,6 +11,7 @@ use App\Html\Parser;
 use App\Mux\ChapterMetadata;
 use App\Mux\ExternalDownloader;
 use App\Mux\MuxDownloader;
+use App\Utils\Metadata;
 use App\Utils\Utils;
 use App\Vimeo\VimeoDownloader;
 use Exception;
@@ -115,6 +116,7 @@ class Resolver
                 $downloaded = $this->downloadVideo($downloadLink, $filepath);
 
                 if ($downloaded) {
+                    $this->applyMetadata($filepath, $serieSlug, $episode);
                     $this->applyPublishDate($filepath, $episode['published'] ?? null);
                 }
 
@@ -133,6 +135,7 @@ class Resolver
                 $downloaded = $vimeoDownloader->download($episode['vimeo_id'], $filepath);
 
                 if ($downloaded) {
+                    $this->applyMetadata($filepath, $serieSlug, $episode);
                     $this->applyPublishDate($filepath, $episode['published'] ?? null);
                 }
 
@@ -165,6 +168,7 @@ class Resolver
                 }
 
                 if ($downloaded) {
+                    $this->applyMetadata($filepath, $serieSlug, $episode, Parser::getSeriesTitle($episodeHtml));
                     $this->applyPublishDate($filepath, Parser::getEpisodePublishDate($episodeHtml) ?? $episode['published'] ?? null);
                 }
 
@@ -285,6 +289,24 @@ class Resolver
         if ($timestamp !== false && file_exists($filepath)) {
             touch($filepath, $timestamp);
         }
+    }
+
+    /**
+     * Tag the freshly-downloaded mp4 with the lesson number and series
+     * title (plus the lesson title) when WRITE_METADATA is enabled. Runs
+     * before applyPublishDate since the remux resets the file mtime.
+     */
+    private function applyMetadata(string $filepath, string $serieSlug, array $episode, ?string $seriesTitle = null): void
+    {
+        if (! Metadata::enabled()) {
+            return;
+        }
+
+        Metadata::write($filepath, [
+            'title' => $episode['title'] ?? '',
+            'album' => $seriesTitle ?: Utils::humanizeSlug($serieSlug),
+            'track' => (string) $episode['number'],
+        ]);
     }
 
     /**

@@ -62,6 +62,9 @@ the sidecar, placing it in a `#merged` subfolder since its chapters are already 
 ffmpeg -i "01-foo.mp4" -i "01-foo.chapters.txt" -map_chapters 1 -c copy "01-foo.chaptered.mp4"
 ```
 
+Set `WRITE_METADATA=true` to tag each finished mp4 with the lesson number (`track`),
+the series title (`album`) and the lesson title (`title`) via a final ffmpeg stream-copy pass.
+
 On Windows, `commands/merge-chapters.ps1` batch-merges every sidecar in a folder into its
 video in place (skips videos that already have chapters, so it is safe to re-run):
 

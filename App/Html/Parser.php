@@ -107,6 +107,19 @@ class Parser
     }
 
     /**
+     * Returns the human-readable series title from an episode page
+     * (e.g. 'Blaze Deep-Dive'), or null when unavailable.
+     */
+    public static function getSeriesTitle(string $episodeHtml): ?string
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['series']['title']
+            ?? $data['props']['lesson']['series']['title']
+            ?? null;
+    }
+
+    /**
      * Build chapter markers from the lesson transcript topic headers.
      * Returns an empty array for episodes without topic headers.
      *
