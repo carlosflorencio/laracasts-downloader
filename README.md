@@ -91,6 +91,16 @@ php start.php -s "series-slug" --subtitles-only
 php start.php -s "series-slug" --timestamps-only
 ```
 
+To (re)write the metadata tags (lesson number, series title, lesson title) into already-downloaded
+videos, use `--metadata-only`. Unlike the flags above it does **not** require `-s`: with no series
+filter it walks the **whole** local library; narrow it with `-s`/`-e` if you prefer.
+
+```sh
+php start.php --metadata-only                       # every downloaded video
+php start.php --metadata-only -s "series-slug"      # one series
+php start.php --metadata-only -s "series-slug" -e "12,15"
+```
+
 For episodes you downloaded **before** this feature existed, backfill the sidecars for the
 whole local library without re-downloading any videos:
 

@@ -345,6 +345,52 @@ class Resolver
         return touch($filepath, $timestamp);
     }
 
+    /**
+     * Fetch a series' display title from its landing page (for metadata
+     * tagging), or null when it cannot be read.
+     */
+    public function fetchSeriesTitle(string $serieSlug): ?string
+    {
+        try {
+            return Parser::getSeriesTitle($this->getHtml("series/$serieSlug"));
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Backfill metadata (lesson number, series title, lesson title) into an
+     * already-downloaded episode mp4 — no video download. The episode is
+     * located by its NN- number prefix, so the exact title is not required.
+     */
+    public function updateEpisodeMetadata(string $serieSlug, int $number, ?string $lessonTitle, ?string $seriesTitle): bool
+    {
+        $dir = BASE_FOLDER.DIRECTORY_SEPARATOR.SERIES_FOLDER.DIRECTORY_SEPARATOR.$serieSlug;
+
+        $matches = glob($dir.DIRECTORY_SEPARATOR.sprintf('%02d-', $number).'*.mp4');
+
+        if ($matches === false || $matches === []) {
+            Utils::writeln(sprintf('Not downloaded, skipping: %s/%02d', $serieSlug, $number));
+
+            return true;
+        }
+
+        $filepath = $matches[0];
+
+        // fall back to the on-disk title when the online title is unknown
+        if ($lessonTitle === null || $lessonTitle === '') {
+            $lessonTitle = preg_replace('/^\d+-/', '', pathinfo($filepath, PATHINFO_FILENAME));
+        }
+
+        Utils::writeln('Writing metadata: '.basename($filepath));
+
+        return Metadata::write($filepath, [
+            'title' => (string) $lessonTitle,
+            'album' => $seriesTitle ?: Utils::humanizeSlug($serieSlug),
+            'track' => (string) $number,
+        ]);
+    }
+
     private function getFilename(string $serieSlug, string $number, string $episodeName): string
     {
         return BASE_FOLDER

@@ -44,6 +44,9 @@ class Metadata
             escapeshellarg($tempOutput)
         );
 
+        // preserve the original mtime (publish date) across the remux
+        $mtime = @filemtime($filepath);
+
         $output = [];
         $code = 0;
 
@@ -51,6 +54,10 @@ class Metadata
 
         if ($code === 0 && @unlink($filepath)) {
             rename($tempOutput, $filepath);
+
+            if ($mtime !== false) {
+                @touch($filepath, $mtime);
+            }
 
             return true;
         }

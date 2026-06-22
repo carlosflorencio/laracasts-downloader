@@ -22,6 +22,7 @@ class Parser
     {
         return [
             'slug' => $serie['slug'],
+            'title' => $serie['title'] ?? null,
             'path' => LARACASTS_BASE_URL.$serie['path'],
             'episode_count' => $serie['episodeCount'],
             'is_complete' => $serie['complete'],

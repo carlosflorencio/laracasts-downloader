@@ -45,6 +45,9 @@ class Downloader
     /** @var bool Only fix episode file timestamps, no videos */
     private bool $timestampsOnly = false;
 
+    /** @var bool Only (re)write metadata of downloaded videos, no videos */
+    private bool $metadataOnly = false;
+
     public function __construct(HttpClient $httpClient, Filesystem $system, Ubench $bench)
     {
         $this->client = new Resolver($httpClient, $bench);
@@ -65,6 +68,14 @@ class Downloader
         Utils::box('Starting Collecting the data');
 
         $this->setFilters();
+
+        // metadata-only backfills already-downloaded videos; with no -s it
+        // walks the whole local library, optionally narrowed by -s/-e
+        if ($this->metadataOnly) {
+            $this->updateMetadata();
+
+            return;
+        }
 
         $onlyMode = $this->chaptersOnly || $this->subtitlesOnly || $this->timestampsOnly;
 
@@ -115,6 +126,57 @@ class Downloader
                 $counter['failed_episode']
             )
         );
+    }
+
+    /**
+     * Backfill metadata into already-downloaded videos. Walks the local
+     * library (optionally narrowed by -s/-e), pulling the series title from
+     * cache (falling back to a one-off page fetch) and lesson titles from
+     * cache (falling back to the on-disk filename).
+     */
+    private function updateMetadata(): void
+    {
+        Utils::box('Updating metadata');
+
+        $localSeries = $this->system->getSeries();
+        $cache = $this->system->getCache();
+
+        $slugs = $this->filters === [] ? array_keys($localSeries) : array_keys($this->filters);
+
+        $updated = 0;
+        $failed = 0;
+
+        foreach ($slugs as $slug) {
+            if (! isset($localSeries[$slug])) {
+                Utils::writeln("Not downloaded, skipping series: $slug");
+
+                continue;
+            }
+
+            $seriesTitle = $cache[$slug]['title'] ?? $this->client->fetchSeriesTitle($slug);
+
+            $lessonTitles = [];
+
+            foreach ($cache[$slug]['episodes'] ?? [] as $episode) {
+                $lessonTitles[(int) $episode['number']] = $episode['title'];
+            }
+
+            $episodeFilter = $this->filters[$slug] ?? [];
+
+            foreach ($localSeries[$slug] as $number) {
+                if ($episodeFilter !== [] && ! in_array($number, $episodeFilter)) {
+                    continue;
+                }
+
+                if ($this->client->updateEpisodeMetadata($slug, $number, $lessonTitles[$number] ?? null, $seriesTitle)) {
+                    $updated++;
+                } else {
+                    $failed++;
+                }
+            }
+        }
+
+        Utils::writeln(sprintf('Finished! Metadata written for %d videos. Failed: %d', $updated, $failed));
     }
 
     /**
@@ -221,6 +283,7 @@ class Downloader
             'chapters-only',
             'subtitles-only',
             'timestamps-only',
+            'metadata-only',
         ];
 
         $options = getopt($shortOptions, $longOptions);
@@ -243,6 +306,11 @@ class Downloader
         if (array_key_exists('timestamps-only', $options)) {
             $this->timestampsOnly = true;
             unset($options['timestamps-only']);
+        }
+
+        if (array_key_exists('metadata-only', $options)) {
+            $this->metadataOnly = true;
+            unset($options['metadata-only']);
         }
 
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
