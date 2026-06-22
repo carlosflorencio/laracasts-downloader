@@ -8,8 +8,8 @@
  * dots, ...), which left .chapters.txt/.vtt sidecars orphaned from
  * their .mp4.
  *
- * Renames NN-*.mp4/.chapters.txt/.vtt files (also inside #merged/)
- * whose name deviates from the canonical one, and updates renamed
+ * Renames NN-*.mp4/.chapters.txt/.vtt files (also inside #merged/ and
+ * subs/) whose name deviates from the canonical one, and updates renamed
  * entries in the series' #<slug>.m3u8 playlist.
  *
  * Usage (from the project root):
@@ -66,7 +66,7 @@ foreach ($cache as $slug => $series) {
 
     $mp4Renames = []; // old basename => new basename, for the playlist rewrite
 
-    foreach ([$dir, $dir.DIRECTORY_SEPARATOR.'#merged'] as $scanDir) {
+    foreach ([$dir, $dir.DIRECTORY_SEPARATOR.'#merged', $dir.DIRECTORY_SEPARATOR.'subs'] as $scanDir) {
         if (! is_dir($scanDir)) {
             continue;
         }
