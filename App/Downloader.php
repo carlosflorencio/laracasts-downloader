@@ -101,33 +101,6 @@ class Downloader
 
         $onlyMode = $this->chaptersOnly || $this->subtitlesOnly || $this->timestampsOnly;
 
-        // an *-only mode with no -s backfills the whole local library: build
-        // the filter from the series already on disk so we iterate only what
-        // is downloaded (never the full online catalogue), mirroring how
-        // --metadata-only / --playlist-only default to the local library.
-        // These passes stay sidecar/timestamp-only — chapters land in
-        // chapters/, subtitles in subs/, never embedded, regardless of
-        // DOWNLOAD_CHAPTERS / DOWNLOAD_SUBTITLES.
-        if ($onlyMode && $this->filters === []) {
-            $this->filters = array_fill_keys(array_keys($this->system->getSeries()), []);
-
-            if ($this->filters === []) {
-                Utils::writeln('No local series found in '.SERIES_FOLDER.'/.');
-
-                return;
-            }
-
-            Utils::writeln(sprintf(
-                'No -s filter — backfilling %s for all %d local series. Fetching episode lists . . .',
-                implode(' + ', array_filter([
-                    $this->chaptersOnly ? 'chapters' : null,
-                    $this->subtitlesOnly ? 'subtitles' : null,
-                    $this->timestampsOnly ? 'timestamps' : null,
-                ])),
-                count($this->filters)
-            ));
-        }
-
         $this->bench->start();
 
         // the *-only modes process every filtered episode regardless of which exist locally
@@ -136,9 +109,19 @@ class Downloader
         if ($this->filters === []) {
             $cachedData = $this->system->getCache();
 
+            // series list scraped fresh, or read from cache.json with --cache-only
             $onlineSeries = $this->laracasts->getSeries($cachedData, $this->cacheOnly);
 
             $this->system->setCache($onlineSeries);
+
+            // No -s + an *-only mode: keep the fresh/cached catalogue list but
+            // restrict it to series we actually have on disk, so we never
+            // create empty folders or orphan sidecars for undownloaded series.
+            // --timestamps-only then stamps every downloaded video; subtitles/
+            // chapters write a sidecar per episode of each downloaded series.
+            if ($onlyMode) {
+                $onlineSeries = array_intersect_key($onlineSeries, $this->system->getSeries());
+            }
         } else {
             $onlineSeries = $this->laracasts->getFilteredSeries($this->filters);
         }
