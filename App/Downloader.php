@@ -13,7 +13,6 @@ use App\System\Controller as SystemController;
 use App\Utils\Playlist;
 use App\Utils\Utils;
 use Cocur\Slugify\Slugify;
-use Exception;
 use GuzzleHttp\Client as HttpClient;
 use League\Flysystem\Filesystem;
 use Ubench;
@@ -102,8 +101,31 @@ class Downloader
 
         $onlyMode = $this->chaptersOnly || $this->subtitlesOnly || $this->timestampsOnly;
 
+        // an *-only mode with no -s backfills the whole local library: build
+        // the filter from the series already on disk so we iterate only what
+        // is downloaded (never the full online catalogue), mirroring how
+        // --metadata-only / --playlist-only default to the local library.
+        // These passes stay sidecar/timestamp-only — chapters land in
+        // chapters/, subtitles in subs/, never embedded, regardless of
+        // DOWNLOAD_CHAPTERS / DOWNLOAD_SUBTITLES.
         if ($onlyMode && $this->filters === []) {
-            throw new Exception('--chapters-only/--subtitles-only/--timestamps-only requires a series filter, e.g. -s "series-slug"');
+            $this->filters = array_fill_keys(array_keys($this->system->getSeries()), []);
+
+            if ($this->filters === []) {
+                Utils::writeln('No local series found in '.SERIES_FOLDER.'/.');
+
+                return;
+            }
+
+            Utils::writeln(sprintf(
+                'No -s filter — backfilling %s for all %d local series. Fetching episode lists . . .',
+                implode(' + ', array_filter([
+                    $this->chaptersOnly ? 'chapters' : null,
+                    $this->subtitlesOnly ? 'subtitles' : null,
+                    $this->timestampsOnly ? 'timestamps' : null,
+                ])),
+                count($this->filters)
+            ));
         }
 
         $this->bench->start();
@@ -447,7 +469,11 @@ class Downloader
         Utils::box(sprintf('Checking for options %s', json_encode($options)));
 
         if (count($options) == 0) {
-            Utils::write('No options provided');
+            // the *-only modes parse to action flags (already unset above), not
+            // getopt options — don't mislabel them as "no options"
+            if (! $this->chaptersOnly && ! $this->subtitlesOnly && ! $this->timestampsOnly) {
+                Utils::write('No options provided');
+            }
 
             return false;
         }

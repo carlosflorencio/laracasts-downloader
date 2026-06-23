@@ -53,6 +53,8 @@ class Controller
         $seriesCollection = new SeriesCollection([]);
 
         foreach ($filters as $serieSlug => $filteredEpisodes) {
+            Utils::writeln("Getting serie: $serieSlug ...");
+
             $seriesHtml = $this->client->getHtml("series/$serieSlug");
 
             $serie = Parser::getSerieData($seriesHtml);
