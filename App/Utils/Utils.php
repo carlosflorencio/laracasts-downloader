@@ -89,15 +89,38 @@ class Utils
     }
 
     /**
-     * Remove only the chars that windows does not support for filenames,
-     * keeping the episode name as close to the lesson title as possible.
+     * Make the lesson title safe for a windows filename while keeping it as
+     * close to the original as possible: characters windows forbids are
+     * substituted with readable equivalents (": " -> " - ", '/'/'\\' -> '-',
+     * '"' -> "'") where one exists, and only the truly unrepresentable ones
+     * ('*', '?', '<', '>', '|') are dropped. Legal punctuation (',', '+',
+     * '(', '!', '.', "'", ...) is preserved.
      */
     public static function parseEpisodeName(string $name): ?string
     {
-        $name = preg_replace('/[\x00-\x1F\\\\\/:*?"<>|]/', '', $name);
+        // strip control characters outright
+        $name = preg_replace('/[\x00-\x1F]/', '', $name);
+
+        if ($name === null) {
+            return null;
+        }
+
+        // windows-illegal characters that have a sensible readable equivalent
+        $name = strtr($name, [
+            ':' => ' -',
+            '/' => '-',
+            '\\' => '-',
+            '"' => "'",
+        ]);
+
+        // ... and the ones that don't -> drop
+        $name = str_replace(['*', '?', '<', '>', '|'], '', $name);
+
+        // collapse any double spaces a substitution may have introduced
+        $name = preg_replace('/ {2,}/', ' ', $name) ?? $name;
 
         // windows also rejects trailing dots and spaces
-        return $name === null ? null : rtrim($name, ' .');
+        return rtrim($name, ' .');
     }
 
     /**
