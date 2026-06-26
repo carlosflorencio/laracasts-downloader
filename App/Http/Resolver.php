@@ -240,11 +240,12 @@ class Resolver
             $number = sprintf('%02d', $episode['number']);
             $filepath = $this->getFilename($serieSlug, $number, $episode['title']);
 
-            // any existing .vtt in the subs/ folder counts as present
+            // any existing .srt/.vtt in the subs/ folder counts as present
             $base = pathinfo($filepath, PATHINFO_FILENAME);
-            $existing = glob(Subtitles::subsDir($filepath).DIRECTORY_SEPARATOR.$base.'.*.vtt');
+            $subs = Subtitles::subsDir($filepath).DIRECTORY_SEPARATOR.$base;
+            $existing = array_merge(glob($subs.'.*.srt') ?: [], glob($subs.'.*.vtt') ?: []);
 
-            if ($existing !== false && $existing !== []) {
+            if ($existing !== []) {
                 Utils::writeln('Subtitles already present: '.basename($existing[0]));
 
                 return true;

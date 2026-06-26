@@ -53,7 +53,7 @@ class MuxDownloader
 
     /**
      * Fetch and save only the subtitle tracks of an episode (no video).
-     * Always writes sidecar .vtt files into subs/ (the subtitles-only flag).
+     * Always writes sidecar .srt files into subs/ (the subtitles-only flag).
      */
     public function downloadSubtitlesOnly(string $playbackId, string $token, string $filepath): bool
     {

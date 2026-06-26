@@ -5,10 +5,10 @@
  * cache.json, using the same sanitizer as new downloads
  * (Utils::parseEpisodeName). Fixes libraries written when the sanitizer
  * stripped characters that are legal on windows (commas, apostrophes,
- * dots, ...), which left .chapters.txt/.vtt sidecars orphaned from
+ * dots, ...), which left .chapters.txt/.vtt/.srt sidecars orphaned from
  * their .mp4.
  *
- * Renames NN-*.mp4/.chapters.txt/.vtt files (also inside chapters/ and
+ * Renames NN-*.mp4/.chapters.txt/.vtt/.srt files (also inside chapters/ and
  * subs/) whose name deviates from the canonical one, and updates renamed
  * entries in the series' #<slug>.m3u8 playlist.
  *
@@ -73,7 +73,7 @@ foreach ($cache as $slug => $series) {
 
         foreach (scandir($scanDir) as $file) {
             if (! preg_match('/^(\d{2,})-/', $file, $prefix)
-                || ! preg_match('/^(.*?)(\.chapters\.txt|(?:\.[a-zA-Z]{2,3}(?:-[A-Za-z0-9]+)?)?\.vtt|\.mp4)$/', $file, $parts)) {
+                || ! preg_match('/^(.*?)(\.chapters\.txt|(?:\.[a-zA-Z]{2,3}(?:-[A-Za-z0-9]+)?)?\.(?:vtt|srt)|\.mp4)$/', $file, $parts)) {
                 continue;
             }
 

@@ -10,9 +10,13 @@ use Throwable;
  *
  *   - 'embed' (or a plain boolean true) muxes the .vtt tracks into the mp4
  *     as mov_text streams
- *   - 'sidecar' (alias 'file') saves them as .vtt in a 'subs' subfolder
+ *   - 'sidecar' (alias 'file') saves them as .srt in a 'subs' subfolder
+ *     (converted from the source WebVTT — players such as VLC only
+ *     language-label external .srt sidecars by filename, never .vtt)
  *   - 'both' does both
- *   - empty / false / off disables subtitles
+ *   - 'off' / 'false' / 'none' disables subtitles
+ *
+ * Unset or unrecognised values default to 'sidecar'.
  *
  * Each downloader builds a track list (language + url/+default), filters it
  * by SUBTITLE_LANGUAGE, materialises the chosen tracks to temp .vtt files,
@@ -51,9 +55,10 @@ class Subtitles
 
         return match ($value) {
             'embed', 'true', '1', 'yes', 'on' => 'embed',
-            'sidecar', 'file' => 'sidecar',
             'both' => 'both',
-            default => 'off',
+            'off', 'false', '0', 'no', 'none' => 'off',
+            // 'sidecar'/'file', unset/empty, or any unrecognised value
+            default => 'sidecar',
         };
     }
 
@@ -175,7 +180,9 @@ class Subtitles
     }
 
     /**
-     * Copy each materialised track into subs/ as <episode-stem>.<lang>.vtt.
+     * Save each materialised track into subs/ as <episode-stem>.<lang>.srt
+     * (converted from the temp WebVTT). On conversion failure the original
+     * .vtt is kept as a fallback so the subtitle is never lost.
      *
      * @param  array<int, array<string, mixed>>  $tracks
      */
@@ -196,8 +203,57 @@ class Subtitles
                 continue;
             }
 
-            @copy($track['path'], $dir.DIRECTORY_SEPARATOR.$base.'.'.($track['language'] ?? 'en').'.vtt');
+            $stem = $dir.DIRECTORY_SEPARATOR.$base.'.'.($track['language'] ?? 'en');
+
+            if (! self::vttToSrt((string) $track['path'], $stem.'.srt')) {
+                @copy($track['path'], $stem.'.vtt');
+                Utils::writeln('Saved subtitles as .vtt (srt conversion failed)');
+            }
         }
+    }
+
+    /**
+     * Convert a WebVTT file to SubRip (.srt) with ffmpeg. ffmpeg goes through
+     * the shell and escapeshellarg mangles ! / % on Windows, so the conversion
+     * runs on shell-safe sibling temp names in the destination folder and the
+     * real (possibly !/%-bearing) names are applied with rename — which also
+     * keeps the move on the same volume. Best-effort.
+     */
+    public static function vttToSrt(string $vtt, string $srt): bool
+    {
+        if (! file_exists($vtt)) {
+            return false;
+        }
+
+        $dir = dirname($srt);
+        $token = uniqid();
+        $safeIn = $dir.DIRECTORY_SEPARATOR.'.lc-vtt-'.$token.'.vtt';
+        $safeOut = $dir.DIRECTORY_SEPARATOR.'.lc-srt-'.$token.'.srt';
+
+        if (! @copy($vtt, $safeIn)) {
+            return false;
+        }
+
+        $command = sprintf(
+            'ffmpeg -y -hide_banner -loglevel error -i %s %s 2>&1',
+            escapeshellarg($safeIn),
+            escapeshellarg($safeOut)
+        );
+
+        $ignored = [];
+        $code = 0;
+
+        exec($command, $ignored, $code);
+
+        @unlink($safeIn);
+
+        if ($code === 0 && file_exists($safeOut) && @rename($safeOut, $srt)) {
+            return true;
+        }
+
+        @unlink($safeOut);
+
+        return false;
     }
 
     /**
@@ -232,7 +288,11 @@ class Subtitles
         foreach (array_values($tracks) as $i => $track) {
             $inputs .= ' -i '.escapeshellarg((string) $track['path']);
             $maps .= ' -map '.($i + 1).':0';
-            $meta .= sprintf(' -metadata:s:s:%d language=%s', $i, escapeshellarg(self::iso6392((string) ($track['language'] ?? 'und'))));
+            $lang = (string) ($track['language'] ?? 'und');
+            $meta .= sprintf(' -metadata:s:s:%d language=%s', $i, escapeshellarg(self::iso6392($lang)));
+            // MP4 has no per-stream title atom (it is silently dropped); the
+            // track's handler_name is the field players read for a readable name
+            $meta .= sprintf(' -metadata:s:s:%d handler_name=%s', $i, escapeshellarg(self::languageName($lang)));
 
             if (! empty($track['default'])) {
                 $meta .= sprintf(' -disposition:s:%d default', $i);
@@ -288,5 +348,31 @@ class Subtitles
         $lang = strtolower($lang);
 
         return self::ISO_639_2[$lang] ?? $lang;
+    }
+
+    /**
+     * Human-readable language name for the subtitle track's handler_name (so
+     * players like VLC show e.g. "English"). Resolves via ICU (ext-intl) so any
+     * ISO code works without a hand-maintained list; falls back to the bare code
+     * when intl is unavailable or the code is unknown/undetermined.
+     */
+    private static function languageName(string $lang): string
+    {
+        $lang = strtolower(explode('-', $lang)[0]);
+
+        if ($lang === '' || $lang === 'und') {
+            return 'Undetermined';
+        }
+
+        if (class_exists(\Locale::class)) {
+            $name = \Locale::getDisplayLanguage($lang, 'en');
+
+            // ICU echoes the input back for codes it does not recognise
+            if ($name !== '' && strcasecmp($name, $lang) !== 0) {
+                return $name;
+            }
+        }
+
+        return ucfirst($lang);
     }
 }
