@@ -22,6 +22,7 @@ class Parser
     {
         return [
             'slug' => $serie['slug'],
+            'title' => $serie['title'] ?? null,
             'path' => LARACASTS_BASE_URL.$serie['path'],
             'episode_count' => $serie['episodeCount'],
             'is_complete' => $serie['complete'],
@@ -48,15 +49,19 @@ class Parser
                     continue;
                 }
 
-                // vimeoId is null for upcoming episodes
-                if (! isset($episode['vimeoId'])) {
+                // no playback data on any host (mux/vimeo/cloudflare) means the
+                // episode is upcoming and not yet downloadable
+                if (empty($episode['muxPlaybackId'])
+                    && empty($episode['vimeoId'])
+                    && empty($episode['cloudflarePlayback']['src'])) {
                     continue;
                 }
 
                 $episodes[] = [
                     'title' => $episode['title'],
-                    'vimeo_id' => $episode['vimeoId'],
                     'number' => $episode['position'],
+                    'instructor' => $episode['author']['profile']['full_name'] ?? null,
+                    'published' => $episode['dateSegments']['published'] ?? null,
                 ];
             }
         }
@@ -69,6 +74,168 @@ class Parser
         $data = self::getData($episodeHtml);
 
         return $data['props']['downloadLink'];
+    }
+
+    /**
+     * Returns the Mux playback id and short-lived signed playback token
+     * for the current episode page.
+     *
+     * @return array{0: string, 1: string}
+     */
+    public static function getEpisodeMuxPlayback(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $lesson = $data['props']['lesson'] ?? [];
+
+        if (empty($lesson['muxPlaybackId']) || empty($lesson['muxTokens']['playback'])) {
+            throw new Exception('No Mux playback data found on the episode page.');
+        }
+
+        return [$lesson['muxPlaybackId'], $lesson['muxTokens']['playback']];
+    }
+
+    /**
+     * Returns the Cloudflare HLS playback descriptor for the current
+     * episode (the `src` master url plus a `captions` list), or null for
+     * lessons still hosted on Mux.
+     */
+    public static function getEpisodeCloudflarePlayback(string $episodeHtml): ?array
+    {
+        $playback = self::getData($episodeHtml)['props']['lesson']['cloudflarePlayback'] ?? null;
+
+        return empty($playback['src']) ? null : $playback;
+    }
+
+    /**
+     * Returns the human-readable series title from an episode page
+     * (e.g. 'Blaze Deep-Dive'), or null when unavailable.
+     */
+    public static function getSeriesTitle(string $episodeHtml): ?string
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['series']['title']
+            ?? $data['props']['lesson']['series']['title']
+            ?? null;
+    }
+
+    /**
+     * Returns the current episode's instructor (full name, e.g.
+     * 'Jeffrey Way'), falling back to the username, or null when unavailable.
+     */
+    public static function getEpisodeInstructor(string $episodeHtml): ?string
+    {
+        $author = self::getData($episodeHtml)['props']['lesson']['author'] ?? [];
+
+        return $author['profile']['full_name'] ?? $author['username'] ?? null;
+    }
+
+    /**
+     * Returns each episode's instructor (full name) keyed by episode number,
+     * read from the series episode list of an episode page
+     * (e.g. [1 => 'Jeffrey Way', ...]). Episodes without an author are omitted.
+     *
+     * @return array<int, string>
+     */
+    public static function getEpisodeInstructors(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $instructors = [];
+
+        foreach ($data['props']['series']['chapters'] ?? [] as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                $name = $episode['author']['profile']['full_name'] ?? null;
+
+                if (! empty($name)) {
+                    $instructors[(int) $episode['position']] = $name;
+                }
+            }
+        }
+
+        return $instructors;
+    }
+
+    /**
+     * Build chapter markers from the lesson transcript topic headers.
+     * Returns an empty array for episodes without topic headers.
+     *
+     * @return array<int, array{title: string, start: int, end: int}> start/end in seconds
+     */
+    public static function getEpisodeChapters(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $segments = $data['props']['lesson']['transcriptSegments'] ?? [];
+
+        $chapters = [];
+
+        foreach ($segments as $segment) {
+            $title = trim((string) ($segment['topicHeader'] ?? ''));
+
+            $startsNewChapter = $title !== ''
+                && ($chapters === [] || $chapters[count($chapters) - 1]['title'] !== $title);
+
+            if ($startsNewChapter) {
+                if ($chapters !== []) {
+                    $chapters[count($chapters) - 1]['end'] = (int) $segment['startTime'];
+                }
+
+                $chapters[] = [
+                    'title' => $title,
+                    'start' => (int) $segment['startTime'],
+                    'end' => (int) $segment['endTime'],
+                ];
+
+                continue;
+            }
+
+            // header-less (or same-topic) segments extend the current chapter
+            if ($chapters !== []) {
+                $chapters[count($chapters) - 1]['end'] = (int) $segment['endTime'];
+            }
+        }
+
+        return $chapters;
+    }
+
+    /**
+     * Returns the current episode's original publish date from its page
+     * (e.g. 'March 4, 2015'), or null for scheduled episodes.
+     */
+    public static function getEpisodePublishDate(string $episodeHtml): ?string
+    {
+        $data = self::getData($episodeHtml);
+
+        return $data['props']['lesson']['dateSegments']['published'] ?? null;
+    }
+
+    /**
+     * Returns each episode's original publish date keyed by episode
+     * number, read from the series episode list of an episode page
+     * (e.g. [1 => 'March 4, 2015', ...]). Episodes without a date
+     * (scheduled ones) are omitted.
+     *
+     * @return array<int, string>
+     */
+    public static function getEpisodePublishDates(string $episodeHtml): array
+    {
+        $data = self::getData($episodeHtml);
+
+        $dates = [];
+
+        foreach ($data['props']['series']['chapters'] ?? [] as $chapter) {
+            foreach ($chapter['episodes'] as $episode) {
+                $published = $episode['dateSegments']['published'] ?? null;
+
+                if (! empty($published)) {
+                    $dates[(int) $episode['position']] = $published;
+                }
+            }
+        }
+
+        return $dates;
     }
 
     public static function getUserData(string $html): array
@@ -86,17 +253,34 @@ class Parser
     }
 
     /**
-     * Returns decoded version of data-page attribute in HTML page
-     *
-     * @return array
+     * Returns decoded version of the Inertia page data in HTML page
      */
-    public static function getData(string $html): mixed
+    public static function getData(string $html): array
     {
         $parser = new Crawler($html);
 
-        $data = $parser->filter('#app')->attr('data-page');
+        // Inertia page data lives in a JSON script tag
+        // (previously in the #app element's data-page attribute)
+        $script = $parser->filter('script[data-page]');
 
-        return json_decode((string) $data, true);
+        if ($script->count() > 0) {
+            $json = $script->first()->text(null, false);
+        } else {
+            $app = $parser->filter('#app');
+            $json = $app->count() > 0 ? $app->attr('data-page') : null;
+        }
+
+        if ($json === null || $json === '') {
+            throw new Exception('Unable to find Inertia page data within the HTML.');
+        }
+
+        $data = json_decode($json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Unable to decode Inertia page data: '.json_last_error_msg());
+        }
+
+        return $data;
     }
 
     public static function extractJsonAfter(string $html, string $needle): array
@@ -140,7 +324,7 @@ class Parser
 
         $json = substr($html, $openBracePos, $currentPos - $openBracePos);
 
-        if (! $json) {
+        if ($json === '' || $json === '0') {
             throw new Exception("Failed to extract json after $needle");
         }
 

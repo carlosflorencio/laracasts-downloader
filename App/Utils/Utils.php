@@ -89,11 +89,47 @@ class Utils
     }
 
     /**
-     * Remove specials chars that windows does not support for filenames.
+     * Make the lesson title safe for a windows filename while keeping it as
+     * close to the original as possible: characters windows forbids are
+     * substituted with readable equivalents (": " -> " - ", '/'/'\\' -> '-',
+     * '"' -> "'") where one exists, and only the truly unrepresentable ones
+     * ('*', '?', '<', '>', '|') are dropped. Legal punctuation (',', '+',
+     * '(', '!', '.', "'", ...) is preserved.
      */
     public static function parseEpisodeName(string $name): ?string
     {
-        return preg_replace('/[^A-Za-z0-9\- _]/', '', $name);
+        // strip control characters outright
+        $name = preg_replace('/[\x00-\x1F]/', '', $name);
+
+        if ($name === null) {
+            return null;
+        }
+
+        // windows-illegal characters that have a sensible readable equivalent
+        $name = strtr($name, [
+            ':' => ' -',
+            '/' => '-',
+            '\\' => '-',
+            '"' => "'",
+        ]);
+
+        // ... and the ones that don't -> drop
+        $name = str_replace(['*', '?', '<', '>', '|'], '', $name);
+
+        // collapse any double spaces a substitution may have introduced
+        $name = preg_replace('/ {2,}/', ' ', $name) ?? $name;
+
+        // windows also rejects trailing dots and spaces
+        return rtrim($name, ' .');
+    }
+
+    /**
+     * Readable series-title fallback derived from a slug
+     * (e.g. 'advanced-eloquent' -> 'Advanced Eloquent').
+     */
+    public static function humanizeSlug(string $slug): string
+    {
+        return ucwords(str_replace('-', ' ', $slug));
     }
 
     /**

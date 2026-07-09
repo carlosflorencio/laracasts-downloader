@@ -2,6 +2,8 @@
 
 namespace App\Vimeo;
 
+use App\Utils\SubtitleLanguages;
+use App\Utils\Subtitles;
 use App\Utils\Utils;
 use GuzzleHttp\Client;
 
@@ -41,7 +43,13 @@ class VimeoDownloader
             $filenames[] = $filename;
         }
 
-        return $this->mergeSources($filenames[0], $filenames[1], $filepath);
+        $result = $this->mergeSources($filenames[0], $filenames[1], $filepath);
+
+        if ($result && Subtitles::enabled()) {
+            $this->handleSubtitles($video->getTextTracks(), $filepath);
+        }
+
+        return $result;
     }
 
     private function downloadSource(string $baseURL, array $sourceData, string $filepath): void
@@ -95,5 +103,32 @@ class VimeoDownloader
         }
 
         return false;
+    }
+
+    /**
+     * Materialise the Vimeo text tracks to temp .vtt files and embed/save
+     * them per DOWNLOAD_SUBTITLES.
+     */
+    private function handleSubtitles(array $textTracks, string $filepath): void
+    {
+        $tracks = [];
+
+        foreach ($textTracks as $track) {
+            if (empty($track['url'])) {
+                continue;
+            }
+
+            $tracks[] = [
+                'src' => $track['url'],
+                'language' => $track['lang'] ?? 'en',
+                'default' => ! empty($track['default']),
+            ];
+        }
+
+        if ($tracks === []) {
+            return;
+        }
+
+        Subtitles::deliver($filepath, Subtitles::materializeDirect(SubtitleLanguages::filter($tracks)));
     }
 }
