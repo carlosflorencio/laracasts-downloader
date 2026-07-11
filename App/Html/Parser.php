@@ -94,7 +94,12 @@ class Parser
     {
         $parser = new Crawler($html);
 
-        $data = $parser->filter('#app')->attr('data-page');
+        // Laracasts (Inertia SSR) now stores the page payload in a
+        // <script data-page> tag; older markup used the #app attribute.
+        $script = $parser->filter('script[data-page]');
+        $data = $script->count()
+            ? $script->text()
+            : $parser->filter('#app')->attr('data-page');
 
         return json_decode((string) $data, true);
     }
